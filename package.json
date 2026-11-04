@@ -1,0 +1,20 @@
+{
+  "name": "antirea",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Anti reverse-engineering hardening + reverse-engineering attempt intelligence dashboard",
+  "license": "Apache-2.0",
+  "workspaces": [
+    "packages/guard",
+    "packages/honeypot",
+    "packages/secure-fn",
+    "packages/adaptive",
+    "packages/collector"
+  ],
+  "scripts": {
+    "build:guard": "npm run build --workspace=@antirea/guard",
+    "dev:collector": "npm run dev --workspace=@antirea/collector",
+    "start:collector": "npm run start --workspace=@antirea/collector"
+  },
+  "author": "Diamond Rubinny"
+}
