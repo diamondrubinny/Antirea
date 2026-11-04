@@ -1,0 +1,27 @@
+{
+  "name": "@antirea/collector",
+  "version": "0.1.0",
+  "description": "Telemetry collector + intelligence dashboard for antirea",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc",
+    "dev": "node --loader ts-node/esm --env-file=.env src/server.ts",
+    "start": "node --env-file=.env dist/server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "geoip-lite": "^1.4.10"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/express": "^4.17.21",
+    "@types/geoip-lite": "^1.4.4",
+    "@types/node": "^20.14.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
