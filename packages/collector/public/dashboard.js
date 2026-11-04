@@ -144,6 +144,78 @@ function renderOffenders(rows) {
   if (rows.length === 0) tbody.innerHTML = `<tr><td colspan="4">${esc(t("empty"))}</td></tr>`;
 }
 
+function renderProposals(rows) {
+  const tbody = $("#proposals tbody");
+  tbody.innerHTML = "";
+  for (const p of rows) {
+    const change = p.type === "watch" ? esc(p.current_val || "")
+      : `${esc(p.current_val ?? "")} → ${esc(p.proposed_val ?? "")}`;
+    const pending = p.status === "pending";
+    const actions = pending
+      ? `<button type="button" class="p-approve" data-id="${esc(p.id)}">${esc(t("ai.approve"))}</button> ` +
+        `<button type="button" class="p-reject" data-id="${esc(p.id)}">${esc(t("ai.reject"))}</button>`
+      : "";
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      `<td>${esc(p.type)}</td><td>${esc(p.source)}</td><td class="path">${change}</td>` +
+      `<td>${esc(p.rationale)}</td><td>${Number(p.confidence).toFixed(2)}</td>` +
+      `<td>${esc(p.status)}</td><td>${actions}</td>`;
+    tbody.appendChild(tr);
+  }
+  if (rows.length === 0) tbody.innerHTML = `<tr><td colspan="7">${esc(t("empty"))}</td></tr>`;
+  tbody.querySelectorAll(".p-approve").forEach((b) =>
+    b.addEventListener("click", () => decideProposal(b.getAttribute("data-id"), "approve")));
+  tbody.querySelectorAll(".p-reject").forEach((b) =>
+    b.addEventListener("click", () => decideProposal(b.getAttribute("data-id"), "reject")));
+}
+
+function renderKnowledge(rows) {
+  const tbody = $("#knowledge tbody");
+  tbody.innerHTML = "";
+  for (const k of rows) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="path">${esc(k.pattern)}</td><td>${Number(k.confidence).toFixed(2)}</td><td>${num(k.occurrences)}</td>`;
+    tbody.appendChild(tr);
+  }
+  if (rows.length === 0) tbody.innerHTML = `<tr><td colspan="3">${esc(t("empty"))}</td></tr>`;
+}
+
+async function decideProposal(id, action) {
+  if (!id) return;
+  try {
+    await api(`/api/proposals/${action}`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }),
+    });
+    await loadAdvisor();
+  } catch (err) { if (err.message !== "unauthorized") setStatus(`${t("status.error")}: ${err.message}`); }
+}
+
+async function loadAdvisor() {
+  const site = $("#site").value.trim();
+  const qs = site ? `?site=${encodeURIComponent(site)}` : "";
+  try {
+    const { proposals } = await api(`/api/proposals${qs}`);
+    renderProposals(proposals);
+    if (site) {
+      const { knowledge } = await api(`/api/knowledge?site=${encodeURIComponent(site)}`);
+      renderKnowledge(knowledge);
+    } else {
+      renderKnowledge([]);
+    }
+  } catch (err) { if (err.message !== "unauthorized") { /* ignore */ } }
+}
+
+async function runAnalysis() {
+  const site = $("#site").value.trim();
+  if (!site) { $("#ai-analysis").textContent = t("settings.title"); return; }
+  $("#ai-analysis").textContent = t("status.loading");
+  try {
+    const r = await api(`/api/analyze?site=${encodeURIComponent(site)}`, { method: "POST" });
+    $("#ai-analysis").textContent = r.analysis || "";
+    await loadAdvisor();
+  } catch (err) { if (err.message !== "unauthorized") $("#ai-analysis").textContent = `${t("status.error")}: ${err.message}`; }
+}
+
 function currentQuery() {
   const days = $("#days").value;
   const site = $("#site").value.trim();
@@ -189,6 +261,7 @@ async function load() {
     renderRecent(recent.events);
     renderOffenders(offenders.offenders);
     await loadSettings();
+    await loadAdvisor();
     setStatus(`${t("status.updated")}: ${fmtTime(Date.now())}`);
   } catch (err) {
     if (err.message !== "unauthorized") setStatus(`${t("status.error")}: ${err.message}`);
@@ -226,6 +299,8 @@ $("#settings-form").addEventListener("submit", async (e) => {
     if (err.message !== "unauthorized") $("#settings-status").textContent = `${t("status.error")}: ${err.message}`;
   }
 });
+
+$("#ai-run").addEventListener("click", () => runAnalysis());
 
 buildLangSelect();
 applyI18n();

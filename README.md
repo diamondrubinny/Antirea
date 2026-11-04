@@ -28,7 +28,8 @@ Shipping a security tool means being honest about its guarantees. Antirea has **
 | **`@antirea/secure-fn`** | **The hermetic core.** Runs proprietary functions on the server; client sends inputs, gets outputs. CDP never sees the algorithm. |
 | `@antirea/honeypot` | Express/connect middleware. Behavioural detection (IP, cadence, timing, header instability) + serves decoys. Shadow mode by default. |
 | `@antirea/guard` | Browser library. Detects DevTools/CDP/automation and reports telemetry. `<script>` or npm. |
-| `@antirea/collector` | Ingest API + GeoIP + SQLite + the **multi-language control panel**. |
+| `@antirea/adaptive` | **Learns from attacks** and proposes bounded defense changes. Heuristics always; AI optional (BYO key). Suggest-only by default. |
+| `@antirea/collector` | Ingest API + GeoIP + SQLite + the **multi-language control panel** (stats, settings, AI advisor). |
 
 ---
 
@@ -127,6 +128,20 @@ Attackers spoof the `User-Agent` and other headers. Antirea's engine (`@antirea/
 A tool attached via the Chrome DevTools Protocol reads source directly from the engine. For **client code** Antirea adds: a CDP probe in the guard (`debugger`-timing — REA's passive capture does not suppress pauses — plus `Error.stack`/`RegExp.toString` console traps) and **attestation-gated delivery** (`importProtected`) so protected modules are fetched out-of-band and replaced with decoys under CDP. These raise cost; `blackboxing` and a forged attestation header defeat them. For **logic**, `@antirea/secure-fn` is the real answer.
 
 ---
+
+## Adaptive AI advisor (optional, `@antirea/adaptive`)
+
+Learns from the attacks it sees and proposes defense changes. **Off by default; turn it on in the collector's `.env` (`AI_ENABLED=true` + an API key).**
+
+- **Heuristics run always** (no key needed): they summarize recent events, build a **knowledge base** of recurring attack signatures (signal combos, with confidence that grows as a pattern recurs), and propose bounded tweaks.
+- **AI advisor (BYO key, default Claude `claude-opus-5-5`)**: sends only an **aggregated, non-PII summary** (counts, country codes, signal names — never raw IPs or User-Agents) and returns analysis + proposals.
+- **Control panel → AI Advisor tab**: run analysis, review proposals, **Approve & apply** or **Reject**.
+
+**Safety design (important for a feedback-driven system):**
+- **Suggest-only by default.** A human approves every change. `AI_AUTO_APPLY` is off by default and, even on, only applies *small threshold steps* — never mode switches, never IP blocks.
+- **Model output is untrusted.** Every proposal is clamped to hard bounds (`threshold ∈ [0.4, 0.95]`, `mode ∈ {shadow, live}`) before storage, so a poisoned or prompt-injected model cannot push a defense outside the safe envelope.
+- **Poisoning is possible in principle** — an attacker who feeds crafted traffic could try to nudge recommendations. Human-in-the-loop + bounds + no auto-hard-block are the mitigations. Review proposals; don't enable auto-apply unless you understand this.
+- **No raw IPs leave the collector**, so the AI never proposes IP blocks (that stays a manual operator action from the Top-sources view).
 
 ## Security & privacy (GDPR / IL Privacy Law — draft, needs legal review)
 

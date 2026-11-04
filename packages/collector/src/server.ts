@@ -12,6 +12,14 @@ import express, { type NextFunction, type Request, type Response } from "express
 import rateLimit from "express-rate-limit";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import {
+  AnthropicAdvisor,
+  clampThreshold,
+  recommend,
+  type KnowledgeStore,
+  type KnowledgeSignature,
+  type Proposal,
+} from "@antirea/adaptive";
 import { Store } from "./db.js";
 import { countryFor, extractIp, hashIp, initGeo } from "./geo.js";
 import { validateEvent } from "./validate.js";
@@ -25,6 +33,12 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? "";
 const TRUST_PROXY = process.env.TRUST_PROXY === "true";
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "*").split(",").map((s) => s.trim());
 const RETENTION_DAYS = Number(process.env.RETENTION_DAYS ?? 90);
+
+// Adaptive AI layer. OFF by default. Auto-apply OFF by default (suggest-only).
+const AI_ENABLED = process.env.AI_ENABLED === "true";
+const AI_AUTO_APPLY = process.env.AI_AUTO_APPLY === "true";
+const AI_MODEL = process.env.AI_MODEL ?? "claude-opus-5-5";
+const AI_ANALYZE_INTERVAL_MIN = Number(process.env.AI_ANALYZE_INTERVAL_MIN ?? 0);
 
 if (!IP_SALT) {
   // Fail fast: without a salt, IP hashing is weak. Required in all envs.
@@ -223,6 +237,110 @@ app.get("/api/site-config", (req: Request, res: Response) => {
   return res.json({ enabled: cfg.enabled, mode: cfg.mode, threshold: cfg.threshold, allowIps: cfg.allowIps, blockIps: cfg.blockIps });
 });
 
+// --- Adaptive defense (learns + proposes bounded changes) ---
+
+/** SQLite-backed knowledge store scoped to one site. */
+class SiteKnowledge implements KnowledgeStore {
+  constructor(private readonly siteId: string) {}
+  get(pattern: string): KnowledgeSignature | null {
+    return store.knowledgeGet(this.siteId, pattern);
+  }
+  put(sig: KnowledgeSignature): void {
+    store.knowledgePut(this.siteId, sig);
+  }
+  list(limit: number): KnowledgeSignature[] {
+    return store.knowledgeList(this.siteId, limit);
+  }
+}
+
+/** Apply a proposal to the live site config. Bounded + clamped. */
+function applyProposal(siteId: string, p: { type: string; proposed?: string | number }): void {
+  const prev = (store.getConfig(siteId) as SiteConfig | null) ?? sanitizeConfig({}, null);
+  const next: SiteConfig = { ...prev };
+  if (p.type === "threshold" && p.proposed !== undefined) {
+    next.threshold = clampThreshold(Number(p.proposed));
+  } else if (p.type === "mode" && (p.proposed === "shadow" || p.proposed === "live")) {
+    next.mode = p.proposed;
+  } else {
+    return; // "watch" changes nothing live
+  }
+  store.setConfig(siteId, next as unknown as Record<string, unknown>);
+}
+
+/** Conservative auto-apply gate: only small threshold steps, never mode. */
+function canAutoApply(p: Proposal, currentThreshold: number): boolean {
+  if (p.type !== "threshold" || p.proposed === undefined) return false;
+  const next = clampThreshold(Number(p.proposed));
+  return Math.abs(next - currentThreshold) <= 0.15;
+}
+
+async function runAnalysis(siteId: string): Promise<{ analysis: string; count: number }> {
+  const since = Date.now() - 24 * 36e5;
+  const rows = store.recentRows(since, siteId, 5000);
+  if (rows.length === 0) return { analysis: "No recent events.", count: 0 };
+  const cfg = store.getConfig(siteId) as SiteConfig | null;
+  const ctx = {
+    siteId,
+    currentMode: (cfg?.mode ?? "shadow") as "shadow" | "live",
+    currentThreshold: typeof cfg?.threshold === "number" ? cfg.threshold : 0.7,
+  };
+  const advisor = AI_ENABLED ? new AnthropicAdvisor({ model: AI_MODEL }) : undefined;
+  const { analysis, proposals } = await recommend({
+    rows,
+    windowStart: since,
+    windowEnd: Date.now(),
+    ctx,
+    knowledge: new SiteKnowledge(siteId),
+    advisor,
+  });
+  for (const p of proposals) {
+    let status = p.status;
+    if (AI_AUTO_APPLY && canAutoApply(p, ctx.currentThreshold)) {
+      applyProposal(siteId, p);
+      status = "applied";
+    }
+    store.insertProposal({ ...p, status });
+  }
+  return { analysis, count: proposals.length };
+}
+
+app.post("/api/analyze", requireAdmin, (req: Request, res: Response) => {
+  const siteId = typeof req.query.site === "string" ? req.query.site : "";
+  if (!siteId) return res.status(400).json({ error: "site required" });
+  void runAnalysis(siteId)
+    .then((r) => res.json(r))
+    .catch((e) => res.status(500).json({ error: (e as Error).message }));
+  return undefined;
+});
+
+app.get("/api/proposals", requireAdmin, (req: Request, res: Response) => {
+  const siteId = typeof req.query.site === "string" && req.query.site ? req.query.site : undefined;
+  const status = typeof req.query.status === "string" ? req.query.status : undefined;
+  res.json({ proposals: store.listProposals(siteId, status, 100) });
+});
+
+app.get("/api/knowledge", requireAdmin, (req: Request, res: Response) => {
+  const siteId = typeof req.query.site === "string" ? req.query.site : "";
+  if (!siteId) return res.status(400).json({ error: "site required" });
+  return res.json({ knowledge: store.knowledgeList(siteId, 50) });
+});
+
+app.post("/api/proposals/approve", requireAdmin, express.json({ limit: "4kb" }), (req: Request, res: Response) => {
+  const id = (req.body as { id?: string })?.id ?? "";
+  const p = store.getProposal(id);
+  if (!p) return res.status(404).json({ error: "not found" });
+  applyProposal(String(p.site_id), { type: String(p.type), proposed: p.proposed_val as string });
+  store.setProposalStatus(id, "applied");
+  return res.json({ ok: true });
+});
+
+app.post("/api/proposals/reject", requireAdmin, express.json({ limit: "4kb" }), (req: Request, res: Response) => {
+  const id = (req.body as { id?: string })?.id ?? "";
+  if (!store.getProposal(id)) return res.status(404).json({ error: "not found" });
+  store.setProposalStatus(id, "rejected");
+  return res.json({ ok: true });
+});
+
 app.get("/api/events", requireAdmin, (req: Request, res: Response) => {
   const since = sinceFromQuery(req);
   const siteId = typeof req.query.site === "string" && req.query.site ? req.query.site : undefined;
@@ -254,6 +372,18 @@ function prune(): void {
 }
 prune();
 setInterval(prune, 24 * 36e5);
+
+// Scheduled adaptive analysis (heuristics always; AI only when AI_ENABLED).
+if (AI_ANALYZE_INTERVAL_MIN > 0) {
+  const analyzeAll = (): void => {
+    const sites = store.knownSites(Date.now() - 24 * 36e5);
+    for (const siteId of sites) {
+      void runAnalysis(siteId).catch((e) => console.error("[antirea] analysis failed", siteId, (e as Error).message));
+    }
+  };
+  setInterval(analyzeAll, AI_ANALYZE_INTERVAL_MIN * 60_000);
+  console.log(`[antirea] adaptive analysis every ${AI_ANALYZE_INTERVAL_MIN}min (AI ${AI_ENABLED ? "on" : "off"}, auto-apply ${AI_AUTO_APPLY ? "on" : "off"})`);
+}
 
 const server = app.listen(PORT, () => {
   console.log(`[antirea] collector listening on :${PORT} (retention ${RETENTION_DAYS}d)`);

@@ -84,6 +84,31 @@ export class Store {
         data TEXT NOT NULL,
         updated_ts INTEGER NOT NULL
       );
+
+      CREATE TABLE IF NOT EXISTS proposals (
+        id TEXT PRIMARY KEY,
+        site_id TEXT NOT NULL,
+        created_ts INTEGER NOT NULL,
+        type TEXT NOT NULL,
+        source TEXT NOT NULL,
+        rationale TEXT NOT NULL,
+        confidence REAL NOT NULL,
+        current_val TEXT,
+        proposed_val TEXT,
+        status TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_proposals_site ON proposals(site_id, status, created_ts);
+
+      CREATE TABLE IF NOT EXISTS knowledge (
+        site_id TEXT NOT NULL,
+        pattern TEXT NOT NULL,
+        id TEXT NOT NULL,
+        confidence REAL NOT NULL,
+        occurrences INTEGER NOT NULL,
+        first_seen INTEGER NOT NULL,
+        last_seen INTEGER NOT NULL,
+        PRIMARY KEY (site_id, pattern)
+      );
     `);
   }
 
@@ -232,6 +257,105 @@ export class Store {
          ON CONFLICT(site_id) DO UPDATE SET data = excluded.data, updated_ts = excluded.updated_ts`,
       )
       .run(siteId, JSON.stringify(data), Date.now());
+  }
+
+  /** Event rows for adaptive analysis (signals parsed, hashed source only). */
+  recentRows(
+    sinceTs: number,
+    siteId: string | undefined,
+    limit = 5000,
+  ): Array<{ ts: number; signals: Array<{ name: string }>; country: string; honeypotAction: string | null; ipHash: string }> {
+    const { clause, params } = this.siteClause(siteId);
+    const rows = this.db
+      .prepare(
+        `SELECT received_ts, signals_json, country, honeypot_action, ip_hash
+         FROM events WHERE received_ts >= ? ${clause}
+         ORDER BY received_ts DESC LIMIT ?`,
+      )
+      .all(sinceTs, ...params, limit) as Array<{
+      received_ts: number;
+      signals_json: string;
+      country: string;
+      honeypot_action: string | null;
+      ip_hash: string;
+    }>;
+    return rows.map((r) => {
+      let signals: Array<{ name: string }> = [];
+      try {
+        signals = (JSON.parse(r.signals_json) as Array<{ name: string }>).map((s) => ({ name: s.name }));
+      } catch {
+        /* ignore */
+      }
+      return { ts: r.received_ts, signals, country: r.country, honeypotAction: r.honeypot_action, ipHash: r.ip_hash };
+    });
+  }
+
+  // --- Proposals ---
+  insertProposal(p: {
+    id: string; siteId: string; createdTs: number; type: string; source: string;
+    rationale: string; confidence: number; current?: string | number; proposed?: string | number; status: string;
+  }): void {
+    this.db
+      .prepare(
+        `INSERT OR REPLACE INTO proposals (id, site_id, created_ts, type, source, rationale, confidence, current_val, proposed_val, status)
+         VALUES (@id, @siteId, @createdTs, @type, @source, @rationale, @confidence, @current, @proposed, @status)`,
+      )
+      .run({
+        ...p,
+        current: p.current === undefined ? null : String(p.current),
+        proposed: p.proposed === undefined ? null : String(p.proposed),
+      });
+  }
+
+  listProposals(siteId: string | undefined, status?: string, limit = 100): Array<Record<string, unknown>> {
+    const parts: string[] = [];
+    const params: unknown[] = [];
+    if (siteId) { parts.push("site_id = ?"); params.push(siteId); }
+    if (status) { parts.push("status = ?"); params.push(status); }
+    const where = parts.length ? `WHERE ${parts.join(" AND ")}` : "";
+    return this.db
+      .prepare(`SELECT * FROM proposals ${where} ORDER BY created_ts DESC LIMIT ?`)
+      .all(...params, limit) as Array<Record<string, unknown>>;
+  }
+
+  getProposal(id: string): Record<string, unknown> | null {
+    return (this.db.prepare(`SELECT * FROM proposals WHERE id = ?`).get(id) as Record<string, unknown>) ?? null;
+  }
+
+  setProposalStatus(id: string, status: string): void {
+    this.db.prepare(`UPDATE proposals SET status = ? WHERE id = ?`).run(status, id);
+  }
+
+  // --- Knowledge ---
+  knowledgeGet(siteId: string, pattern: string): { id: string; pattern: string; confidence: number; occurrences: number; firstSeen: number; lastSeen: number } | null {
+    const r = this.db.prepare(`SELECT * FROM knowledge WHERE site_id = ? AND pattern = ?`).get(siteId, pattern) as
+      | { id: string; pattern: string; confidence: number; occurrences: number; first_seen: number; last_seen: number }
+      | undefined;
+    if (!r) return null;
+    return { id: r.id, pattern: r.pattern, confidence: r.confidence, occurrences: r.occurrences, firstSeen: r.first_seen, lastSeen: r.last_seen };
+  }
+
+  knowledgePut(siteId: string, sig: { id: string; pattern: string; confidence: number; occurrences: number; firstSeen: number; lastSeen: number }): void {
+    this.db
+      .prepare(
+        `INSERT OR REPLACE INTO knowledge (site_id, pattern, id, confidence, occurrences, first_seen, last_seen)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(siteId, sig.pattern, sig.id, sig.confidence, sig.occurrences, sig.firstSeen, sig.lastSeen);
+  }
+
+  knowledgeList(siteId: string, limit = 50): Array<{ id: string; pattern: string; confidence: number; occurrences: number; firstSeen: number; lastSeen: number }> {
+    const rows = this.db
+      .prepare(`SELECT * FROM knowledge WHERE site_id = ? ORDER BY confidence DESC LIMIT ?`)
+      .all(siteId, limit) as Array<{ id: string; pattern: string; confidence: number; occurrences: number; first_seen: number; last_seen: number }>;
+    return rows.map((r) => ({ id: r.id, pattern: r.pattern, confidence: r.confidence, occurrences: r.occurrences, firstSeen: r.first_seen, lastSeen: r.last_seen }));
+  }
+
+  /** Distinct site ids that have config or recent events (for scheduled analysis). */
+  knownSites(sinceTs: number): string[] {
+    const a = this.db.prepare(`SELECT site_id FROM site_config`).all() as Array<{ site_id: string }>;
+    const b = this.db.prepare(`SELECT DISTINCT site_id FROM events WHERE received_ts >= ?`).all(sinceTs) as Array<{ site_id: string }>;
+    return [...new Set([...a.map((x) => x.site_id), ...b.map((x) => x.site_id)])];
   }
 
   /** Delete events older than the retention cutoff. Returns rows removed. */

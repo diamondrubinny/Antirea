@@ -116,6 +116,38 @@
           </div>
         </section>
 
+        <section aria-labelledby="h-ai">
+          <h2 id="h-ai" data-i18n="ai.title">AI Advisor</h2>
+          <p class="hint" id="ai-mode"></p>
+          <button type="button" id="ai-run" data-i18n="ai.run">Run analysis now</button>
+          <p id="ai-analysis" class="status" aria-live="polite"></p>
+          <div class="table-wrap">
+            <table id="proposals">
+              <thead><tr>
+                <th scope="col" data-i18n="ai.col.type">Type</th>
+                <th scope="col" data-i18n="ai.col.source">Source</th>
+                <th scope="col" data-i18n="ai.col.change">Change</th>
+                <th scope="col" data-i18n="ai.col.rationale">Rationale</th>
+                <th scope="col" data-i18n="ai.col.confidence">Confidence</th>
+                <th scope="col" data-i18n="ai.status">Status</th>
+                <th scope="col"></th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <h3 data-i18n="kb.title">Knowledge base</h3>
+          <div class="table-wrap">
+            <table id="knowledge">
+              <thead><tr>
+                <th scope="col" data-i18n="kb.pattern">Pattern</th>
+                <th scope="col" data-i18n="kb.confidence">Confidence</th>
+                <th scope="col" data-i18n="kb.occurrences">Occurrences</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
         <section aria-labelledby="h-recent">
           <h2 id="h-recent" data-i18n="recent.title">Recent events</h2>
           <div class="table-wrap">
