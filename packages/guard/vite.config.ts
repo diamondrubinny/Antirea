@@ -1,5 +1,17 @@
+/*!
+ * Antirea — anti reverse-engineering toolkit.
+ * @author Diamond Rubinny
+ * @license Apache-2.0
+ * Copyright (c) 2026 Diamond Rubinny. All rights reserved.
+ * Credit required: keep this notice (Apache-2.0 §4) in all copies and derivatives.
+ */
 import { defineConfig } from "vite";
 import { resolve } from "node:path";
+
+// Credit banner kept in the minified output (terser preserves it below).
+const BANNER =
+  "/*! Antirea | @author Diamond Rubinny | @license Apache-2.0 | " +
+  "(c) 2026 Diamond Rubinny — credit required, keep this notice. */";
 
 /**
  * Builds two artifacts:
@@ -18,8 +30,11 @@ export default defineConfig({
     minify: "terser",
     sourcemap: false, // never ship source maps for the guard itself
     terserOptions: {
-      // Strip comments and mangle to raise the cost of reading the guard.
-      format: { comments: false },
+      // Strip comments EXCEPT the credit banner (Apache-2.0 attribution).
+      format: { comments: /Diamond Rubinny/ },
+    },
+    rollupOptions: {
+      output: { banner: BANNER },
     },
   },
 });

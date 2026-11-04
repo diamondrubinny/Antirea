@@ -1,3 +1,10 @@
+/*!
+ * Antirea — anti reverse-engineering toolkit.
+ * @author Diamond Rubinny
+ * @license Apache-2.0
+ * Copyright (c) 2026 Diamond Rubinny. All rights reserved.
+ * Credit required: keep this notice (Apache-2.0 §4) in all copies and derivatives.
+ */
 /**
  * In-memory protections for the invoke endpoint: nonce replay store and a
  * per-session rate limiter. Both self-prune.

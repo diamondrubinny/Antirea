@@ -1,3 +1,10 @@
+/*!
+ * Antirea — anti reverse-engineering toolkit.
+ * @author Diamond Rubinny
+ * @license Apache-2.0
+ * Copyright (c) 2026 Diamond Rubinny. All rights reserved.
+ * Credit required: keep this notice (Apache-2.0 §4) in all copies and derivatives.
+ */
 /**
  * Unit test for the behavioural engine. Proves detection works on
  * server-observed facts even when the client header is forged.

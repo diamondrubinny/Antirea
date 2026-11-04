@@ -6,10 +6,17 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "files": ["dist"],
-  "engines": { "node": ">=18" },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
@@ -19,10 +26,14 @@
     "@anthropic-ai/sdk": ">=0.40.0"
   },
   "peerDependenciesMeta": {
-    "@anthropic-ai/sdk": { "optional": true }
+    "@anthropic-ai/sdk": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
     "typescript": "^5.6.3"
-  }
+  },
+  "author": "Diamond Rubinny",
+  "license": "Apache-2.0"
 }

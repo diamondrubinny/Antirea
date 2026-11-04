@@ -1,3 +1,10 @@
+/*!
+ * Antirea — anti reverse-engineering toolkit.
+ * @author Diamond Rubinny
+ * @license Apache-2.0
+ * Copyright (c) 2026 Diamond Rubinny. All rights reserved.
+ * Credit required: keep this notice (Apache-2.0 §4) in all copies and derivatives.
+ */
 /**
  * Test the REA default-launch fingerprint detector with injected environments.
  * Build the guard first (vite), then: node packages/guard/test/rea.mjs

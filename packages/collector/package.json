@@ -4,7 +4,9 @@
   "description": "Telemetry collector + intelligence dashboard for antirea",
   "type": "module",
   "private": true,
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "node --loader ts-node/esm --env-file=.env src/server.ts",
@@ -27,5 +29,7 @@
     "@types/node": "^20.14.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
-  }
+  },
+  "author": "Diamond Rubinny",
+  "license": "Apache-2.0"
 }

@@ -200,6 +200,17 @@ Add a language by adding one entry (same keys) to `packages/collector/public/i18
 
 Hebrew docs: [`README.he.md`](./README.he.md). Design notes: [`PLAN.md`](./PLAN.md).
 
+## Author & credit
+
+Created and maintained by **Diamond Rubinny**.
+
+Every source file carries a credit header, and the minified guard bundle keeps
+a credit banner. **This credit must be preserved** in any copy or derivative
+work (Apache-2.0 §4 + [`NOTICE`](./NOTICE)). Don't strip the `Diamond Rubinny`
+notices.
+
 ## License
 
-See [`LICENSE`](./LICENSE).
+Licensed under the **Apache License 2.0** — see [`LICENSE`](./LICENSE) and
+[`NOTICE`](./NOTICE). Using, modifying, or redistributing the code requires
+retaining its copyright and attribution notices.

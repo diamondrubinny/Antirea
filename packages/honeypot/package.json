@@ -11,8 +11,12 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
-  "engines": { "node": ">=18" },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
@@ -21,5 +25,7 @@
   "devDependencies": {
     "@types/node": "^20.14.0",
     "typescript": "^5.6.3"
-  }
+  },
+  "author": "Diamond Rubinny",
+  "license": "Apache-2.0"
 }
