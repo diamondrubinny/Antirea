@@ -10,6 +10,7 @@
 
 | חבילה | תפקיד |
 |---|---|
+| `packages/secure-fn` | **הפתרון ל-CDP:** ריצת לוגיקה קניינית **בשרת** בלבד. הלקוח שולח input ומקבל output. ✅ נבדק (6/6). |
 | `packages/guard` | ספריית לקוח: מזהה DevTools/CDP/אוטומציה ומדווחת. `<script>` או npm. |
 | `packages/honeypot` | Middleware שרת: מגיש **decoy** לבקשות שמזוהות כניתוח. ברירת מחדל: **Shadow**. |
 | `packages/collector` | API לקליטת אירועים + GeoIP + SQLite + **Dashboard** (RTL, נגיש). |
@@ -98,9 +99,48 @@ HONEYPOT_MODE=shadow COLLECTOR=http://localhost:8080/api/events node examples/pr
 4. **allowlist:** `curl -A "Googlebot" ...` → לא נלכד.
 5. **unique:** רענן מכמה IP → "מקורות ייחודיים" עולה.
 
-## פתרון CDP (המסלול הקשה)
+## פתרון CDP
 
-כלי שנצמד לדפדפן דרך CDP קורא מקור ישירות מהמנוע ועוקף JS. **אין חסימה מוחלטת** — שלוש שכבות שמעלות עלות ותופסות את ברירת-המחדל:
+### ההבחנה שקובעת הכול
+
+| מה מגנים | CDP יכול להנדס? | פתרון |
+|---|---|---|
+| **לוגיקה/אלגוריתם קנייני** (הערך האמיתי) | **לא** — הקוד לא בלקוח | ✅ **ריצה בשרת (`@antirea/secure-fn`). הרמטי.** |
+| קוד שחייב להישלח ללקוח (UI) | כן, בסוף | WASM + obfuscation + אספקה מותנית (רק מייקר) |
+
+### הפתרון ההרמטי: `@antirea/secure-fn`
+
+הלוגיקה הקניינית **רצה רק בשרת**. הלקוח שולח input ומקבל output. REA/CDP רואה `{x:2} → {result:2691}` ברשת — **לעולם לא את הנוסחה, כי היא לא בלקוח.** אין קוד להנדס.
+
+```ts
+// server (האלגוריתם נשאר כאן לנצח)
+import express from "express";
+import { createSecureFnRouter } from "@antirea/secure-fn";
+const app = express();
+app.use("/secure", createSecureFnRouter({
+  secret: process.env.SECUREFN_SECRET,   // random חזק מ-env
+  reportUrl: "https://collector.example.com/api/events",
+  maxInvokesPerMin: 60,                  // spike של scraper → מדווח ל-Dashboard
+  functions: {
+    pricing: (args) => ({ result: args.x * 1337 + 17 }), // סוד
+  },
+}));
+```
+
+```ts
+// client (אפס לוגיקה קניינית, אפס סוד)
+import { createSecureClient } from "@antirea/secure-fn/client";
+const api = createSecureClient({ endpoint: "/secure" });
+const { result } = await api.invoke("pricing", { x: 2 });
+```
+
+הגנות סביב ה-API כדי שלא יוכלו "לדגום התנהגות" בכמות: **session token חתום ב-HMAC** (הסוד לא עוזב את השרת), **nonce נגד replay**, **rate-limit לכל session**, ו**דיווח אנומליות** ל-Dashboard.
+
+**מה זה לא פותר:** מי שמורשה לקרוא ל-API רואה input/output. זה מגן על ה*אלגוריתם*, לא על ה*התנהגות הגלויה*. לכן ה-rate-limit + הדיווח.
+
+### ולקוד שחייב להיות בלקוח — 3 שכבות (מייקרות, לא הרמטיות)
+
+כלי שנצמד לדפדפן דרך CDP קורא מקור ישירות מהמנוע ועוקף JS. **אין חסימה מוחלטת לקוד שנשלח ללקוח** — שלוש שכבות שמעלות עלות ותופסות את ברירת-המחדל:
 
 1. **זיהוי** (`detectors/cdp.ts`): `debugger`-timing (REA ב-passive לא מדכא pauses), `Error.stack` getter-trap, `RegExp.toString`-trap.
 2. **אספקה מותנית-אטסטציה:** המודול הקנייני לא ב-bundle. מביאים אותו דרך `importProtected`:

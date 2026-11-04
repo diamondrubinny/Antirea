@@ -21,13 +21,13 @@
  *   - "live": serves a decoy to requests scoring >= threshold (allowlist aside).
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { Allowlist, type AllowlistOptions } from "./allowlist";
-import { buildDecoy, buildEmptySourceMap } from "./decoy";
-import { scoreRequest } from "./scoring";
+import { Allowlist, type AllowlistOptions } from "./allowlist.js";
+import { buildDecoy, buildEmptySourceMap } from "./decoy.js";
+import { scoreRequest } from "./scoring.js";
 
-export { scoreRequest } from "./scoring";
-export { buildDecoy } from "./decoy";
-export { Allowlist } from "./allowlist";
+export { scoreRequest } from "./scoring.js";
+export { buildDecoy } from "./decoy.js";
+export { Allowlist } from "./allowlist.js";
 
 export interface HoneypotOptions {
   /** Identifies this site in the dashboard. */

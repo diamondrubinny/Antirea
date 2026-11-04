@@ -15,11 +15,33 @@
  */
 import express from "express";
 import { honeypot } from "@antirea/honeypot";
+import { createSecureFnRouter } from "@antirea/secure-fn";
 
 const COLLECTOR = process.env.COLLECTOR ?? "http://localhost:8080/api/events";
 const MODE = process.env.HONEYPOT_MODE ?? "shadow"; // "shadow" | "live"
+const SECRET = process.env.SECUREFN_SECRET ?? "dev-only-insecure-secret-change-me";
 
 const app = express();
+
+// --- THE CDP-PROOF CORE: proprietary logic runs ONLY here, on the server ---
+// A CDP/REA client sees the request { x: 2 } and response { result: 2674 } —
+// never the formula below. There is no client code to reverse-engineer.
+app.use(
+  "/secure",
+  createSecureFnRouter({
+    secret: SECRET, // in production: a strong random value from env
+    reportUrl: COLLECTOR,
+    siteId: "demo-site",
+    maxInvokesPerMin: 60, // a scraper spiking past this is reported to the dashboard
+    functions: {
+      // The proprietary algorithm. Stays server-side forever.
+      pricing: (args) => {
+        const x = Number((args && args.x) || 0);
+        return { result: x * 1337 + 17 }; // "secret" formula
+      },
+    },
+  }),
+);
 
 // Protect the proprietary bundle. Mount BEFORE static serving.
 app.use(
@@ -73,17 +95,25 @@ app.get("/", (_req, res) => {
           data-mode="silent"></script>
   <script type="module">
     import { importProtected } from "/guard/antirea-guard.js";
-    // The proprietary module is fetched only after the CDP probe runs.
-    // Under CDP/automation the server returns an inert decoy instead.
+    // Layer 2 (client code): fetched only after the CDP probe; decoy under CDP.
     try {
       const mod = await importProtected("core", { endpoint: "/__p/" });
       console.log("compute(2) =", mod.compute ? mod.compute(2) : "(decoy)");
     } catch (e) { /* never leak the gate */ }
+
+    // THE REAL SOLUTION (server-side logic): the pricing algorithm never
+    // reaches the browser. We only send inputs and read outputs.
+    const { createSecureClient } = await import("/securefn/client.js");
+    const api = createSecureClient({ endpoint: "/secure" });
+    const priced = await api.invoke("pricing", { x: 2 });
+    console.log("pricing(2) =", priced.result, "— CDP never sees the formula");
   </script>
 </body></html>`);
 });
 
 // Serve the built guard (after `npm run build:guard`).
 app.use("/guard", express.static(new URL("../../packages/guard/dist", import.meta.url).pathname));
+// Serve the built secure-fn browser client (after building @antirea/secure-fn).
+app.use("/securefn", express.static(new URL("../../packages/secure-fn/dist", import.meta.url).pathname));
 
 app.listen(3000, () => console.log(`demo on http://localhost:3000 (honeypot=${MODE})`));

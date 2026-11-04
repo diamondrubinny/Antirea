@@ -12,9 +12,9 @@ import express, { type NextFunction, type Request, type Response } from "express
 import rateLimit from "express-rate-limit";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { Store } from "./db";
-import { countryFor, extractIp, hashIp, initGeo } from "./geo";
-import { validateEvent } from "./validate";
+import { Store } from "./db.js";
+import { countryFor, extractIp, hashIp, initGeo } from "./geo.js";
+import { validateEvent } from "./validate.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

@@ -6,6 +6,8 @@
   "license": "SEE LICENSE IN LICENSE",
   "workspaces": [
     "packages/guard",
+    "packages/honeypot",
+    "packages/secure-fn",
     "packages/collector"
   ],
   "scripts": {
