@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node test/behavior.mjs"
+    "test": "node test/behavior.mjs && node test/scoring.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

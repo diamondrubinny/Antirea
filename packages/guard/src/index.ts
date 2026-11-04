@@ -17,11 +17,14 @@ import { detectAutomation, setAutomationAsyncSink } from "./detectors/automation
 import { probeCdp } from "./detectors/cdp";
 import { detectDevtools } from "./detectors/devtools";
 import { detectIntegrity } from "./detectors/integrity";
+import { detectRea } from "./detectors/rea";
 import { Reporter } from "./reporter";
 import type { GuardConfig, Signal } from "./types";
 
 export type { GuardConfig, GuardMode, Signal, SignalType, GuardEvent } from "./types";
 export { probeCdp } from "./detectors/cdp";
+export { detectRea, readReaEnv } from "./detectors/rea";
+export type { ReaEnv } from "./detectors/rea";
 export { fetchProtected, importProtected } from "./protected";
 export type { ProtectedLoaderConfig } from "./protected";
 
@@ -111,6 +114,7 @@ export function initGuard(cfg: GuardConfig): { stop: () => void } {
   function sweep(): void {
     const signals: Signal[] = [
       ...detectAutomation(),
+      ...detectRea(),
       ...detectDevtools(),
       ...detectIntegrity(),
     ];

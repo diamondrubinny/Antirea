@@ -71,6 +71,27 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
     }
   }
 
+  // REA source-map fetch signature (verified against morluto/rea
+  // src/browser/WebSourceMapFetcher.ts). REA's source-map fetcher sends a
+  // distinctive Accept, no cookie, and no referer. No browser emits
+  // "application/source-map+json" — this token alone is a near-certain marker.
+  const acceptHdr = header(h, "accept");
+  if (/application\/source-map\+json/i.test(acceptHdr)) {
+    score += 0.85;
+    reasons.push("rea.sourceMapAccept");
+  } else if (
+    /\.map(\?|$)/i.test(input.path) &&
+    !header(h, "cookie") &&
+    !header(h, "referer") &&
+    !header(h, "sec-fetch-dest")
+  ) {
+    // A .map fetched with no cookie, no referer, and no Sec-Fetch metadata
+    // matches REA's fetcher shape (credentials:"omit", referrerPolicy:
+    // "no-referrer"). Lower confidence: a few CLIs look similar.
+    score += 0.5;
+    reasons.push("rea.sourceMapShape");
+  }
+
   // 1. Headless / non-browser clients in the UA.
   if (HEADLESS_UA.test(ua)) {
     score += 0.6;

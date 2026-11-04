@@ -123,6 +123,24 @@ Attackers spoof the `User-Agent` and other headers. Antirea's engine (`@antirea/
 
 ---
 
+## REA signature pack
+
+Antirea ships fingerprints for the `morluto/rea` tool, each **verified against
+its public source** and documented with its evadability in
+[`docs/REA-SIGNATURES.md`](./docs/REA-SIGNATURES.md):
+
+- **Server (`rea.sourceMapAccept`)** — REA's source-map fetcher sends a
+  distinctive `Accept: application/source-map+json` with no cookie and no
+  referer (`WebSourceMapFetcher.ts`). No browser does this → near-certain, hard
+  to evade (hardcoded in REA).
+- **Client (`rea.playwrightDefaults`)** — REA's default Playwright profile
+  (headless + `navigator.webdriver` + 1280×720 + DPR 1 + UTC + en-US +
+  reduced-motion + light; `browserScenarioValues.ts`). The *combination* is
+  distinctive; individual markers are overridable, so this catches defaults.
+
+These are deterrence + intelligence. The hermetic protection remains
+`@antirea/secure-fn`.
+
 ## CDP / REA specifics
 
 A tool attached via the Chrome DevTools Protocol reads source directly from the engine. For **client code** Antirea adds: a CDP probe in the guard (`debugger`-timing — REA's passive capture does not suppress pauses — plus `Error.stack`/`RegExp.toString` console traps) and **attestation-gated delivery** (`importProtected`) so protected modules are fetched out-of-band and replaced with decoys under CDP. These raise cost; `blackboxing` and a forged attestation header defeat them. For **logic**, `@antirea/secure-fn` is the real answer.
