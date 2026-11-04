@@ -36,11 +36,40 @@ function header(h: ScoreInput["headers"], name: string): string {
   return Array.isArray(v) ? v.join(",") : v ?? "";
 }
 
+/**
+ * Parse the client attestation header (X-Antirea-Attest). FORGEABLE — treated
+ * only as one input, never as the sole decision. An honest client that
+ * detected CDP reports it here; an attacker can lie, which is why independent
+ * server-side signals below still run.
+ */
+function parseAttestation(raw: string): { cdp?: boolean; confidence?: number } {
+  try {
+    const o = JSON.parse(raw) as { cdp?: unknown; c?: unknown };
+    return {
+      cdp: typeof o.cdp === "boolean" ? o.cdp : undefined,
+      confidence: typeof o.c === "number" ? o.c : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 export function scoreRequest(input: ScoreInput): ScoreResult {
   const reasons: string[] = [];
   let score = 0;
   const ua = input.userAgent || "";
   const h = input.headers;
+
+  // 0. Client attestation: if an honest client reported a CDP/inspector
+  //    attach, that is a strong signal to serve a decoy. (Forgeable; see note.)
+  const attestRaw = header(h, "x-antirea-attest");
+  if (attestRaw) {
+    const att = parseAttestation(attestRaw);
+    if (att.cdp === true) {
+      score += 0.7;
+      reasons.push("attest.cdp");
+    }
+  }
 
   // 1. Headless / non-browser clients in the UA.
   if (HEADLESS_UA.test(ua)) {

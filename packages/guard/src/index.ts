@@ -14,12 +14,16 @@
  * Proprietary logic belongs on the server. See PLAN.md §2.
  */
 import { detectAutomation, setAutomationAsyncSink } from "./detectors/automation";
+import { probeCdp } from "./detectors/cdp";
 import { detectDevtools } from "./detectors/devtools";
 import { detectIntegrity } from "./detectors/integrity";
 import { Reporter } from "./reporter";
 import type { GuardConfig, Signal } from "./types";
 
 export type { GuardConfig, GuardMode, Signal, SignalType, GuardEvent } from "./types";
+export { probeCdp } from "./detectors/cdp";
+export { fetchProtected, importProtected } from "./protected";
+export type { ProtectedLoaderConfig } from "./protected";
 
 /** Best-effort dev-environment guess, so we don't disrupt development. */
 function looksLikeDev(): boolean {
@@ -100,6 +104,9 @@ export function initGuard(cfg: GuardConfig): { stop: () => void } {
     }
   }
 
+  const cdpProbeEnabled = cfg.cdpProbe ?? true;
+  const cdpIntervalMs = Math.max(1000, cfg.cdpIntervalMs ?? 4000);
+
   // Run one-shot detectors immediately.
   function sweep(): void {
     const signals: Signal[] = [
@@ -107,14 +114,19 @@ export function initGuard(cfg: GuardConfig): { stop: () => void } {
       ...detectDevtools(),
       ...detectIntegrity(),
     ];
+    if (cdpProbeEnabled) signals.push(...probeCdp().signals);
     handle(signals);
   }
 
   sweep();
-  // Live detectors (devtools can open after load) poll on an interval.
+  // Live detectors (devtools/CDP can attach after load) poll on an interval.
   const interval = setInterval(() => {
     handle([...detectDevtools()]);
   }, pollMs);
+  // CDP probe runs on a slower cadence (the debugger trap is intrusive).
+  const cdpInterval = cdpProbeEnabled
+    ? setInterval(() => handle(probeCdp().signals), cdpIntervalMs)
+    : null;
 
   // Final flush on unload.
   const onHide = (): void => reporter.flush();
@@ -124,6 +136,7 @@ export function initGuard(cfg: GuardConfig): { stop: () => void } {
   return {
     stop(): void {
       clearInterval(interval);
+      if (cdpInterval) clearInterval(cdpInterval);
       window.removeEventListener("visibilitychange", onHide);
       window.removeEventListener("pagehide", onHide);
       started = false;

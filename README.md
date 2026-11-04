@@ -98,6 +98,30 @@ HONEYPOT_MODE=shadow COLLECTOR=http://localhost:8080/api/events node examples/pr
 4. **allowlist:** `curl -A "Googlebot" ...` → לא נלכד.
 5. **unique:** רענן מכמה IP → "מקורות ייחודיים" עולה.
 
+## פתרון CDP (המסלול הקשה)
+
+כלי שנצמד לדפדפן דרך CDP קורא מקור ישירות מהמנוע ועוקף JS. **אין חסימה מוחלטת** — שלוש שכבות שמעלות עלות ותופסות את ברירת-המחדל:
+
+1. **זיהוי** (`detectors/cdp.ts`): `debugger`-timing (REA ב-passive לא מדכא pauses), `Error.stack` getter-trap, `RegExp.toString`-trap.
+2. **אספקה מותנית-אטסטציה:** המודול הקנייני לא ב-bundle. מביאים אותו דרך `importProtected`:
+
+   ```ts
+   import { importProtected } from "@antirea/guard";
+   const mod = await importProtected("core", { endpoint: "/__p/" });
+   // תחת CDP/אוטומציה — השרת מחזיר decoy אינרטי במקום הקוד האמיתי.
+   ```
+
+   בשרת: הוסף את מסלול האספקה ל-`protect` של ה-honeypot (למשל `/^\/__p\//`), והגש את המודול האמיתי מתיקייה **לא-ציבורית** אחרי ה-middleware. ה-honeypot קורא את header `X-Antirea-Attest` **וגם** מנקד עצמאית (לא סומך על הלקוח).
+   > דרוש CSP שמתיר `blob:` ב-`script-src` עבור `importProtected`. דרוש `<meta name="antirea-nonce" content="...">` לכל דף.
+3. **ארכיטקטורה (ההגנה המוחלטת היחידה):** לוגיקה קריטית ב-API; מה שחייב בלקוח → **WASM**.
+
+**מגבלות:** blackboxing / כיבוי "pause on debugger" מנטרל את מלכודת ה-timing; `X-Antirea-Attest` ניתן לזיוף. לכן ניקוד-שרת עצמאי + nonce + WASM הם מה שמחזיק.
+
+### בדיקת מסלול CDP
+
+- `curl -H 'X-Antirea-Attest: {"cdp":true}' http://localhost:3000/__p/core` במצב `live` → מחזיר **decoy**.
+- אותו `curl` עם `{"cdp":false}` וללא סימני-אוטומציה אחרים → מחזיר קוד **אמיתי** (ממחיש שזיוף header *כן* אפשרי → ראה "מגבלות").
+
 ## פרטיות (GDPR / חוק הגנת הפרטיות IL) — טיוטה, מחייב בדיקה משפטית
 
 - **לא נשמר IP גולמי.** נגזרת מדינה בלבד + `sha256(ip+salt)` לספירת ייחודיים.
@@ -107,7 +131,7 @@ HONEYPOT_MODE=shadow COLLECTOR=http://localhost:8080/api/events node examples/pr
 
 ## מגבלות וסיכונים (כנות הנדסית)
 
-- **CDP bypass:** REA שנצמד לדפדפן שהמשתמש הפעיל קורא מקור ישירות — **לא נלכד** לא ב-guard ולא ב-honeypot. רק מסלול קצירת bundles נלכד.
+- **CDP:** נלכד **חלקית** — ה-probe תופס את ההתנהגות הדיפולטיבית/passive (ראה "פתרון CDP"), אך תוקף שעושה blackboxing או מזייף את ה-header עוקף. ההגנה המוחלטת: לוגיקה בשרת + WASM.
 - **False positives:** הרחבות/כלי נגישות/בוטים עלולים להיראות כאוטומציה. לכן Shadow כברירת מחדל.
 - **רישוי GeoLite2** (geoip-lite) לשימוש מסחרי — **בדיקה משפטית**.
 - כל signal מתועד בקוד עם הערת-עקיפה.

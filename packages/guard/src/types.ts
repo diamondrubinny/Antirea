@@ -67,6 +67,14 @@ export interface GuardConfig {
   mode?: GuardMode;
   /** How often to poll live detectors (ms). Default 1500. */
   pollMs?: number;
+  /**
+   * Run the CDP probe (incl. the intrusive `debugger`-timing trap). Catches
+   * default/passive CDP attach (e.g. REA). Default true. Set false to avoid
+   * `debugger` pauses when a developer legitimately opens DevTools.
+   */
+  cdpProbe?: boolean;
+  /** How often to re-run the CDP probe (ms). Default 4000. */
+  cdpIntervalMs?: number;
   /** Include full URL query in reports (may contain secrets!). Default false. */
   includeQuery?: boolean;
   /**
