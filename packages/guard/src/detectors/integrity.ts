@@ -11,7 +11,7 @@
  * Detect whether core runtime functions have been hooked/overridden — a
  * common technique when an analysis tool instruments the page.
  *
- * HONESTY: an attacker who controls the runtime can also hook the very
+ * LIMITATIONS: an attacker who controls the runtime can also hook the very
  * checks below. This is a tripwire, not a lock.
  */
 import type { Signal } from "../types";

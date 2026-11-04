@@ -17,7 +17,7 @@
  *   import { initGuard } from "@antirea/guard";
  *   initGuard({ siteId: "my-site", endpoint: "https://.../api/events" });
  *
- * HONESTY: this hardens and reports. It does not make client code unreadable.
+ * LIMITATIONS: this hardens and reports. It does not make client code unreadable.
  * Proprietary logic belongs on the server. See PLAN.md §2.
  */
 import { detectAutomation, setAutomationAsyncSink } from "./detectors/automation";

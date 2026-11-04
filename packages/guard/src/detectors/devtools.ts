@@ -8,7 +8,7 @@
 /**
  * DevTools / inspector detectors.
  *
- * HONESTY: these are classic heuristics. A CDP client (REA's main browser
+ * LIMITATIONS: these are classic heuristics. A CDP client (REA's main browser
  * path) can read source and network WITHOUT a visible DevTools window and
  * can blackbox/suppress these traps. Treat as deterrence + telemetry only.
  */

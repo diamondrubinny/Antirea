@@ -21,7 +21,7 @@
  * almost never has timezone UTC + reduced-motion reduce + exactly 1280x720 +
  * DPR 1 + webdriver all at once.
  *
- * HONESTY: an operator can override locale/timezone/viewport in the scenario
+ * LIMITATIONS: an operator can override locale/timezone/viewport in the scenario
  * spec, which defeats those markers. This catches REA's DEFAULTS and raises
  * cost; it is not conclusive. The CDP source-read path is caught by cdp.ts, and
  * the source-map fetch by the server (honeypot). Evadability noted per marker.

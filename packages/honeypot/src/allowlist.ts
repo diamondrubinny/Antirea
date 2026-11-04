@@ -10,7 +10,7 @@
  *
  * CRITICAL for SEO: never honeypot Googlebot/Bingbot etc., or indexing breaks.
  *
- * HONESTY: UA strings are spoofable. For real protection of the allowlist,
+ * LIMITATIONS: UA strings are spoofable. For real protection of the allowlist,
  * verify via reverse+forward DNS (Google/Bing publish this method). The
  * `verifyReverseDns` hook is provided but OFF by default (adds latency/DNS
  * dependency). Enabling it is recommended before Live mode.

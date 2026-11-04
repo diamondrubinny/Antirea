@@ -11,7 +11,7 @@
  * Targets the Playwright/Puppeteer-style path used by analysis tools that
  * drive a scripted browser (REA's "Playwright scenarios" path).
  *
- * HONESTY: every signal here is heuristic and evadable. A determined operator
+ * LIMITATIONS: every signal here is heuristic and evadable. A determined operator
  * can spoof navigator.webdriver, patch the UA, and inject fake plugins. These
  * raise the cost of automated harvesting; they do not prevent it. The CDP
  * "attach to a user-launched browser" path is NOT caught here (see cdp.ts).

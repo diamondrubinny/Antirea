@@ -13,7 +13,7 @@
  * (e.g. in a leaked/cloned product), it is evidence of copying — surfaced in
  * the dashboard.
  *
- * HONESTY: a decoy only helps if the harvester takes the decoy instead of the
+ * LIMITATIONS: a decoy only helps if the harvester takes the decoy instead of the
  * real file. It does not retroactively protect code already served to real
  * users. Keep real proprietary logic on the server.
  */

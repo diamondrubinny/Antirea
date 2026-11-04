@@ -12,7 +12,7 @@
  * harvesting (headless browsers, scripted fetchers) rather than a real user's
  * browser loading a page.
  *
- * HONESTY: this inspects only what the client sends (UA + headers). A CDP
+ * LIMITATIONS: this inspects only what the client sends (UA + headers). A CDP
  * client attached to a real, user-launched browser sends real-browser headers
  * and will NOT score high here — that path cannot be caught at the asset layer.
  * This catches bundle-harvesting fetchers, not in-browser CDP source reads.

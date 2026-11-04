@@ -16,7 +16,7 @@
  *   - The server (see @antirea/honeypot) decides: clean probe -> real module;
  *     CDP/debugger detected OR request scores as automation -> decoy.
  *
- * HONESTY:
+ * LIMITATIONS:
  *   - The header verdict is attacker-FORGEABLE (an attacker can claim clean).
  *     Its value is catching default/passive REA and honest automation, and it
  *     is combined with INDEPENDENT server-side scoring, which does not trust
