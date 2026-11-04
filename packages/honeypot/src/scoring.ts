@@ -110,6 +110,29 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
     reasons.push("missing.acceptLanguage");
   }
 
+  // 4. Header FORGERY via internal inconsistency. A spoofed User-Agent that
+  //    claims a modern Chromium browser should also send Client Hints
+  //    (sec-ch-ua) and Sec-Fetch metadata. Their absence means the UA is
+  //    likely forged — detecting the lie without trusting the UA.
+  const claimsModernChromium = /Chrome\/(\d+)/.test(ua) && !/Edge\//.test(ua);
+  if (claimsModernChromium) {
+    const major = Number((/Chrome\/(\d+)/.exec(ua) ?? [])[1] ?? 0);
+    if (major >= 90 && !header(h, "sec-ch-ua")) {
+      score += 0.4;
+      reasons.push("forgery.noClientHints");
+    }
+    if (major >= 90 && !header(h, "sec-fetch-site")) {
+      score += 0.25;
+      reasons.push("forgery.noSecFetch");
+    }
+  }
+  // A real browser's Accept for a navigation includes text/html; tools send */*.
+  const accept = header(h, "accept");
+  if (accept === "*/*" && !isScript) {
+    score += 0.2;
+    reasons.push("accept.wildcard");
+  }
+
   // Clamp.
   score = Math.min(1, score);
   return { score, reasons };

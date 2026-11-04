@@ -163,6 +163,66 @@ app.get("/api/stats", requireAdmin, (req: Request, res: Response) => {
   });
 });
 
+app.get("/api/offenders", requireAdmin, (req: Request, res: Response) => {
+  const since = sinceFromQuery(req);
+  const siteId = typeof req.query.site === "string" && req.query.site ? req.query.site : undefined;
+  res.json({ offenders: store.topOffenders(since, siteId, 50) });
+});
+
+// --- Site configuration (admin reads/writes; honeypot reads via site key) ---
+interface SiteConfig {
+  enabled: boolean;
+  mode: "shadow" | "live";
+  threshold: number;
+  allowIps: string[];
+  blockIps: string[];
+  /** Shared secret the honeypot presents to read this config. */
+  siteKey: string;
+}
+
+function sanitizeConfig(input: unknown, prev: SiteConfig | null): SiteConfig {
+  const o = (input ?? {}) as Record<string, unknown>;
+  const arr = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((x) => typeof x === "string").slice(0, 1000) : [];
+  const num = typeof o.threshold === "number" ? Math.min(1, Math.max(0, o.threshold)) : prev?.threshold ?? 0.7;
+  return {
+    enabled: typeof o.enabled === "boolean" ? o.enabled : prev?.enabled ?? true,
+    mode: o.mode === "live" ? "live" : o.mode === "shadow" ? "shadow" : prev?.mode ?? "shadow",
+    threshold: num,
+    allowIps: o.allowIps !== undefined ? arr(o.allowIps) : prev?.allowIps ?? [],
+    blockIps: o.blockIps !== undefined ? arr(o.blockIps) : prev?.blockIps ?? [],
+    siteKey: typeof o.siteKey === "string" && o.siteKey ? o.siteKey : prev?.siteKey ?? "",
+  };
+}
+
+app.get("/api/config", requireAdmin, (req: Request, res: Response) => {
+  const siteId = typeof req.query.site === "string" ? req.query.site : "";
+  if (!siteId) return res.status(400).json({ error: "site required" });
+  const cfg = (store.getConfig(siteId) as SiteConfig | null) ?? sanitizeConfig({}, null);
+  return res.json({ config: cfg });
+});
+
+app.put("/api/config", requireAdmin, express.json({ limit: "32kb" }), (req: Request, res: Response) => {
+  const siteId = typeof req.query.site === "string" ? req.query.site : "";
+  if (!siteId) return res.status(400).json({ error: "site required" });
+  const prev = store.getConfig(siteId) as SiteConfig | null;
+  const next = sanitizeConfig(req.body, prev);
+  store.setConfig(siteId, next as unknown as Record<string, unknown>);
+  return res.json({ config: next });
+});
+
+// Honeypot pulls live config here. Authenticated by the per-site key, so an
+// attacker cannot read or change rules. Never returns the siteKey itself.
+app.get("/api/site-config", (req: Request, res: Response) => {
+  const siteId = typeof req.query.site === "string" ? req.query.site : "";
+  const key = (req.headers["x-antirea-site-key"] as string) ?? "";
+  const cfg = siteId ? (store.getConfig(siteId) as SiteConfig | null) : null;
+  if (!cfg || !cfg.siteKey || key.length !== cfg.siteKey.length || key !== cfg.siteKey) {
+    return res.status(403).json({ error: "forbidden" });
+  }
+  return res.json({ enabled: cfg.enabled, mode: cfg.mode, threshold: cfg.threshold, allowIps: cfg.allowIps, blockIps: cfg.blockIps });
+});
+
 app.get("/api/events", requireAdmin, (req: Request, res: Response) => {
   const since = sinceFromQuery(req);
   const siteId = typeof req.query.site === "string" && req.query.site ? req.query.site : undefined;

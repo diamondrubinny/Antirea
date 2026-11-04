@@ -1,32 +1,33 @@
 <!doctype html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Antirea — לוח מודיעין</title>
+    <title data-i18n="title">Antirea · Control Panel</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <a class="skip-link" href="#main">דלג לתוכן הראשי</a>
+    <a class="skip-link" href="#main" data-i18n="skip">Skip to main content</a>
 
     <header class="topbar">
-      <h1>Antirea · לוח מודיעין</h1>
-      <form id="controls" class="controls" aria-label="בקרת תצוגה">
-        <label>
-          אתר
-          <input id="site" type="text" placeholder="כל האתרים" autocomplete="off" />
+      <h1 data-i18n="title">Antirea · Control Panel</h1>
+      <form id="controls" class="controls" aria-label="View controls">
+        <label><span data-i18n="language">Language</span>
+          <select id="lang"></select>
         </label>
-        <label>
-          טווח
+        <label><span data-i18n="site">Site</span>
+          <input id="site" type="text" autocomplete="off" />
+        </label>
+        <label><span data-i18n="range">Range</span>
           <select id="days">
-            <option value="1">24 שעות</option>
-            <option value="7" selected>7 ימים</option>
-            <option value="30">30 יום</option>
-            <option value="90">90 יום</option>
+            <option value="1" data-i18n="range.1">24 hours</option>
+            <option value="7" selected data-i18n="range.7">7 days</option>
+            <option value="30" data-i18n="range.30">30 days</option>
+            <option value="90" data-i18n="range.90">90 days</option>
           </select>
         </label>
-        <button type="submit">רענן</button>
+        <button type="submit" data-i18n="refresh">Refresh</button>
       </form>
     </header>
 
@@ -34,65 +35,97 @@
       <p id="status" role="status" aria-live="polite" class="status"></p>
 
       <section id="auth" class="auth" hidden>
-        <h2>נדרש אימות</h2>
+        <h2 data-i18n="auth.title">Authentication required</h2>
         <form id="auth-form">
-          <label>
-            Admin token
+          <label><span data-i18n="auth.token">Admin token</span>
             <input id="token" type="password" autocomplete="current-password" required />
           </label>
-          <button type="submit">התחבר</button>
-          <p class="hint">הטוקן נשמר ב-sessionStorage של הדפדפן בלבד (לא נשלח לצד שלישי).</p>
+          <button type="submit" data-i18n="auth.login">Log in</button>
+          <p class="hint" data-i18n="auth.hint"></p>
         </form>
       </section>
 
       <div id="content" hidden>
-        <section class="cards" aria-label="סיכום">
-          <div class="card"><span class="card-label">אירועים</span><strong id="t-events">—</strong></div>
-          <div class="card"><span class="card-label">מקורות ייחודיים</span><strong id="t-uniques">—</strong></div>
-          <div class="card"><span class="card-label">אתרים</span><strong id="t-sites">—</strong></div>
+        <section class="cards" aria-label="Summary">
+          <div class="card"><span class="card-label" data-i18n="cards.events">Events</span><strong id="t-events">—</strong></div>
+          <div class="card"><span class="card-label" data-i18n="cards.uniques">Unique sources</span><strong id="t-uniques">—</strong></div>
+          <div class="card"><span class="card-label" data-i18n="cards.sites">Sites</span><strong id="t-sites">—</strong></div>
         </section>
 
         <section aria-labelledby="h-timeline">
-          <h2 id="h-timeline">ציר זמן</h2>
-          <div id="timeline" class="timeline" role="img" aria-label="גרף ניסיונות לאורך זמן"></div>
+          <h2 id="h-timeline" data-i18n="timeline">Timeline</h2>
+          <div id="timeline" class="timeline" role="img"></div>
         </section>
 
         <div class="two-col">
           <section aria-labelledby="h-country">
-            <h2 id="h-country">לפי מדינה</h2>
-            <table id="country" class="bars"><caption class="sr-only">ניסיונות לפי מדינה</caption>
-              <thead><tr><th scope="col">מדינה</th><th scope="col">כמות</th></tr></thead>
+            <h2 id="h-country" data-i18n="byCountry">By country</h2>
+            <table id="country" class="bars">
+              <thead><tr><th scope="col" data-i18n="byCountry">By country</th><th scope="col" data-i18n="offenders.count">Requests</th></tr></thead>
               <tbody></tbody>
             </table>
           </section>
           <section aria-labelledby="h-signal">
-            <h2 id="h-signal">לפי סימן זיהוי</h2>
-            <table id="signal" class="bars"><caption class="sr-only">ניסיונות לפי סימן</caption>
-              <thead><tr><th scope="col">סימן</th><th scope="col">כמות</th></tr></thead>
+            <h2 id="h-signal" data-i18n="bySignal">By signal</h2>
+            <table id="signal" class="bars">
+              <thead><tr><th scope="col" data-i18n="bySignal">By signal</th><th scope="col" data-i18n="offenders.count">Requests</th></tr></thead>
               <tbody></tbody>
             </table>
           </section>
         </div>
 
-        <section aria-labelledby="h-honeypot">
-          <h2 id="h-honeypot">Honeypot</h2>
-          <table id="honeypot" class="bars"><caption class="sr-only">פילוח honeypot</caption>
-            <thead><tr><th scope="col">פעולה</th><th scope="col">כמות</th></tr></thead>
-            <tbody></tbody>
-          </table>
+        <section aria-labelledby="h-settings">
+          <h2 id="h-settings" data-i18n="settings.title">Protection settings</h2>
+          <form id="settings-form" class="settings">
+            <label class="row"><input type="checkbox" id="s-enabled" /> <span data-i18n="settings.enabled">Protection enabled</span></label>
+            <label><span data-i18n="settings.mode">Mode</span>
+              <select id="s-mode">
+                <option value="shadow" data-i18n="settings.shadow">Shadow (report only)</option>
+                <option value="live" data-i18n="settings.live">Live (serve decoys)</option>
+              </select>
+            </label>
+            <label><span data-i18n="settings.threshold">Detection threshold (0–1)</span>
+              <input type="number" id="s-threshold" min="0" max="1" step="0.05" />
+            </label>
+            <label><span data-i18n="settings.siteKey">Site key</span>
+              <input type="text" id="s-sitekey" autocomplete="off" />
+            </label>
+            <label><span data-i18n="settings.allowIps">Allow IPs</span>
+              <textarea id="s-allow" rows="3"></textarea>
+            </label>
+            <label><span data-i18n="settings.blockIps">Block IPs</span>
+              <textarea id="s-block" rows="3"></textarea>
+            </label>
+            <button type="submit" data-i18n="settings.save">Save settings</button>
+            <span id="settings-status" class="hint" role="status" aria-live="polite"></span>
+          </form>
+        </section>
+
+        <section aria-labelledby="h-offenders">
+          <h2 id="h-offenders" data-i18n="offenders.title">Top sources</h2>
+          <div class="table-wrap">
+            <table id="offenders">
+              <thead><tr>
+                <th scope="col" data-i18n="offenders.source">Source (hashed)</th>
+                <th scope="col" data-i18n="offenders.country">Country</th>
+                <th scope="col" data-i18n="offenders.count">Requests</th>
+                <th scope="col" data-i18n="offenders.lastAction">Last action</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </section>
 
         <section aria-labelledby="h-recent">
-          <h2 id="h-recent">אירועים אחרונים</h2>
+          <h2 id="h-recent" data-i18n="recent.title">Recent events</h2>
           <div class="table-wrap">
-            <table id="recent"><caption class="sr-only">רשימת אירועים אחרונים</caption>
-              <thead>
-                <tr>
-                  <th scope="col">זמן</th><th scope="col">אתר</th><th scope="col">מקור</th>
-                  <th scope="col">מדינה</th><th scope="col">נתיב</th>
-                  <th scope="col">Honeypot</th><th scope="col">סימנים</th>
-                </tr>
-              </thead>
+            <table id="recent">
+              <thead><tr>
+                <th scope="col" data-i18n="col.time">Time</th><th scope="col" data-i18n="col.site">Site</th>
+                <th scope="col" data-i18n="col.source">Source</th><th scope="col" data-i18n="col.country">Country</th>
+                <th scope="col" data-i18n="col.path">Path</th><th scope="col" data-i18n="col.honeypot">Honeypot</th>
+                <th scope="col" data-i18n="col.signals">Signals</th>
+              </tr></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -100,6 +133,7 @@
       </div>
     </main>
 
+    <script src="i18n.js"></script>
     <script src="dashboard.js"></script>
   </body>
 </html>

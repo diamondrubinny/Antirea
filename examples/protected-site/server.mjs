@@ -51,8 +51,13 @@ app.use(
     mode: MODE,
     threshold: 0.7,
     reportUrl: COLLECTOR,
-    allowlist: { verifyReverseDns: false }, // enable in production
-    onEvent: (ev) => console.log("[honeypot]", ev.action, ev.score, ev.reasons.join(",")),
+    allowlist: { verifyReverseDns: false }, // enable in production (SEO safety)
+    // Behavioural engine: scores IP + request cadence + timing regularity +
+    // header INSTABILITY, so forging the User-Agent does not help an attacker.
+    behavior: { velocityPer10s: 25, harvestAssetPaths: 8, fingerprintChurn: 3 },
+    // Optional: let the control panel change mode/threshold/lists live.
+    // config: { url: "http://localhost:8080/api/site-config", siteKey: process.env.SITE_KEY },
+    onEvent: (ev) => console.log("[honeypot]", ev.action, ev.score.toFixed(2), ev.reasons.join(",")),
     onDecoyServed: (info) => console.log("[honeypot] decoy canary served:", info.canary),
   }),
 );

@@ -78,6 +78,12 @@ export class Store {
         ip_hash TEXT NOT NULL,
         created_ts INTEGER NOT NULL
       );
+
+      CREATE TABLE IF NOT EXISTS site_config (
+        site_id TEXT PRIMARY KEY,
+        data TEXT NOT NULL,
+        updated_ts INTEGER NOT NULL
+      );
     `);
   }
 
@@ -186,6 +192,46 @@ export class Store {
          GROUP BY label ORDER BY count DESC`,
       )
       .all(sinceTs, ...params) as StatsRow[];
+  }
+
+  /** Top offending sources (by hashed IP) in the window. */
+  topOffenders(sinceTs: number, siteId?: string, limit = 50): Array<{
+    label: string;
+    count: number;
+    country: string;
+    lastAction: string | null;
+  }> {
+    const { clause, params } = this.siteClause(siteId);
+    return this.db
+      .prepare(
+        `SELECT ip_hash AS label, COUNT(*) AS count,
+                COALESCE(NULLIF(MAX(country),''),'??') AS country,
+                MAX(honeypot_action) AS lastAction
+         FROM events WHERE received_ts >= ? ${clause}
+         GROUP BY ip_hash ORDER BY count DESC LIMIT ?`,
+      )
+      .all(sinceTs, ...params, limit) as Array<{ label: string; count: number; country: string; lastAction: string | null }>;
+  }
+
+  getConfig(siteId: string): Record<string, unknown> | null {
+    const row = this.db.prepare(`SELECT data FROM site_config WHERE site_id = ?`).get(siteId) as
+      | { data: string }
+      | undefined;
+    if (!row) return null;
+    try {
+      return JSON.parse(row.data) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+
+  setConfig(siteId: string, data: Record<string, unknown>): void {
+    this.db
+      .prepare(
+        `INSERT INTO site_config (site_id, data, updated_ts) VALUES (?, ?, ?)
+         ON CONFLICT(site_id) DO UPDATE SET data = excluded.data, updated_ts = excluded.updated_ts`,
+      )
+      .run(siteId, JSON.stringify(data), Date.now());
   }
 
   /** Delete events older than the retention cutoff. Returns rows removed. */

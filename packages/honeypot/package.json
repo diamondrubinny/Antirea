@@ -15,7 +15,8 @@
   "engines": { "node": ">=18" },
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node test/behavior.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
