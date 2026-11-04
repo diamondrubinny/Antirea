@@ -6,6 +6,29 @@ Any website, SaaS, or app can add Antirea to deter analysis tools (including CDP
 
 > 🌍 Control panel available in English, עברית, Español, Français, Deutsch, العربية, Português, Русский, 中文.
 
+## Screenshots
+
+The self-hosted control panel — live stats, behavioural detection, honeypot
+activity, top sources, and the adaptive AI advisor (dark & light themes, 9
+languages, RTL):
+
+<p align="center">
+  <img src="docs/screenshots/dashboard-dark.png" alt="Antirea control panel overview (dark theme): event totals, timeline, by-country and by-signal breakdowns including REA fingerprints" width="900">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/ai-advisor.png" alt="Antirea AI advisor: bounded, human-approved defense proposals and the learned knowledge base" width="900">
+</p>
+
+<details>
+<summary>Light theme — full page</summary>
+
+<p align="center">
+  <img src="docs/screenshots/dashboard-light.png" alt="Antirea control panel full page (light theme)" width="900">
+</p>
+
+</details>
+
 ---
 
 ## ⚠️ Read this first — what is hermetic, and what is not
