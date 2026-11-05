@@ -40,7 +40,7 @@
     try {
       var raw = localStorage.getItem(KEY);
       return raw ? JSON.parse(raw) : null;
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -48,13 +48,13 @@
     var record = { v: VERSION, date: new Date().toISOString(), categories: categories };
     try {
       localStorage.setItem(KEY, JSON.stringify(record));
-    } catch (e) {
+    } catch {
       /* storage unavailable — consent simply won't persist */
     }
     listeners.forEach(function (cb) {
       try {
         cb(categories);
-      } catch (e) {
+      } catch {
         /* ignore */
       }
     });
@@ -187,7 +187,7 @@
       listeners.forEach(function (cb) {
         try {
           cb(stored.categories);
-        } catch (e) {
+        } catch {
           /* ignore */
         }
       });
