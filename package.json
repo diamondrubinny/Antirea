@@ -10,6 +10,7 @@
     "packages/secure-fn",
     "packages/challenge",
     "packages/watermark",
+    "packages/harden",
     "packages/adaptive",
     "packages/collector"
   ],
