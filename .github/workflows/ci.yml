@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # --ignore-scripts skips native builds (better-sqlite3) and the geoip-lite
+      # postinstall. CI builds (tsc/vite) and the test suites do not need them.
+      - name: Install
+        run: npm install --no-audit --no-fund --ignore-scripts
+
+      - name: Build all packages
+        run: npm run build --workspaces --if-present
+
+      - name: Test all packages
+        run: npm test --workspaces --if-present

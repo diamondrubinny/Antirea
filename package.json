@@ -14,7 +14,9 @@
   "scripts": {
     "build:guard": "npm run build --workspace=@antirea/guard",
     "dev:collector": "npm run dev --workspace=@antirea/collector",
-    "start:collector": "npm run start --workspace=@antirea/collector"
+    "start:collector": "npm run start --workspace=@antirea/collector",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run build --workspaces --if-present && npm test --workspaces --if-present"
   },
   "author": "Diamond Rubinny"
 }

@@ -1,5 +1,9 @@
 # Antirea
 
+[![CI](https://github.com/diamondrubinny/Antirea/actions/workflows/ci.yml/badge.svg)](https://github.com/diamondrubinny/Antirea/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
+![Node](https://img.shields.io/badge/node-%E2%89%A520-brightgreen.svg)
+
 **Drop-in protection against reverse-engineering and cloning, with a control panel that shows who tried, from where, and how often.**
 
 Any website, SaaS, or app can add Antirea to deter analysis tools (including CDP/DevTools-based ones such as REA), serve decoys to detected harvesters, and — for the logic that actually matters — run it on the server where it can never be reverse-engineered.
