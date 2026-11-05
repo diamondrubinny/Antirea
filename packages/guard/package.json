@@ -16,14 +16,13 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc -p tsconfig.json && node build.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node test/rea.mjs"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
-    "vite": "^5.4.10",
-    "terser": "^5.31.0"
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.3"
   },
   "author": "Diamond Rubinny",
   "license": "Apache-2.0"
