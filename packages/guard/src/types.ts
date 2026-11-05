@@ -78,6 +78,12 @@ export interface GuardConfig {
   cdpProbe?: boolean;
   /** How often to re-run the CDP probe (ms). Default 4000. */
   cdpIntervalMs?: number;
+  /**
+   * Lock the app to these hosts. If the page runs on any other host (a rehosted
+   * clone), a `domainlock.mismatch` signal is reported — and, in obstruct/
+   * aggressive mode, the app degrades. Subdomains of an entry match.
+   */
+  allowedHosts?: string[];
   /** Include full URL query in reports (may contain secrets!). Default false. */
   includeQuery?: boolean;
   /**
