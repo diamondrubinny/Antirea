@@ -19,7 +19,8 @@
     "test": "npm run build --workspaces --if-present && npm test --workspaces --if-present",
     "lint": "eslint .",
     "format": "prettier --write \"packages/*/src/**/*.ts\"",
-    "format:check": "prettier --check \"packages/*/src/**/*.ts\""
+    "format:check": "prettier --check \"packages/*/src/**/*.ts\"",
+    "test:integration": "node test/integration.mjs"
   },
   "author": "Diamond Rubinny",
   "overrides": {

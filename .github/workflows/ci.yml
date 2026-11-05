@@ -31,6 +31,9 @@ jobs:
       - name: Test all packages
         run: npm test --workspaces --if-present
 
+      - name: End-to-end integration proof
+        run: node test/integration.mjs
+
   lint:
     runs-on: ubuntu-latest
     steps:
