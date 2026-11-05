@@ -176,6 +176,22 @@ its public source** and documented with its evadability in
 These are deterrence + intelligence. The hermetic protection remains
 `@antirea/secure-fn`.
 
+## Client logic that must ship → WASM
+
+For logic that can't move to the server (latency/offline), ship the sensitive
+part as **WebAssembly**: a CDP/REA client dumps an opaque binary, not readable
+JS. Load it through the same attestation gate so detected clients get a decoy:
+
+```ts
+import { instantiateProtectedWasm } from "@antirea/guard";
+const logic = await instantiateProtectedWasm("logic", { endpoint: "/__p/" });
+logic.priceQuote(2);
+```
+
+Working example in `examples/wasm-logic/` (AssemblyScript → `.wasm`, with a test
+proving the formula is absent from the binary). Full guide: [`docs/WASM.md`](./docs/WASM.md).
+Strong deterrence, not hermetic — WASM can still be disassembled.
+
 ## CDP / REA specifics
 
 A tool attached via the Chrome DevTools Protocol reads source directly from the engine. For **client code** Antirea adds: a CDP probe in the guard (`debugger`-timing — REA's passive capture does not suppress pauses — plus `Error.stack`/`RegExp.toString` console traps) and **attestation-gated delivery** (`importProtected`) so protected modules are fetched out-of-band and replaced with decoys under CDP. These raise cost; `blackboxing` and a forged attestation header defeat them. For **logic**, `@antirea/secure-fn` is the real answer.
