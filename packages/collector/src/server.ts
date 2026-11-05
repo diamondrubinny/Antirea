@@ -205,14 +205,15 @@ function sanitizeConfig(input: unknown, prev: SiteConfig | null): SiteConfig {
   const o = (input ?? {}) as Record<string, unknown>;
   const arr = (v: unknown): string[] =>
     Array.isArray(v) ? v.filter((x) => typeof x === "string").slice(0, 1000) : [];
-  const num = typeof o.threshold === "number" ? Math.min(1, Math.max(0, o.threshold)) : prev?.threshold ?? 0.7;
+  const num =
+    typeof o.threshold === "number" ? Math.min(1, Math.max(0, o.threshold)) : (prev?.threshold ?? 0.7);
   return {
-    enabled: typeof o.enabled === "boolean" ? o.enabled : prev?.enabled ?? true,
-    mode: o.mode === "live" ? "live" : o.mode === "shadow" ? "shadow" : prev?.mode ?? "shadow",
+    enabled: typeof o.enabled === "boolean" ? o.enabled : (prev?.enabled ?? true),
+    mode: o.mode === "live" ? "live" : o.mode === "shadow" ? "shadow" : (prev?.mode ?? "shadow"),
     threshold: num,
-    allowIps: o.allowIps !== undefined ? arr(o.allowIps) : prev?.allowIps ?? [],
-    blockIps: o.blockIps !== undefined ? arr(o.blockIps) : prev?.blockIps ?? [],
-    siteKey: typeof o.siteKey === "string" && o.siteKey ? o.siteKey : prev?.siteKey ?? "",
+    allowIps: o.allowIps !== undefined ? arr(o.allowIps) : (prev?.allowIps ?? []),
+    blockIps: o.blockIps !== undefined ? arr(o.blockIps) : (prev?.blockIps ?? []),
+    siteKey: typeof o.siteKey === "string" && o.siteKey ? o.siteKey : (prev?.siteKey ?? ""),
   };
 }
 
@@ -241,7 +242,13 @@ app.get("/api/site-config", (req: Request, res: Response) => {
   if (!cfg || !cfg.siteKey || key.length !== cfg.siteKey.length || key !== cfg.siteKey) {
     return res.status(403).json({ error: "forbidden" });
   }
-  return res.json({ enabled: cfg.enabled, mode: cfg.mode, threshold: cfg.threshold, allowIps: cfg.allowIps, blockIps: cfg.blockIps });
+  return res.json({
+    enabled: cfg.enabled,
+    mode: cfg.mode,
+    threshold: cfg.threshold,
+    allowIps: cfg.allowIps,
+    blockIps: cfg.blockIps,
+  });
 });
 
 // --- Adaptive defense (learns + proposes bounded changes) ---
@@ -332,21 +339,31 @@ app.get("/api/knowledge", requireAdmin, (req: Request, res: Response) => {
   return res.json({ knowledge: store.knowledgeList(siteId, 50) });
 });
 
-app.post("/api/proposals/approve", requireAdmin, express.json({ limit: "4kb" }), (req: Request, res: Response) => {
-  const id = (req.body as { id?: string })?.id ?? "";
-  const p = store.getProposal(id);
-  if (!p) return res.status(404).json({ error: "not found" });
-  applyProposal(String(p.site_id), { type: String(p.type), proposed: p.proposed_val as string });
-  store.setProposalStatus(id, "applied");
-  return res.json({ ok: true });
-});
+app.post(
+  "/api/proposals/approve",
+  requireAdmin,
+  express.json({ limit: "4kb" }),
+  (req: Request, res: Response) => {
+    const id = (req.body as { id?: string })?.id ?? "";
+    const p = store.getProposal(id);
+    if (!p) return res.status(404).json({ error: "not found" });
+    applyProposal(String(p.site_id), { type: String(p.type), proposed: p.proposed_val as string });
+    store.setProposalStatus(id, "applied");
+    return res.json({ ok: true });
+  },
+);
 
-app.post("/api/proposals/reject", requireAdmin, express.json({ limit: "4kb" }), (req: Request, res: Response) => {
-  const id = (req.body as { id?: string })?.id ?? "";
-  if (!store.getProposal(id)) return res.status(404).json({ error: "not found" });
-  store.setProposalStatus(id, "rejected");
-  return res.json({ ok: true });
-});
+app.post(
+  "/api/proposals/reject",
+  requireAdmin,
+  express.json({ limit: "4kb" }),
+  (req: Request, res: Response) => {
+    const id = (req.body as { id?: string })?.id ?? "";
+    if (!store.getProposal(id)) return res.status(404).json({ error: "not found" });
+    store.setProposalStatus(id, "rejected");
+    return res.json({ ok: true });
+  },
+);
 
 app.get("/api/events", requireAdmin, (req: Request, res: Response) => {
   const since = sinceFromQuery(req);
@@ -385,11 +402,15 @@ if (AI_ANALYZE_INTERVAL_MIN > 0) {
   const analyzeAll = (): void => {
     const sites = store.knownSites(Date.now() - 24 * 36e5);
     for (const siteId of sites) {
-      void runAnalysis(siteId).catch((e) => console.error("[antirea] analysis failed", siteId, (e as Error).message));
+      void runAnalysis(siteId).catch((e) =>
+        console.error("[antirea] analysis failed", siteId, (e as Error).message),
+      );
     }
   };
   setInterval(analyzeAll, AI_ANALYZE_INTERVAL_MIN * 60_000);
-  console.log(`[antirea] adaptive analysis every ${AI_ANALYZE_INTERVAL_MIN}min (AI ${AI_ENABLED ? "on" : "off"}, auto-apply ${AI_AUTO_APPLY ? "on" : "off"})`);
+  console.log(
+    `[antirea] adaptive analysis every ${AI_ANALYZE_INTERVAL_MIN}min (AI ${AI_ENABLED ? "on" : "off"}, auto-apply ${AI_AUTO_APPLY ? "on" : "off"})`,
+  );
 }
 
 const server = app.listen(PORT, () => {

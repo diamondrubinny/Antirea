@@ -36,7 +36,12 @@ export class MemoryKnowledgeStore implements KnowledgeStore {
  * Reinforce a signature from an observed combo. Confidence rises with
  * occurrences via a saturating curve (never reaches 1, never decays to panic).
  */
-export function reinforce(store: KnowledgeStore, pattern: string, count: number, now = Date.now()): KnowledgeSignature {
+export function reinforce(
+  store: KnowledgeStore,
+  pattern: string,
+  count: number,
+  now = Date.now(),
+): KnowledgeSignature {
   const existing = store.get(pattern);
   const occurrences = (existing?.occurrences ?? 0) + count;
   // Saturating confidence: 1 - 1/(1 + occurrences/20), capped at 0.97.

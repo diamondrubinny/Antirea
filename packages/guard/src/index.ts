@@ -38,13 +38,7 @@ export type { ProtectedLoaderConfig } from "./protected";
 /** Best-effort dev-environment guess, so we don't disrupt development. */
 function looksLikeDev(): boolean {
   const h = location.hostname;
-  return (
-    h === "localhost" ||
-    h === "127.0.0.1" ||
-    h === "::1" ||
-    h.endsWith(".local") ||
-    h.endsWith(".test")
-  );
+  return h === "localhost" || h === "127.0.0.1" || h === "::1" || h.endsWith(".local") || h.endsWith(".test");
 }
 
 let started = false;
@@ -102,7 +96,7 @@ export function initGuard(cfg: GuardConfig): { stop: () => void } {
       const html =
         '<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8">' +
         '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-        "<title>גישה מוגבלת</title></head><body style=\"font-family:system-ui;" +
+        '<title>גישה מוגבלת</title></head><body style="font-family:system-ui;' +
         'padding:2rem;max-width:40rem;margin:auto">' +
         "<h1>גישה מוגבלת</h1><p>הזוהתה פעילות ניתוח אוטומטי. אם לדעתך מדובר בטעות, " +
         "פנה לתמיכה.</p></body></html>";
@@ -135,9 +129,7 @@ export function initGuard(cfg: GuardConfig): { stop: () => void } {
     handle([...detectDevtools()]);
   }, pollMs);
   // CDP probe runs on a slower cadence (the debugger trap is intrusive).
-  const cdpInterval = cdpProbeEnabled
-    ? setInterval(() => handle(probeCdp().signals), cdpIntervalMs)
-    : null;
+  const cdpInterval = cdpProbeEnabled ? setInterval(() => handle(probeCdp().signals), cdpIntervalMs) : null;
 
   // Final flush on unload.
   const onHide = (): void => reporter.flush();

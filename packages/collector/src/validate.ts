@@ -46,7 +46,9 @@ function num(v: unknown): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
 
-export function validateEvent(input: unknown): { ok: true; value: IncomingEvent } | { ok: false; error: string } {
+export function validateEvent(
+  input: unknown,
+): { ok: true; value: IncomingEvent } | { ok: false; error: string } {
   if (typeof input !== "object" || input === null) return { ok: false, error: "not an object" };
   const o = input as Record<string, unknown>;
 

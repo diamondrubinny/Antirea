@@ -150,7 +150,11 @@ export class BehaviorTracker {
     }
 
     // 3. Harvesting shape: many distinct asset paths, never loading a page.
-    if (r.navCount === 0 && r.paths.size >= this.harvestAssetPaths && r.assetCount >= this.harvestAssetPaths) {
+    if (
+      r.navCount === 0 &&
+      r.paths.size >= this.harvestAssetPaths &&
+      r.assetCount >= this.harvestAssetPaths
+    ) {
       score += 0.4;
       reasons.push(`harvest:${r.paths.size}assets/0nav`);
     }
@@ -190,7 +194,7 @@ export class BehaviorTracker {
 export function fingerprintHeaders(h: Record<string, string | string[] | undefined>): string {
   const get = (k: string): string => {
     const v = h[k];
-    return (Array.isArray(v) ? v.join(",") : v ?? "").slice(0, 256);
+    return (Array.isArray(v) ? v.join(",") : (v ?? "")).slice(0, 256);
   };
   return [
     get("user-agent"),
