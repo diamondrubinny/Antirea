@@ -63,6 +63,7 @@ Shipping a security tool means being honest about its guarantees. Antirea has **
 | **`@antirea/secure-fn`** | **The hermetic core.** Runs proprietary functions on the server; client sends inputs, gets outputs. CDP never sees the algorithm. |
 | `@antirea/honeypot` | Express/connect middleware. Behavioural detection (IP, cadence, timing, header instability) + serves decoys. Shadow mode by default. |
 | `@antirea/guard` | Browser library. Detects DevTools/CDP/automation and reports telemetry. `<script>` or npm. |
+| `@antirea/challenge` | **Proof-of-work gate** — makes high-volume scraping pay CPU (server issue/verify + browser solver). Plus honeypot **tarpit** and **JA3/TLS** signal. See [`docs/BOT-DEFENSE.md`](./docs/BOT-DEFENSE.md). |
 | `@antirea/adaptive` | **Learns from attacks** and proposes bounded defense changes. Heuristics always; AI optional (BYO key). Suggest-only by default. |
 | `@antirea/collector` | Ingest API + GeoIP + SQLite + the **multi-language control panel** (stats, settings, AI advisor). |
 

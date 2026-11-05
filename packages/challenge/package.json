@@ -1,0 +1,29 @@
+{
+  "name": "@antirea/challenge",
+  "version": "0.1.0",
+  "description": "Proof-of-work gating to make high-volume scraping expensive",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./client": { "types": "./dist/client.d.ts", "import": "./dist/client.js" }
+  },
+  "files": ["dist"],
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "node test/pow.mjs"
+  },
+  "peerDependencies": {
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0",
+    "typescript": "^5.6.3"
+  },
+  "author": "Diamond Rubinny",
+  "license": "Apache-2.0"
+}

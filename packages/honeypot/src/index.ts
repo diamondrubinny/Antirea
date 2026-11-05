@@ -59,6 +59,18 @@ export interface HoneypotOptions {
   behavior?: BehaviorOptions;
   /** Static IPs to always decoy (also settable live from the panel). */
   blockIps?: string[];
+  /**
+   * Header carrying a TLS fingerprint (JA3/JA4) set by your reverse proxy or
+   * CDN. Default "x-ja3". A proxy must populate it — Node can't compute JA3.
+   */
+  ja3Header?: string;
+  /** Known bot/scraper JA3 (or JA4) fingerprints to flag outright. */
+  blockJa3?: string[];
+  /**
+   * Tarpit: when a request is flagged, delay the response by this many ms
+   * before serving (wastes a scraper's time/connections). 0 = off (default).
+   */
+  tarpitMs?: number;
   /** Live config from the admin panel. */
   config?: HoneypotConfigSource;
   onDecoyServed?: (info: { canary: string; path: string; ip: string }) => void;
@@ -117,6 +129,10 @@ export function honeypot(opts: HoneypotOptions): HoneypotMiddleware {
   const allow = new Allowlist(opts.allowlist);
   const tracker = new BehaviorTracker(opts.behavior);
   const staticBlock = new Set(opts.blockIps ?? []);
+  const ja3Header = (opts.ja3Header ?? "x-ja3").toLowerCase();
+  const blockJa3 = new Set((opts.blockJa3 ?? []).map((s) => s.toLowerCase()));
+  const tarpitMs = Math.max(0, opts.tarpitMs ?? 0);
+  const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
   const remote = opts.config
     ? new RemoteConfigClient({
@@ -191,11 +207,16 @@ export function honeypot(opts: HoneypotOptions): HoneypotMiddleware {
       const req_ = scoreRequest({ userAgent: ua, headers: req.headers, path });
       const reasons = [...new Set([...req_.reasons, ...behavior.reasons])];
 
+      // TLS fingerprint (JA3/JA4) from the proxy — independent of HTTP headers.
+      const ja3 = ((req.headers[ja3Header] as string) ?? "").toLowerCase();
+      const ja3Blocked = ja3 !== "" && blockJa3.has(ja3);
+      if (ja3Blocked) reasons.push(`ja3:${ja3.slice(0, 32)}`);
+
       const blocked = blockIps.has(ip);
       // Server-truth behavioural score and header score are combined; the
       // client header cannot lower the behavioural score.
-      const score = blocked ? 1 : Math.min(1, Math.max(req_.score, behavior.score));
-      const flagged = blocked || score >= threshold;
+      const score = blocked || ja3Blocked ? 1 : Math.min(1, Math.max(req_.score, behavior.score));
+      const flagged = blocked || ja3Blocked || score >= threshold;
 
       const base = {
         siteId: opts.siteId,
@@ -212,6 +233,10 @@ export function honeypot(opts: HoneypotOptions): HoneypotMiddleware {
         void report({ ...base, action: "pass" });
         return next();
       }
+
+      // Tarpit: waste a flagged client's time before responding.
+      if (tarpitMs > 0) await sleep(tarpitMs);
+
       if (mode === "shadow") {
         void report({ ...base, action: "would_decoy" });
         return next();
