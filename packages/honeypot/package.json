@@ -20,7 +20,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node test/behavior.mjs && node test/scoring.mjs"
+    "test": "node test/behavior.mjs && node test/scoring.mjs && node test/ja3-tarpit.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
