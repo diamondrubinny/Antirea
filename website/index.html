@@ -10,7 +10,7 @@
     />
     <meta
       name="keywords"
-      content="NoREA, no REA, anti-REA, block REA, stop REA, REA reverse engineering, anti reverse engineering, reverse engineering protection, code protection, source code protection, protect source code, CDP protection, DevTools detection, honeypot, anti-bot, anti-scraping, code cloning protection, protect JavaScript, WASM code protection, Antirea, Diamond Rubinny"
+      content="NoREA, no REA, anti-REA, block REA, stop REA, REA reverse engineering, anti reverse engineering, reverse engineering protection, code protection, source code protection, protect source code, CDP protection, DevTools detection, honeypot, anti-bot, anti-scraping, bot protection, proof of work, JA3 fingerprint, tarpit, watermarking, traitor tracing, canary tokens, code cloning protection, protect JavaScript, WASM code protection, Antirea, Diamond Rubinny"
     />
     <meta name="author" content="Diamond Rubinny" />
     <link rel="canonical" href="https://norea.rubinny.net/" />
@@ -134,6 +134,30 @@
                 The logic that matters runs <strong>server-side</strong> (hermetic — REA never sees the algorithm);
                 code that must ship to the browser can be compiled to <strong>WASM</strong> (an opaque binary).
               </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="more">
+        <div class="wrap">
+          <h2>More ways it protects</h2>
+          <div class="cards">
+            <article class="card">
+              <h3>Proof of work</h3>
+              <p>Make mass scraping pay CPU: suspicious clients must solve a small challenge before they can reach protected routes.</p>
+            </article>
+            <article class="card">
+              <h3>Tarpit &amp; TLS fingerprint</h3>
+              <p>Slow down detected bots, and flag <code>curl</code>/<code>python</code>/<code>scrapy</code> by their TLS (JA3) handshake — not just the User-Agent.</p>
+            </article>
+            <article class="card">
+              <h3>WebAssembly</h3>
+              <p>Ship client-side logic as an opaque WASM binary instead of readable JavaScript — much harder to reverse.</p>
+            </article>
+            <article class="card">
+              <h3>Traitor tracing</h3>
+              <p>Watermark each viewer invisibly, scan public code for leaks, and get a webhook alert when attacks spike.</p>
             </article>
           </div>
         </div>
