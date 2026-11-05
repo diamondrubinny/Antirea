@@ -263,7 +263,10 @@ inert **decoy**; a real browser receives the **real** asset; `secure-fn` returns
 the computed **output** while the proprietary constant **never appears** in
 anything served to clients.
 
-See the end-to-end demo in `examples/protected-site/`.
+See `examples/protected-site/` for a focused demo, and
+[`examples/full-stack/`](./examples/full-stack/) for one app that wires **all
+seven packages** together with an 11-check end-to-end test (`node
+examples/full-stack/test.mjs`).
 
 ## Contributing translations
 

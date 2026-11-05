@@ -37,6 +37,9 @@ jobs:
       - name: WASM example (prebuilt binary)
         run: node examples/wasm-logic/test.mjs
 
+      - name: Full-stack e2e (all layers together)
+        run: node examples/full-stack/test.mjs
+
   lint:
     runs-on: ubuntu-latest
     steps:
