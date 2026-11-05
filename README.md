@@ -233,6 +233,15 @@ Learns from the attacks it sees and proposes defense changes. **Off by default; 
 
 ---
 
+## Deploy
+
+- **Docker:** `docker compose up --build` (see `docker-compose.yml`).
+- **Windows Server:** run the collector as a Windows Service — see
+  [`packages/collector/windows/README.md`](./packages/collector/windows/README.md).
+  (The `honeypot`/`secure-fn` packages need no installer; they `npm install`
+  into your app. The Microsoft Store is not used — a server belongs in a
+  service, not a sandboxed Store app.)
+
 ## Development & tests
 
 ```bash
