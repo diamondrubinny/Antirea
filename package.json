@@ -16,10 +16,19 @@
     "dev:collector": "npm run dev --workspace=@antirea/collector",
     "start:collector": "npm run start --workspace=@antirea/collector",
     "build": "npm run build --workspaces --if-present",
-    "test": "npm run build --workspaces --if-present && npm test --workspaces --if-present"
+    "test": "npm run build --workspaces --if-present && npm test --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write \"packages/*/src/**/*.ts\"",
+    "format:check": "prettier --check \"packages/*/src/**/*.ts\""
   },
   "author": "Diamond Rubinny",
   "overrides": {
     "ip-address": "^10.7.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.14.0",
+    "eslint": "^9.14.0",
+    "prettier": "^3.3.3",
+    "typescript-eslint": "^8.13.0"
   }
 }

@@ -61,9 +61,11 @@ export function detectAutomation(): Signal[] {
   // 7. Permissions API inconsistency: headless often reports "denied"
   //    for notifications while Notification.permission is "default".
   try {
-    const perm = (navigator as Navigator & {
-      permissions?: { query: (d: { name: PermissionName }) => Promise<PermissionStatus> };
-    }).permissions;
+    const perm = (
+      navigator as Navigator & {
+        permissions?: { query: (d: { name: PermissionName }) => Promise<PermissionStatus> };
+      }
+    ).permissions;
     if (perm && typeof Notification !== "undefined") {
       perm
         .query({ name: "notifications" as PermissionName })

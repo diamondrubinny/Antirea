@@ -67,7 +67,7 @@ export function detectConsoleGetter(): Signal[] {
   // We keep it quiet: log then immediately clear.
   try {
     console.debug(bait);
-    // eslint-disable-next-line no-console
+
     (console as Console).clear?.();
   } catch {
     /* ignore */

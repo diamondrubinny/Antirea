@@ -107,7 +107,7 @@ function matches(path: string, rules: Array<string | RegExp>): boolean {
 function isNavigation(h: Req["headers"]): boolean {
   const dest = h["sec-fetch-dest"];
   if (dest === "document") return true;
-  const accept = Array.isArray(h.accept) ? h.accept.join(",") : h.accept ?? "";
+  const accept = Array.isArray(h.accept) ? h.accept.join(",") : (h.accept ?? "");
   return accept.includes("text/html");
 }
 
@@ -146,7 +146,11 @@ export function honeypot(opts: HoneypotOptions): HoneypotMiddleware {
           lang: "",
           screen: "",
           tz: "",
-          signals: ev.reasons.map((name) => ({ type: "automation", name: `honeypot:${name}`, confidence: ev.score })),
+          signals: ev.reasons.map((name) => ({
+            type: "automation",
+            name: `honeypot:${name}`,
+            confidence: ev.score,
+          })),
           honeypot: { action: ev.action, score: ev.score },
         }),
       });
@@ -193,7 +197,16 @@ export function honeypot(opts: HoneypotOptions): HoneypotMiddleware {
       const score = blocked ? 1 : Math.min(1, Math.max(req_.score, behavior.score));
       const flagged = blocked || score >= threshold;
 
-      const base = { siteId: opts.siteId, mode, path, score, reasons: blocked ? ["blocklist", ...reasons] : reasons, ua, ip, ts: Date.now() };
+      const base = {
+        siteId: opts.siteId,
+        mode,
+        path,
+        score,
+        reasons: blocked ? ["blocklist", ...reasons] : reasons,
+        ua,
+        ip,
+        ts: Date.now(),
+      };
 
       if (!flagged) {
         void report({ ...base, action: "pass" });

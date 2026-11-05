@@ -59,7 +59,10 @@ Respond with ONLY a JSON object, no prose, no code fences:
 {"analysis":"<=2 sentences","proposals":[{"type":"threshold|mode|watch","proposed":<number|string>,"rationale":"...","confidence":0..1}]}`;
 
 function stripFences(s: string): string {
-  return s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  return s
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
 }
 
 let counter = 0;
@@ -115,7 +118,10 @@ export class AnthropicAdvisor implements Advisor {
     this.apiKey = opts.apiKey;
   }
 
-  async advise(summary: AttackSummary, ctx: AdvisorContext): Promise<{ analysis: string; proposals: Proposal[] }> {
+  async advise(
+    summary: AttackSummary,
+    ctx: AdvisorContext,
+  ): Promise<{ analysis: string; proposals: Proposal[] }> {
     // Lazy-load the SDK so the package works without it installed.
     let Anthropic: new (opts?: { apiKey?: string }) => {
       messages: {

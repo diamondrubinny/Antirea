@@ -35,7 +35,10 @@ export class NonceStore {
 /** Fixed-window per-key rate limiter. */
 export class RateLimiter {
   private readonly windows = new Map<string, { count: number; resetAt: number }>();
-  constructor(private readonly limit: number, private readonly windowMs: number) {}
+  constructor(
+    private readonly limit: number,
+    private readonly windowMs: number,
+  ) {}
 
   /** Returns { ok, count }. ok=false means the key is over its limit. */
   hit(key: string): { ok: boolean; count: number } {

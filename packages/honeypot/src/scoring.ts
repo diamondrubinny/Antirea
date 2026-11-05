@@ -33,14 +33,15 @@ export interface ScoreResult {
   reasons: string[];
 }
 
-const HEADLESS_UA = /HeadlessChrome|PhantomJS|SlimerJS|Nightmare|Electron\/|python-requests|node-fetch|axios\/|curl\/|wget\/|Go-http-client|Java\/|okhttp|Scrapy/i;
+const HEADLESS_UA =
+  /HeadlessChrome|PhantomJS|SlimerJS|Nightmare|Electron\/|python-requests|node-fetch|axios\/|curl\/|wget\/|Go-http-client|Java\/|okhttp|Scrapy/i;
 
 /** Known analysis/automation libraries sometimes present in UA or headers. */
 const AUTOMATION_HINTS = /playwright|puppeteer|webdriver|selenium|headless/i;
 
 function header(h: ScoreInput["headers"], name: string): string {
   const v = h[name.toLowerCase()];
-  return Array.isArray(v) ? v.join(",") : v ?? "";
+  return Array.isArray(v) ? v.join(",") : (v ?? "");
 }
 
 /**

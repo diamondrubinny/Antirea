@@ -105,7 +105,12 @@ export function createSecureFnRouter(opts: SecureFnOptions): Router {
   const router = express.Router();
   const jsonBody = express.json({ limit: "32kb" });
 
-  const issueLimiter = rateLimit({ windowMs: 60_000, limit: 30, standardHeaders: true, legacyHeaders: false });
+  const issueLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
 
   // Issue a short-lived session token.
   router.post("/session", issueLimiter, (_req: Request, res: Response) => {

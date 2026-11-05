@@ -51,9 +51,7 @@ export class Reporter {
   }
 
   private buildEvent(signals: Signal[]): GuardEvent {
-    const path = this.cfg.includeQuery
-      ? location.pathname + location.search
-      : location.pathname;
+    const path = this.cfg.includeQuery ? location.pathname + location.search : location.pathname;
     return {
       v: 1,
       ts: Date.now(),

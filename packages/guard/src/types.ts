@@ -10,11 +10,7 @@
  */
 
 /** Category of a detected reverse-engineering / analysis signal. */
-export type SignalType =
-  | "devtools"
-  | "automation"
-  | "integrity"
-  | "console";
+export type SignalType = "devtools" | "automation" | "integrity" | "console";
 
 /** A single detection signal with an evadability note (honesty by design). */
 export interface Signal {

@@ -119,10 +119,7 @@ export class Store {
     `);
   }
 
-  insertEvent(
-    e: StoredEvent,
-    signals: Array<{ type: string; name: string; confidence: number }>,
-  ): number {
+  insertEvent(e: StoredEvent, signals: Array<{ type: string; name: string; confidence: number }>): number {
     const insert = this.db.prepare(`
       INSERT INTO events (ts, received_ts, site_id, session_id, source, path, ua, lang,
         screen, tz, country, ip_hash, signals_json, honeypot_action, honeypot_score)
@@ -202,7 +199,10 @@ export class Store {
          GROUP BY bucket ORDER BY bucket ASC`,
       )
       .all(bucketMs, bucketMs, sinceTs, ...params)
-      .map((r) => ({ label: String((r as { bucket: number }).bucket), count: (r as { count: number }).count }));
+      .map((r) => ({
+        label: String((r as { bucket: number }).bucket),
+        count: (r as { count: number }).count,
+      }));
   }
 
   recent(sinceTs: number, siteId?: string, limit = 100): StoredEvent[] {
@@ -227,7 +227,11 @@ export class Store {
   }
 
   /** Top offending sources (by hashed IP) in the window. */
-  topOffenders(sinceTs: number, siteId?: string, limit = 50): Array<{
+  topOffenders(
+    sinceTs: number,
+    siteId?: string,
+    limit = 50,
+  ): Array<{
     label: string;
     count: number;
     country: string;
@@ -242,13 +246,17 @@ export class Store {
          FROM events WHERE received_ts >= ? ${clause}
          GROUP BY ip_hash ORDER BY count DESC LIMIT ?`,
       )
-      .all(sinceTs, ...params, limit) as Array<{ label: string; count: number; country: string; lastAction: string | null }>;
+      .all(sinceTs, ...params, limit) as Array<{
+      label: string;
+      count: number;
+      country: string;
+      lastAction: string | null;
+    }>;
   }
 
   getConfig(siteId: string): Record<string, unknown> | null {
     const row = this.db.prepare(`SELECT data FROM site_config WHERE site_id = ?`).get(siteId) as
-      | { data: string }
-      | undefined;
+      { data: string } | undefined;
     if (!row) return null;
     try {
       return JSON.parse(row.data) as Record<string, unknown>;
@@ -271,7 +279,13 @@ export class Store {
     sinceTs: number,
     siteId: string | undefined,
     limit = 5000,
-  ): Array<{ ts: number; signals: Array<{ name: string }>; country: string; honeypotAction: string | null; ipHash: string }> {
+  ): Array<{
+    ts: number;
+    signals: Array<{ name: string }>;
+    country: string;
+    honeypotAction: string | null;
+    ipHash: string;
+  }> {
     const { clause, params } = this.siteClause(siteId);
     const rows = this.db
       .prepare(
@@ -293,14 +307,28 @@ export class Store {
       } catch {
         /* ignore */
       }
-      return { ts: r.received_ts, signals, country: r.country, honeypotAction: r.honeypot_action, ipHash: r.ip_hash };
+      return {
+        ts: r.received_ts,
+        signals,
+        country: r.country,
+        honeypotAction: r.honeypot_action,
+        ipHash: r.ip_hash,
+      };
     });
   }
 
   // --- Proposals ---
   insertProposal(p: {
-    id: string; siteId: string; createdTs: number; type: string; source: string;
-    rationale: string; confidence: number; current?: string | number; proposed?: string | number; status: string;
+    id: string;
+    siteId: string;
+    createdTs: number;
+    type: string;
+    source: string;
+    rationale: string;
+    confidence: number;
+    current?: string | number;
+    proposed?: string | number;
+    status: string;
   }): void {
     this.db
       .prepare(
@@ -317,8 +345,14 @@ export class Store {
   listProposals(siteId: string | undefined, status?: string, limit = 100): Array<Record<string, unknown>> {
     const parts: string[] = [];
     const params: unknown[] = [];
-    if (siteId) { parts.push("site_id = ?"); params.push(siteId); }
-    if (status) { parts.push("status = ?"); params.push(status); }
+    if (siteId) {
+      parts.push("site_id = ?");
+      params.push(siteId);
+    }
+    if (status) {
+      parts.push("status = ?");
+      params.push(status);
+    }
     const where = parts.length ? `WHERE ${parts.join(" AND ")}` : "";
     return this.db
       .prepare(`SELECT * FROM proposals ${where} ORDER BY created_ts DESC LIMIT ?`)
@@ -326,7 +360,9 @@ export class Store {
   }
 
   getProposal(id: string): Record<string, unknown> | null {
-    return (this.db.prepare(`SELECT * FROM proposals WHERE id = ?`).get(id) as Record<string, unknown>) ?? null;
+    return (
+      (this.db.prepare(`SELECT * FROM proposals WHERE id = ?`).get(id) as Record<string, unknown>) ?? null
+    );
   }
 
   setProposalStatus(id: string, status: string): void {
@@ -334,15 +370,51 @@ export class Store {
   }
 
   // --- Knowledge ---
-  knowledgeGet(siteId: string, pattern: string): { id: string; pattern: string; confidence: number; occurrences: number; firstSeen: number; lastSeen: number } | null {
-    const r = this.db.prepare(`SELECT * FROM knowledge WHERE site_id = ? AND pattern = ?`).get(siteId, pattern) as
-      | { id: string; pattern: string; confidence: number; occurrences: number; first_seen: number; last_seen: number }
+  knowledgeGet(
+    siteId: string,
+    pattern: string,
+  ): {
+    id: string;
+    pattern: string;
+    confidence: number;
+    occurrences: number;
+    firstSeen: number;
+    lastSeen: number;
+  } | null {
+    const r = this.db
+      .prepare(`SELECT * FROM knowledge WHERE site_id = ? AND pattern = ?`)
+      .get(siteId, pattern) as
+      | {
+          id: string;
+          pattern: string;
+          confidence: number;
+          occurrences: number;
+          first_seen: number;
+          last_seen: number;
+        }
       | undefined;
     if (!r) return null;
-    return { id: r.id, pattern: r.pattern, confidence: r.confidence, occurrences: r.occurrences, firstSeen: r.first_seen, lastSeen: r.last_seen };
+    return {
+      id: r.id,
+      pattern: r.pattern,
+      confidence: r.confidence,
+      occurrences: r.occurrences,
+      firstSeen: r.first_seen,
+      lastSeen: r.last_seen,
+    };
   }
 
-  knowledgePut(siteId: string, sig: { id: string; pattern: string; confidence: number; occurrences: number; firstSeen: number; lastSeen: number }): void {
+  knowledgePut(
+    siteId: string,
+    sig: {
+      id: string;
+      pattern: string;
+      confidence: number;
+      occurrences: number;
+      firstSeen: number;
+      lastSeen: number;
+    },
+  ): void {
     this.db
       .prepare(
         `INSERT OR REPLACE INTO knowledge (site_id, pattern, id, confidence, occurrences, first_seen, last_seen)
@@ -351,17 +423,43 @@ export class Store {
       .run(siteId, sig.pattern, sig.id, sig.confidence, sig.occurrences, sig.firstSeen, sig.lastSeen);
   }
 
-  knowledgeList(siteId: string, limit = 50): Array<{ id: string; pattern: string; confidence: number; occurrences: number; firstSeen: number; lastSeen: number }> {
+  knowledgeList(
+    siteId: string,
+    limit = 50,
+  ): Array<{
+    id: string;
+    pattern: string;
+    confidence: number;
+    occurrences: number;
+    firstSeen: number;
+    lastSeen: number;
+  }> {
     const rows = this.db
       .prepare(`SELECT * FROM knowledge WHERE site_id = ? ORDER BY confidence DESC LIMIT ?`)
-      .all(siteId, limit) as Array<{ id: string; pattern: string; confidence: number; occurrences: number; first_seen: number; last_seen: number }>;
-    return rows.map((r) => ({ id: r.id, pattern: r.pattern, confidence: r.confidence, occurrences: r.occurrences, firstSeen: r.first_seen, lastSeen: r.last_seen }));
+      .all(siteId, limit) as Array<{
+      id: string;
+      pattern: string;
+      confidence: number;
+      occurrences: number;
+      first_seen: number;
+      last_seen: number;
+    }>;
+    return rows.map((r) => ({
+      id: r.id,
+      pattern: r.pattern,
+      confidence: r.confidence,
+      occurrences: r.occurrences,
+      firstSeen: r.first_seen,
+      lastSeen: r.last_seen,
+    }));
   }
 
   /** Distinct site ids that have config or recent events (for scheduled analysis). */
   knownSites(sinceTs: number): string[] {
     const a = this.db.prepare(`SELECT site_id FROM site_config`).all() as Array<{ site_id: string }>;
-    const b = this.db.prepare(`SELECT DISTINCT site_id FROM events WHERE received_ts >= ?`).all(sinceTs) as Array<{ site_id: string }>;
+    const b = this.db
+      .prepare(`SELECT DISTINCT site_id FROM events WHERE received_ts >= ?`)
+      .all(sinceTs) as Array<{ site_id: string }>;
     return [...new Set([...a.map((x) => x.site_id), ...b.map((x) => x.site_id)])];
   }
 
