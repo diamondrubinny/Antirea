@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NoREA — Stop reverse-engineering of your code | anti-REA protection (Antirea)</title>
+    <meta
+      name="description"
+      content="NoREA (Antirea) is an open-source toolkit to detect, deceive and block reverse-engineering tools like REA. Protect your website, SaaS and app source code with honeypots, CDP/DevTools detection, WASM, and hermetic server-side execution."
+    />
+    <meta
+      name="keywords"
+      content="NoREA, no REA, anti-REA, block REA, stop REA, REA reverse engineering, anti reverse engineering, reverse engineering protection, code protection, source code protection, protect source code, CDP protection, DevTools detection, honeypot, anti-bot, anti-scraping, code cloning protection, protect JavaScript, WASM code protection, Antirea, Diamond Rubinny"
+    />
+    <meta name="author" content="Diamond Rubinny" />
+    <link rel="canonical" href="https://norea.rubinny.net/" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NoREA" />
+    <meta property="og:title" content="NoREA — Stop reverse-engineering of your code (anti-REA)" />
+    <meta
+      property="og:description"
+      content="Open-source toolkit to detect, deceive and block reverse-engineering tools like REA. Honeypots, CDP detection, WASM, and hermetic server-side execution."
+    />
+    <meta property="og:url" content="https://norea.rubinny.net/" />
+    <meta property="og:image" content="https://norea.rubinny.net/assets/dashboard.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="NoREA — anti-REA code protection" />
+    <meta
+      name="twitter:description"
+      content="Detect, deceive and block reverse-engineering tools like REA. Open source, Apache-2.0."
+    />
+    <meta name="twitter:image" content="https://norea.rubinny.net/assets/dashboard.png" />
+
+    <link rel="stylesheet" href="styles.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "NoREA (Antirea)",
+        "alternateName": ["NoREA", "Antirea", "anti-REA"],
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "Cross-platform (Node.js, browser)",
+        "description": "Open-source toolkit to detect, deceive and block reverse-engineering tools like REA, protecting website, SaaS and app source code.",
+        "url": "https://norea.rubinny.net/",
+        "codeRepository": "https://github.com/diamondrubinny/Antirea",
+        "license": "https://www.apache.org/licenses/LICENSE-2.0",
+        "author": { "@type": "Person", "name": "Diamond Rubinny" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "keywords": "anti-REA, block REA, reverse engineering protection, code protection, honeypot, CDP detection, WASM"
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="nav">
+      <div class="wrap nav-in">
+        <a class="brand" href="/" aria-label="NoREA home"><span class="no">No</span><span class="rea">REA</span></a>
+        <nav aria-label="Primary">
+          <a href="#how">How it works</a>
+          <a href="#quickstart">Quickstart</a>
+          <a href="#ai">AI agents</a>
+          <a class="btn btn-ghost" href="https://github.com/diamondrubinny/Antirea" rel="noopener">GitHub ★</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero">
+        <div class="wrap hero-in">
+          <div class="hero-copy">
+            <p class="eyebrow">Open source · Apache-2.0 · self-hosted</p>
+            <h1>Stop <span class="accent">reverse-engineering</span> of your code.</h1>
+            <p class="lead">
+              <strong>NoREA</strong> (“no REA”) is a drop-in toolkit that
+              <strong>detects, deceives and blocks</strong> reverse-engineering tools — including
+              CDP/DevTools-based ones like <strong>REA</strong> — and keeps the logic that matters off the client
+              entirely. For websites, SaaS and apps.
+            </p>
+            <div class="cta">
+              <a class="btn btn-primary" href="#quickstart">Get started</a>
+              <a class="btn btn-ghost" href="https://github.com/diamondrubinny/Antirea" rel="noopener">View on GitHub</a>
+            </div>
+            <p class="honest">
+              Honest by design: only server-side execution is hermetic; client-side layers deter, deceive and report.
+            </p>
+          </div>
+          <div class="hero-shot">
+            <img src="assets/dashboard.png" width="900" height="563" alt="NoREA control panel showing reverse-engineering attempts by country, signal and REA fingerprints" />
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="problem">
+        <div class="wrap">
+          <h2>The problem</h2>
+          <p class="section-lead">
+            Reverse-engineering tools like <strong>REA</strong> attach to a browser (via the Chrome DevTools
+            Protocol), read your bundles and source maps, and drive scripted sessions — turning your shipped
+            JavaScript into a blueprint for cloning. Every business that ships a web app exposes its front-end code.
+          </p>
+        </div>
+      </section>
+
+      <section class="band alt" id="how">
+        <div class="wrap">
+          <h2>How NoREA protects — three layers</h2>
+          <div class="cards">
+            <article class="card">
+              <h3>1 · Detect</h3>
+              <p>
+                A browser guard flags DevTools/CDP attach, automation (Playwright/Puppeteer), integrity tampering,
+                and a <strong>verified REA fingerprint</strong>. Every attempt is reported to your dashboard.
+              </p>
+            </article>
+            <article class="card">
+              <h3>2 · Deceive</h3>
+              <p>
+                A server-side honeypot serves <strong>inert decoy</strong> code (with canary tokens) to requests
+                scored as analysis — behavioural detection that doesn’t trust the User-Agent, so forging headers
+                raises the score.
+              </p>
+            </article>
+            <article class="card">
+              <h3>3 · Protect</h3>
+              <p>
+                The logic that matters runs <strong>server-side</strong> (hermetic — REA never sees the algorithm);
+                code that must ship to the browser can be compiled to <strong>WASM</strong> (an opaque binary).
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="band" id="rea">
+        <div class="wrap">
+          <h2>We know REA</h2>
+          <p class="section-lead">
+            NoREA ships fingerprints <strong>verified against REA’s public source</strong>, each documented with its
+            evadability:
+          </p>
+          <ul class="checks">
+            <li><strong>Server signal</strong> — REA’s source-map fetcher sends a distinctive <code>Accept: application/source-map+json</code> with no cookie or referer. No browser does this → near-certain, hard to evade.</li>
+            <li><strong>Client signal</strong> — REA’s default Playwright profile (headless + <code>navigator.webdriver</code> + 1280×720 + UTC + reduced-motion…) is a distinctive combination.</li>
+            <li><strong>Adaptive</strong> — an optional AI advisor learns attack patterns and proposes <em>bounded</em> defense changes (you approve them).</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="band alt" id="quickstart">
+        <div class="wrap">
+          <h2>Quickstart</h2>
+          <ol class="steps">
+            <li>
+              <h3>Add the guard to your pages</h3>
+              <pre><code>&lt;script src="/antirea-guard.iife.js"
+        data-site-id="my-site"
+        data-endpoint="https://collector.example.com/api/events"
+        data-mode="silent"&gt;&lt;/script&gt;</code></pre>
+            </li>
+            <li>
+              <h3>Add the honeypot to your server</h3>
+              <pre><code>import express from "express";
+import { honeypot } from "@antirea/honeypot";
+
+const app = express();
+app.use(honeypot({
+  siteId: "my-site",
+  protect: [/^\/assets\/.*\.js$/, /\.map$/],
+  mode: "shadow",                       // tune, then go "live"
+  reportUrl: "https://collector.example.com/api/events",
+}));
+app.use(express.static("public"));</code></pre>
+            </li>
+            <li>
+              <h3>Keep the crown jewels off the client</h3>
+              <pre><code>// server — the algorithm never reaches the browser
+import { createSecureFnRouter } from "@antirea/secure-fn";
+app.use("/secure", createSecureFnRouter({
+  secret: process.env.SECUREFN_SECRET,
+  functions: { pricing: (a) =&gt; ({ result: a.x * 1337 + 17 }) },
+}));</code></pre>
+            </li>
+          </ol>
+          <p class="section-lead">Full docs, Docker deploy and the control panel are in the <a href="https://github.com/diamondrubinny/Antirea" rel="noopener">GitHub repository</a>.</p>
+        </div>
+      </section>
+
+      <section class="band" id="ai">
+        <div class="wrap">
+          <h2>Install it with an AI agent</h2>
+          <p class="section-lead">
+            Using <strong>Claude Code</strong>, <strong>Cursor</strong>, <strong>GitHub Copilot</strong> or any coding
+            agent? Paste this prompt and let it wire NoREA into your project:
+          </p>
+          <pre class="prompt"><code>Add NoREA (Antirea) anti reverse-engineering protection to this project,
+from https://github.com/diamondrubinny/Antirea.
+
+1. Install the packages: @antirea/guard, @antirea/honeypot, @antirea/secure-fn
+   (and @antirea/collector if we want the dashboard).
+2. Add the guard &lt;script&gt; (or import initGuard) to our pages, pointing
+   data-endpoint at our collector.
+3. Mount the honeypot middleware before our static asset handler, protecting
+   our JS bundles and *.map; start in "shadow" mode.
+4. Move our most sensitive business logic (pricing/scoring/licensing) into a
+   secure-fn router so it runs server-side; replace the client calls with
+   createSecureClient().invoke(...).
+5. For any sensitive logic that must stay client-side, compile it to WASM per
+   examples/wasm-logic and load it via instantiateProtectedWasm.
+Follow the repo's README and docs/ for exact APIs. Keep everything type-checked
+and run the tests.</code></pre>
+          <p class="honest">
+            Tip: point the agent at the repo’s <code>README.md</code>, <code>docs/REA-SIGNATURES.md</code> and
+            <code>docs/WASM.md</code> for exact APIs.
+          </p>
+        </div>
+      </section>
+
+      <section class="band alt" id="who">
+        <div class="wrap">
+          <h2>Who it’s for</h2>
+          <p class="section-lead">
+            SaaS and software owners, agencies, and product teams who ship proprietary web apps and want to make
+            cloning and reverse-engineering expensive — and <em>visible</em>. Self-hosted, privacy-respecting
+            (no raw IPs stored), and free under Apache-2.0.
+          </p>
+          <div class="cta">
+            <a class="btn btn-primary" href="https://github.com/diamondrubinny/Antirea" rel="noopener">Protect your code →</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap footer-in">
+        <p><strong>NoREA</strong> · <span class="muted">anti-REA code protection</span></p>
+        <p class="muted">
+          Created by <strong>Diamond Rubinny</strong> · Apache-2.0 ·
+          <a href="https://github.com/diamondrubinny/Antirea" rel="noopener">GitHub</a>
+        </p>
+        <p class="muted small">
+          NoREA is independent software; “REA” is referenced only to describe the reverse-engineering tooling NoREA
+          helps defend against.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
