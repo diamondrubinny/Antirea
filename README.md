@@ -225,7 +225,15 @@ npm run build:guard
 # verified test suites:
 node packages/secure-fn/test/e2e.mjs      # 6 checks: session, server-side result, replay, forgery, rate limit
 node packages/honeypot/test/behavior.mjs  # 4 checks: cadence, header churn, harvesting, human-like
+npm run test:integration                  # e2e proof vs. the real server (see below)
 ```
+
+**End-to-end proof.** `test/integration.mjs` boots the real example server
+(honeypot in live mode + secure-fn) and asserts the whole chain works: an
+analysis-shaped request (headless UA, or REA's source-map `Accept`) receives an
+inert **decoy**; a real browser receives the **real** asset; `secure-fn` returns
+the computed **output** while the proprietary constant **never appears** in
+anything served to clients.
 
 See the end-to-end demo in `examples/protected-site/`.
 
