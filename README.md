@@ -10,6 +10,14 @@ Any website, SaaS, or app can add Antirea to deter analysis tools (including CDP
 
 > 🌍 Control panel available in English, עברית, Español, Français, Deutsch, العربية, Português, Русский, 中文.
 
+## Demo
+
+<p align="center">
+  <img src="docs/media/demo.gif" alt="Antirea control panel walkthrough: live stats, honeypot activity, REA fingerprints, the AI advisor, and instant language switching (incl. RTL)" width="820">
+</p>
+
+<p align="center"><em>Live stats → honeypot activity → REA fingerprints → AI advisor → instant language switch (English / עברית / العربية, RTL). <a href="docs/media/demo.webm">Full-quality clip</a>.</em></p>
+
 ## Screenshots
 
 The self-hosted control panel — live stats, behavioural detection, honeypot
