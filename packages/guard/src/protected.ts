@@ -43,8 +43,8 @@ function readNonce(metaName: string): string {
   }
 }
 
-/** Fetch the raw source of a protected module, attaching the attestation header. */
-export async function fetchProtected(name: string, cfg: ProtectedLoaderConfig): Promise<string> {
+/** Build the gated request (URL + attestation header) for a protected module. */
+function gatedRequest(name: string, cfg: ProtectedLoaderConfig): { url: string; init: RequestInit } {
   const verdict = probeCdp(cfg.probe);
   const nonce = readNonce(cfg.nonceMeta ?? "antirea-nonce");
   const attest = JSON.stringify({
@@ -54,14 +54,46 @@ export async function fetchProtected(name: string, cfg: ProtectedLoaderConfig): 
     nonce,
   });
   const url = cfg.endpoint.replace(/\/?$/, "/") + encodeURIComponent(name);
-  const res = await fetch(url, {
-    method: "GET",
-    headers: { "X-Antirea-Attest": attest },
-    credentials: "same-origin",
-    cache: "no-store",
-  });
+  return {
+    url,
+    init: {
+      method: "GET",
+      headers: { "X-Antirea-Attest": attest },
+      credentials: "same-origin",
+      cache: "no-store",
+    },
+  };
+}
+
+/** Fetch the raw source of a protected module, attaching the attestation header. */
+export async function fetchProtected(name: string, cfg: ProtectedLoaderConfig): Promise<string> {
+  const { url, init } = gatedRequest(name, cfg);
+  const res = await fetch(url, init);
   if (!res.ok) throw new Error(`protected fetch failed: ${res.status}`);
   return res.text();
+}
+
+/** Fetch a protected binary (e.g. a WASM module) through the same gate. */
+export async function fetchProtectedBytes(name: string, cfg: ProtectedLoaderConfig): Promise<ArrayBuffer> {
+  const { url, init } = gatedRequest(name, cfg);
+  const res = await fetch(url, init);
+  if (!res.ok) throw new Error(`protected fetch failed: ${res.status}`);
+  return res.arrayBuffer();
+}
+
+/**
+ * Fetch + instantiate a protected WebAssembly module through the gate. Under a
+ * detected CDP/automation client the server returns a decoy binary instead, so
+ * the caller's code path is unchanged while the real algorithm is withheld.
+ */
+export async function instantiateProtectedWasm(
+  name: string,
+  cfg: ProtectedLoaderConfig,
+  imports: WebAssembly.Imports = {},
+): Promise<WebAssembly.Exports> {
+  const bytes = await fetchProtectedBytes(name, cfg);
+  const { instance } = await WebAssembly.instantiate(bytes, imports);
+  return instance.exports;
 }
 
 /**

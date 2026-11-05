@@ -34,6 +34,9 @@ jobs:
       - name: End-to-end integration proof
         run: node test/integration.mjs
 
+      - name: WASM example (prebuilt binary)
+        run: node examples/wasm-logic/test.mjs
+
   lint:
     runs-on: ubuntu-latest
     steps:

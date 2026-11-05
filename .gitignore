@@ -1,5 +1,8 @@
 node_modules/
 dist/
+# Keep the prebuilt WASM example artifact (usable without the asc toolchain).
+!examples/wasm-logic/dist/
+!examples/wasm-logic/dist/logic.wasm
 *.db
 *.db-wal
 *.db-shm

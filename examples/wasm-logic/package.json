@@ -1,0 +1,16 @@
+{
+  "name": "antirea-wasm-logic-example",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Proprietary client-side logic compiled to WASM (opaque to CDP/REA)",
+  "scripts": {
+    "build": "asc assembly/index.ts --outFile dist/logic.wasm --optimize --runtime stub --use abort=",
+    "test": "node test.mjs"
+  },
+  "devDependencies": {
+    "assemblyscript": "^0.27.31"
+  },
+  "author": "Diamond Rubinny",
+  "license": "Apache-2.0"
+}

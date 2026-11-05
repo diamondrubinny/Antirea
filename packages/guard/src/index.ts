@@ -32,7 +32,7 @@ export type { GuardConfig, GuardMode, Signal, SignalType, GuardEvent } from "./t
 export { probeCdp } from "./detectors/cdp";
 export { detectRea, readReaEnv } from "./detectors/rea";
 export type { ReaEnv } from "./detectors/rea";
-export { fetchProtected, importProtected } from "./protected";
+export { fetchProtected, fetchProtectedBytes, importProtected, instantiateProtectedWasm } from "./protected";
 export type { ProtectedLoaderConfig } from "./protected";
 
 /** Best-effort dev-environment guess, so we don't disrupt development. */
