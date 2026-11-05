@@ -8,6 +8,7 @@ export default tseslint.config(
       "**/dist/**",
       "**/node_modules/**",
       "packages/collector/public/**", // browser globals; not type-checked here
+      "website/**", // static marketing site (browser JS), not part of the TS packages
       "**/*.mjs",
       "docs/**",
     ],

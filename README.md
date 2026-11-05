@@ -63,6 +63,9 @@ Shipping a security tool means being honest about its guarantees. Antirea has **
 | **`@antirea/secure-fn`** | **The hermetic core.** Runs proprietary functions on the server; client sends inputs, gets outputs. CDP never sees the algorithm. |
 | `@antirea/honeypot` | Express/connect middleware. Behavioural detection (IP, cadence, timing, header instability) + serves decoys. Shadow mode by default. |
 | `@antirea/guard` | Browser library. Detects DevTools/CDP/automation and reports telemetry. `<script>` or npm. |
+| `@antirea/challenge` | **Proof-of-work gate** — makes high-volume scraping pay CPU (server issue/verify + browser solver). Plus honeypot **tarpit** and **JA3/TLS** signal. See [`docs/BOT-DEFENSE.md`](./docs/BOT-DEFENSE.md). |
+| `@antirea/harden` | **Client-code hardening** — SRI/CSP/security headers, an obfuscation preset, encrypted-bundle delivery, and guard **domain lock** (flag rehosted clones). See [`docs/HARDENING.md`](./docs/HARDENING.md). |
+| `@antirea/watermark` | **Traitor tracing** — per-viewer watermarking (identify a leaker), canary scanning (find leaks on GitHub), and attack-spike webhooks. See [`docs/WATERMARKING.md`](./docs/WATERMARKING.md). |
 | `@antirea/adaptive` | **Learns from attacks** and proposes bounded defense changes. Heuristics always; AI optional (BYO key). Suggest-only by default. |
 | `@antirea/collector` | Ingest API + GeoIP + SQLite + the **multi-language control panel** (stats, settings, AI advisor). |
 
@@ -233,6 +236,15 @@ Learns from the attacks it sees and proposes defense changes. **Off by default; 
 
 ---
 
+## Deploy
+
+- **Docker:** `docker compose up --build` (see `docker-compose.yml`).
+- **Windows Server:** run the collector as a Windows Service — see
+  [`packages/collector/windows/README.md`](./packages/collector/windows/README.md).
+  (The `honeypot`/`secure-fn` packages need no installer; they `npm install`
+  into your app. The Microsoft Store is not used — a server belongs in a
+  service, not a sandboxed Store app.)
+
 ## Development & tests
 
 ```bash
@@ -251,7 +263,10 @@ inert **decoy**; a real browser receives the **real** asset; `secure-fn` returns
 the computed **output** while the proprietary constant **never appears** in
 anything served to clients.
 
-See the end-to-end demo in `examples/protected-site/`.
+See `examples/protected-site/` for a focused demo, and
+[`examples/full-stack/`](./examples/full-stack/) for one app that wires **all
+seven packages** together with an 11-check end-to-end test (`node
+examples/full-stack/test.mjs`).
 
 ## Contributing translations
 
@@ -273,3 +288,11 @@ notices.
 Licensed under the **Apache License 2.0** — see [`LICENSE`](./LICENSE) and
 [`NOTICE`](./NOTICE). Using, modifying, or redistributing the code requires
 retaining its copyright and attribution notices.
+
+---
+
+<sub>**Website:** <https://norea.rubinny.net> · **Keywords:** NoREA, anti-REA, block REA, stop REA,
+REA reverse engineering, anti reverse engineering, reverse-engineering protection, source code
+protection, code cloning protection, CDP / DevTools detection, honeypot, anti-bot, anti-scraping,
+anti-tampering, bot detection, WASM code protection, protect JavaScript, threat intelligence,
+TypeScript, Node.js.</sub>

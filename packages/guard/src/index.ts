@@ -25,6 +25,7 @@ import { probeCdp } from "./detectors/cdp";
 import { detectDevtools } from "./detectors/devtools";
 import { detectIntegrity } from "./detectors/integrity";
 import { detectRea } from "./detectors/rea";
+import { checkDomainLock, currentHost } from "./detectors/domainlock";
 import { Reporter } from "./reporter";
 import type { GuardConfig, Signal } from "./types";
 
@@ -32,6 +33,7 @@ export type { GuardConfig, GuardMode, Signal, SignalType, GuardEvent } from "./t
 export { probeCdp } from "./detectors/cdp";
 export { detectRea, readReaEnv } from "./detectors/rea";
 export type { ReaEnv } from "./detectors/rea";
+export { checkDomainLock, currentHost } from "./detectors/domainlock";
 export { fetchProtected, fetchProtectedBytes, importProtected, instantiateProtectedWasm } from "./protected";
 export type { ProtectedLoaderConfig } from "./protected";
 
@@ -120,6 +122,9 @@ export function initGuard(cfg: GuardConfig): { stop: () => void } {
       ...detectIntegrity(),
     ];
     if (cdpProbeEnabled) signals.push(...probeCdp().signals);
+    if (cfg.allowedHosts && cfg.allowedHosts.length > 0) {
+      signals.push(...checkDomainLock(cfg.allowedHosts, currentHost()));
+    }
     handle(signals);
   }
 
