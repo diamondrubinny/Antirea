@@ -1,0 +1,31 @@
+# Antirea collector + control panel.
+# Set IP_SALT and ADMIN_TOKEN first (generate strong random values):
+#   export IP_SALT=$(openssl rand -hex 32)
+#   export ADMIN_TOKEN=$(openssl rand -hex 32)
+#   docker compose up --build
+# Then open http://localhost:8080/ and enter ADMIN_TOKEN.
+
+services:
+  collector:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DB_FILE=/data/antirea.db
+      - IP_SALT=${IP_SALT:?set IP_SALT (e.g. openssl rand -hex 32)}
+      - ADMIN_TOKEN=${ADMIN_TOKEN:?set ADMIN_TOKEN (e.g. openssl rand -hex 32)}
+      - TRUST_PROXY=${TRUST_PROXY:-false}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      - RETENTION_DAYS=${RETENTION_DAYS:-90}
+      - AI_ENABLED=${AI_ENABLED:-false}
+      - AI_AUTO_APPLY=${AI_AUTO_APPLY:-false}
+      - AI_MODEL=${AI_MODEL:-claude-opus-5-5}
+      - AI_ANALYZE_INTERVAL_MIN=${AI_ANALYZE_INTERVAL_MIN:-0}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      - antirea-data:/data
+    restart: unless-stopped
+
+volumes:
+  antirea-data:
