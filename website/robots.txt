@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://norea.rubinny.net/sitemap.xml
