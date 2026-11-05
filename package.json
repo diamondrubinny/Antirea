@@ -9,6 +9,7 @@
     "packages/honeypot",
     "packages/secure-fn",
     "packages/challenge",
+    "packages/watermark",
     "packages/adaptive",
     "packages/collector"
   ],

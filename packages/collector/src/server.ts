@@ -27,6 +27,7 @@ import {
   type KnowledgeSignature,
   type Proposal,
 } from "@antirea/adaptive";
+import { Alerter, SpikeDetector } from "@antirea/watermark";
 import { Store } from "./db.js";
 import { countryFor, extractIp, hashIp, initGeo } from "./geo.js";
 import { validateEvent } from "./validate.js";
@@ -46,6 +47,13 @@ const AI_ENABLED = process.env.AI_ENABLED === "true";
 const AI_AUTO_APPLY = process.env.AI_AUTO_APPLY === "true";
 const AI_MODEL = process.env.AI_MODEL ?? "claude-opus-5-5";
 const AI_ANALYZE_INTERVAL_MIN = Number(process.env.AI_ANALYZE_INTERVAL_MIN ?? 0);
+
+// Attack-spike alerts via webhook (Slack/Discord/generic). Off unless URL set.
+const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL ?? "";
+const ALERT_WINDOW_MIN = Number(process.env.ALERT_WINDOW_MIN ?? 5);
+const ALERT_THRESHOLD = Number(process.env.ALERT_THRESHOLD ?? 50);
+const spike = new SpikeDetector(ALERT_WINDOW_MIN * 60_000, ALERT_THRESHOLD);
+const alerter = ALERT_WEBHOOK_URL ? new Alerter({ webhookUrl: ALERT_WEBHOOK_URL }) : null;
 
 if (!IP_SALT) {
   // Fail fast: without a salt, IP hashing is weak. Required in all envs.
@@ -146,6 +154,15 @@ app.post(
       console.error("[antirea] insert failed", (e as Error).message);
       return res.status(500).json({ error: "store failed" });
     }
+    // Attack-spike alert (webhook), rate-limited by the Alerter's cooldown.
+    if (alerter && spike.hit()) {
+      void alerter.send(
+        "spike",
+        `Antirea: ${ALERT_THRESHOLD}+ detection events in ${ALERT_WINDOW_MIN} min (latest site: ${ev.siteId}).`,
+        { site: ev.siteId, window_min: ALERT_WINDOW_MIN },
+      );
+    }
+
     // 204: no body, nothing for an attacker to learn.
     return res.status(204).end();
   },
