@@ -273,3 +273,11 @@ notices.
 Licensed under the **Apache License 2.0** — see [`LICENSE`](./LICENSE) and
 [`NOTICE`](./NOTICE). Using, modifying, or redistributing the code requires
 retaining its copyright and attribution notices.
+
+---
+
+<sub>**Website:** <https://norea.rubinny.net> · **Keywords:** NoREA, anti-REA, block REA, stop REA,
+REA reverse engineering, anti reverse engineering, reverse-engineering protection, source code
+protection, code cloning protection, CDP / DevTools detection, honeypot, anti-bot, anti-scraping,
+anti-tampering, bot detection, WASM code protection, protect JavaScript, threat intelligence,
+TypeScript, Node.js.</sub>
