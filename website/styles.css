@@ -130,6 +130,14 @@ pre {
   text-align: left;
 }
 
+/* Wide tables (e.g. the cookie table on the privacy page) scroll inside their
+   own box on small screens instead of widening the whole page. */
+main table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 /* Buttons */
 .btn {
   display: inline-block;

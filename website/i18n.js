@@ -106,6 +106,41 @@
       "footer.privacy": "Privacy &amp; Cookie Policy",
       "footer.cookies": "Cookie settings",
       "lang.label": "Language",
+      "p.meta.title": "Privacy & Cookie Policy — NoREA",
+      "p.meta.desc": "Privacy and cookie policy for the NoREA (Antirea) website.",
+      "p.nav.home": "Home",
+      "p.h1": "Privacy & Cookie Policy",
+      "p.updated": "Last updated: 2026-11-05 · <strong>Draft — pending legal review.</strong>",
+      "p.lead":
+        "This is the policy for the <strong>norea.rubinny.net</strong> marketing website only. The NoREA / Antirea software you self-host is governed by your own policies.",
+      "p.who.h2": "Who we are",
+      "p.who.p":
+        "This site is operated by Diamond Rubinny. For privacy questions, use the contact details you publish on your main site.",
+      "p.collect.h2": "What this website collects",
+      "p.collect.p1":
+        "This is a static website. It sets <strong>no analytics or marketing cookies</strong> by default. It uses a small amount of <strong>local storage</strong> on your device for one strictly-necessary purpose: to remember your cookie-consent choice. That data stays in your browser and is not sent to us or any third party.",
+      "p.collect.p2":
+        "Standard web-server logs (e.g. IP address, user-agent, timestamp) may be processed by the hosting provider for security and reliability. If you enable analytics or marketing tools in the future, document them here and gate them behind consent (the site is already built to do this).",
+      "p.cookies.h2": "Cookies & similar technologies",
+      "p.th.name": "Name",
+      "p.th.cat": "Category",
+      "p.th.purpose": "Purpose",
+      "p.th.ret": "Retention",
+      "p.row.cat": "Essential",
+      "p.row.purpose": "Stores your cookie-consent choice (local storage).",
+      "p.row.ret": "Until you clear it / change the policy version.",
+      "p.cookies.note":
+        'Non-essential categories (functional, analytics, marketing) are <strong>off by default</strong> and load only with your consent. You can change or withdraw consent anytime: <a href="#" data-cc-open>open cookie settings</a>.',
+      "p.legal.h2": "Legal bases (GDPR) & Israeli law",
+      "p.legal.p":
+        "Where the EU GDPR applies, non-essential cookies rely on your <strong>consent</strong>; essential storage relies on legitimate interest / necessity to provide the service. Where the Israeli Protection of Privacy Law applies, we aim to collect the minimum necessary and to be transparent about it. This draft does not establish full legal compliance on its own — <strong>have it reviewed by a lawyer</strong> for your specific use.",
+      "p.rights.h2": "Your rights",
+      "p.rights.p":
+        'Subject to applicable law, you may request access, correction, deletion, or restriction of your personal data, and withdraw consent. Because this site stores consent only in your browser, you can exercise withdrawal directly via <a href="#" data-cc-open>cookie settings</a> or by clearing your browser storage.',
+      "p.third.h2": "Third parties",
+      "p.third.p":
+        "The site is hosted by a hosting provider and its source lives on GitHub. No third-party analytics, advertising, chat or social pixels are embedded by default. Add any you introduce to this policy and to the consent categories.",
+      "p.back": "← Back to home",
     },
 
     he: {
@@ -194,6 +229,41 @@
       "footer.privacy": "פרטיות ומדיניות עוגיות",
       "footer.cookies": "הגדרות עוגיות",
       "lang.label": "שפה",
+      "p.meta.title": "מדיניות פרטיות ועוגיות — NoREA",
+      "p.meta.desc": "מדיניות פרטיות ועוגיות עבור אתר NoREA (Antirea).",
+      "p.nav.home": "בית",
+      "p.h1": "מדיניות פרטיות ועוגיות",
+      "p.updated": "עודכן לאחרונה: 2026-11-05 · <strong>טיוטה — ממתינה לבדיקה משפטית.</strong>",
+      "p.lead":
+        "זוהי המדיניות עבור אתר השיווק <strong>norea.rubinny.net</strong> בלבד. תוכנת NoREA / Antirea שאתה מארח בעצמך כפופה למדיניות שלך.",
+      "p.who.h2": "מי אנחנו",
+      "p.who.p":
+        "האתר מופעל על ידי Diamond Rubinny. לשאלות פרטיות, השתמש בפרטי הקשר שאתה מפרסם באתר הראשי שלך.",
+      "p.collect.h2": "מה האתר אוסף",
+      "p.collect.p1":
+        "זהו אתר סטטי. הוא אינו מגדיר <strong>עוגיות אנליטיקה או שיווק</strong> כברירת מחדל. הוא משתמש בכמות קטנה של <strong>אחסון מקומי</strong> במכשירך למטרה הכרחית אחת בלבד: לזכור את בחירת ההסכמה שלך לעוגיות. המידע נשאר בדפדפן שלך ואינו נשלח אלינו או לצד שלישי.",
+      "p.collect.p2":
+        "יומני שרת סטנדרטיים (למשל כתובת IP, user-agent, חותמת זמן) עשויים להתעבד על ידי ספק האירוח לצורכי אבטחה ואמינות. אם תפעיל כלי אנליטיקה או שיווק בעתיד, תעד אותם כאן והתנה אותם בהסכמה (האתר כבר בנוי לכך).",
+      "p.cookies.h2": "עוגיות וטכנולוגיות דומות",
+      "p.th.name": "שם",
+      "p.th.cat": "קטגוריה",
+      "p.th.purpose": "מטרה",
+      "p.th.ret": "זמן שמירה",
+      "p.row.cat": "חיונית",
+      "p.row.purpose": "שומר את בחירת ההסכמה שלך לעוגיות (אחסון מקומי).",
+      "p.row.ret": "עד שתנקה אותו / תשתנה גרסת המדיניות.",
+      "p.cookies.note":
+        'קטגוריות לא-חיוניות (פונקציונלית, אנליטיקה, שיווק) <strong>כבויות כברירת מחדל</strong> ונטענות רק בהסכמתך. אפשר לשנות או למשוך הסכמה בכל עת: <a href="#" data-cc-open>פתיחת הגדרות עוגיות</a>.',
+      "p.legal.h2": "בסיסים חוקיים (GDPR) והדין הישראלי",
+      "p.legal.p":
+        "כאשר חל ה-GDPR האירופי, עוגיות לא-חיוניות מסתמכות על <strong>הסכמתך</strong>; אחסון חיוני מסתמך על אינטרס לגיטימי / נחיצות לאספקת השירות. כאשר חל חוק הגנת הפרטיות הישראלי, אנו שואפים לאסוף את המינימום הנדרש ולהיות שקופים לגביו. טיוטה זו אינה מבססת ציות משפטי מלא בפני עצמה — <strong>יש להעבירה לבדיקת עורך דין</strong> לשימושך הספציפי.",
+      "p.rights.h2": "הזכויות שלך",
+      "p.rights.p":
+        'בכפוף לדין החל, אתה רשאי לבקש גישה, תיקון, מחיקה או הגבלה של המידע האישי שלך, ולמשוך הסכמה. מאחר שהאתר שומר הסכמה רק בדפדפן שלך, תוכל לממש משיכה ישירות דרך <a href="#" data-cc-open>הגדרות עוגיות</a> או על ידי ניקוי אחסון הדפדפן.',
+      "p.third.h2": "צדדים שלישיים",
+      "p.third.p":
+        "האתר מתארח אצל ספק אירוח וקוד המקור שלו נמצא ב-GitHub. לא מוטמעים כברירת מחדל כלי אנליטיקה, פרסום, צ'אט או פיקסלים חברתיים של צד שלישי. הוסף כל כזה שתכניס למדיניות זו ולקטגוריות ההסכמה.",
+      "p.back": "← חזרה לדף הבית",
     },
 
     es: {
@@ -285,6 +355,42 @@
       "footer.privacy": "Privacidad y cookies",
       "footer.cookies": "Ajustes de cookies",
       "lang.label": "Idioma",
+      "p.meta.title": "Política de privacidad y cookies — NoREA",
+      "p.meta.desc": "Política de privacidad y cookies del sitio web NoREA (Antirea).",
+      "p.nav.home": "Inicio",
+      "p.h1": "Política de privacidad y cookies",
+      "p.updated":
+        "Última actualización: 2026-11-05 · <strong>Borrador — pendiente de revisión legal.</strong>",
+      "p.lead":
+        "Esta es la política solo para el sitio web de marketing <strong>norea.rubinny.net</strong>. El software NoREA / Antirea que autoalojas se rige por tus propias políticas.",
+      "p.who.h2": "Quiénes somos",
+      "p.who.p":
+        "Este sitio está operado por Diamond Rubinny. Para consultas de privacidad, usa los datos de contacto que publicas en tu sitio principal.",
+      "p.collect.h2": "Qué recopila este sitio",
+      "p.collect.p1":
+        "Este es un sitio estático. No establece <strong>cookies de analítica ni de marketing</strong> de forma predeterminada. Usa una pequeña cantidad de <strong>almacenamiento local</strong> en tu dispositivo con un único fin estrictamente necesario: recordar tu elección de consentimiento de cookies. Esos datos permanecen en tu navegador y no se nos envían a nosotros ni a terceros.",
+      "p.collect.p2":
+        "Los registros estándar del servidor web (p. ej., dirección IP, user-agent, marca de tiempo) pueden ser procesados por el proveedor de alojamiento por seguridad y fiabilidad. Si habilitas herramientas de analítica o marketing en el futuro, documéntalas aquí y condiciónalas al consentimiento (el sitio ya está preparado para ello).",
+      "p.cookies.h2": "Cookies y tecnologías similares",
+      "p.th.name": "Nombre",
+      "p.th.cat": "Categoría",
+      "p.th.purpose": "Finalidad",
+      "p.th.ret": "Conservación",
+      "p.row.cat": "Esencial",
+      "p.row.purpose": "Almacena tu elección de consentimiento de cookies (almacenamiento local).",
+      "p.row.ret": "Hasta que la borres / cambie la versión de la política.",
+      "p.cookies.note":
+        'Las categorías no esenciales (funcional, analítica, marketing) están <strong>desactivadas de forma predeterminada</strong> y se cargan solo con tu consentimiento. Puedes cambiar o retirar el consentimiento en cualquier momento: <a href="#" data-cc-open>abrir ajustes de cookies</a>.',
+      "p.legal.h2": "Bases legales (RGPD) y ley israelí",
+      "p.legal.p":
+        "Cuando se aplica el RGPD de la UE, las cookies no esenciales se basan en tu <strong>consentimiento</strong>; el almacenamiento esencial se basa en el interés legítimo / la necesidad de prestar el servicio. Cuando se aplica la Ley de Protección de la Privacidad de Israel, procuramos recopilar lo mínimo necesario y ser transparentes al respecto. Este borrador no establece por sí solo el cumplimiento legal completo — <strong>haz que lo revise un abogado</strong> para tu uso específico.",
+      "p.rights.h2": "Tus derechos",
+      "p.rights.p":
+        'Con sujeción a la ley aplicable, puedes solicitar acceso, rectificación, supresión o limitación de tus datos personales, y retirar el consentimiento. Como este sitio almacena el consentimiento solo en tu navegador, puedes ejercer la retirada directamente mediante <a href="#" data-cc-open>ajustes de cookies</a> o borrando el almacenamiento de tu navegador.',
+      "p.third.h2": "Terceros",
+      "p.third.p":
+        "El sitio está alojado por un proveedor de alojamiento y su código fuente está en GitHub. No se incrustan de forma predeterminada analíticas, publicidad, chat ni píxeles sociales de terceros. Añade a esta política y a las categorías de consentimiento cualquiera que introduzcas.",
+      "p.back": "← Volver al inicio",
     },
 
     fr: {
@@ -376,6 +482,42 @@
       "footer.privacy": "Confidentialité et cookies",
       "footer.cookies": "Paramètres des cookies",
       "lang.label": "Langue",
+      "p.meta.title": "Politique de confidentialité et de cookies — NoREA",
+      "p.meta.desc": "Politique de confidentialité et de cookies du site web NoREA (Antirea).",
+      "p.nav.home": "Accueil",
+      "p.h1": "Politique de confidentialité et de cookies",
+      "p.updated":
+        "Dernière mise à jour : 2026-11-05 · <strong>Brouillon — en attente de revue juridique.</strong>",
+      "p.lead":
+        "Cette politique concerne uniquement le site vitrine <strong>norea.rubinny.net</strong>. Le logiciel NoREA / Antirea que vous auto-hébergez est régi par vos propres politiques.",
+      "p.who.h2": "Qui nous sommes",
+      "p.who.p":
+        "Ce site est exploité par Diamond Rubinny. Pour toute question de confidentialité, utilisez les coordonnées publiées sur votre site principal.",
+      "p.collect.h2": "Ce que ce site collecte",
+      "p.collect.p1":
+        "Ceci est un site statique. Il ne dépose <strong>aucun cookie d’analyse ou de marketing</strong> par défaut. Il utilise une petite quantité de <strong>stockage local</strong> sur votre appareil dans un seul but strictement nécessaire : mémoriser votre choix de consentement aux cookies. Ces données restent dans votre navigateur et ne nous sont pas transmises, ni à un tiers.",
+      "p.collect.p2":
+        "Les journaux standard du serveur web (p. ex. adresse IP, user-agent, horodatage) peuvent être traités par l’hébergeur à des fins de sécurité et de fiabilité. Si vous activez des outils d’analyse ou de marketing à l’avenir, documentez-les ici et conditionnez-les au consentement (le site est déjà prévu pour cela).",
+      "p.cookies.h2": "Cookies et technologies similaires",
+      "p.th.name": "Nom",
+      "p.th.cat": "Catégorie",
+      "p.th.purpose": "Finalité",
+      "p.th.ret": "Conservation",
+      "p.row.cat": "Essentiel",
+      "p.row.purpose": "Mémorise votre choix de consentement aux cookies (stockage local).",
+      "p.row.ret": "Jusqu’à ce que vous l’effaciez / que la version de la politique change.",
+      "p.cookies.note":
+        'Les catégories non essentielles (fonctionnel, analyse, marketing) sont <strong>désactivées par défaut</strong> et ne se chargent qu’avec votre consentement. Vous pouvez modifier ou retirer votre consentement à tout moment : <a href="#" data-cc-open>ouvrir les paramètres des cookies</a>.',
+      "p.legal.h2": "Bases légales (RGPD) et droit israélien",
+      "p.legal.p":
+        "Lorsque le RGPD de l’UE s’applique, les cookies non essentiels reposent sur votre <strong>consentement</strong> ; le stockage essentiel repose sur l’intérêt légitime / la nécessité de fournir le service. Lorsque la loi israélienne sur la protection de la vie privée s’applique, nous visons à collecter le minimum nécessaire et à être transparents. Ce brouillon n’établit pas à lui seul une conformité juridique complète — <strong>faites-le relire par un avocat</strong> pour votre usage spécifique.",
+      "p.rights.h2": "Vos droits",
+      "p.rights.p":
+        'Sous réserve du droit applicable, vous pouvez demander l’accès, la rectification, l’effacement ou la limitation de vos données personnelles, et retirer votre consentement. Comme ce site ne stocke le consentement que dans votre navigateur, vous pouvez exercer le retrait directement via les <a href="#" data-cc-open>paramètres des cookies</a> ou en effaçant le stockage de votre navigateur.',
+      "p.third.h2": "Tiers",
+      "p.third.p":
+        "Le site est hébergé par un hébergeur et son code source se trouve sur GitHub. Aucun service tiers d’analyse, de publicité, de chat ou de pixel social n’est intégré par défaut. Ajoutez à cette politique et aux catégories de consentement tout service que vous introduisez.",
+      "p.back": "← Retour à l’accueil",
     },
 
     de: {
@@ -467,6 +609,42 @@
       "footer.privacy": "Datenschutz & Cookies",
       "footer.cookies": "Cookie-Einstellungen",
       "lang.label": "Sprache",
+      "p.meta.title": "Datenschutz- & Cookie-Richtlinie — NoREA",
+      "p.meta.desc": "Datenschutz- und Cookie-Richtlinie für die NoREA-(Antirea-)Website.",
+      "p.nav.home": "Startseite",
+      "p.h1": "Datenschutz- & Cookie-Richtlinie",
+      "p.updated":
+        "Zuletzt aktualisiert: 2026-11-05 · <strong>Entwurf — rechtliche Prüfung ausstehend.</strong>",
+      "p.lead":
+        "Dies ist die Richtlinie nur für die Marketing-Website <strong>norea.rubinny.net</strong>. Die von Ihnen selbst gehostete NoREA-/Antirea-Software unterliegt Ihren eigenen Richtlinien.",
+      "p.who.h2": "Wer wir sind",
+      "p.who.p":
+        "Diese Website wird von Diamond Rubinny betrieben. Für Datenschutzfragen verwenden Sie die auf Ihrer Hauptseite veröffentlichten Kontaktdaten.",
+      "p.collect.h2": "Was diese Website erfasst",
+      "p.collect.p1":
+        "Dies ist eine statische Website. Sie setzt standardmäßig <strong>keine Analyse- oder Marketing-Cookies</strong>. Sie nutzt eine kleine Menge <strong>lokalen Speicher</strong> auf Ihrem Gerät für genau einen zwingend erforderlichen Zweck: Ihre Cookie-Einwilligung zu merken. Diese Daten bleiben in Ihrem Browser und werden weder an uns noch an Dritte gesendet.",
+      "p.collect.p2":
+        "Standard-Webserver-Logs (z. B. IP-Adresse, User-Agent, Zeitstempel) können vom Hosting-Anbieter zu Sicherheits- und Zuverlässigkeitszwecken verarbeitet werden. Wenn Sie künftig Analyse- oder Marketing-Tools aktivieren, dokumentieren Sie sie hier und machen Sie sie von der Einwilligung abhängig (die Website ist dafür bereits vorbereitet).",
+      "p.cookies.h2": "Cookies & ähnliche Technologien",
+      "p.th.name": "Name",
+      "p.th.cat": "Kategorie",
+      "p.th.purpose": "Zweck",
+      "p.th.ret": "Speicherdauer",
+      "p.row.cat": "Essenziell",
+      "p.row.purpose": "Speichert Ihre Cookie-Einwilligung (lokaler Speicher).",
+      "p.row.ret": "Bis Sie ihn löschen / die Richtlinienversion sich ändert.",
+      "p.cookies.note":
+        'Nicht-essenzielle Kategorien (funktional, Analyse, Marketing) sind <strong>standardmäßig deaktiviert</strong> und werden nur mit Ihrer Einwilligung geladen. Sie können die Einwilligung jederzeit ändern oder widerrufen: <a href="#" data-cc-open>Cookie-Einstellungen öffnen</a>.',
+      "p.legal.h2": "Rechtsgrundlagen (DSGVO) & israelisches Recht",
+      "p.legal.p":
+        "Wo die EU-DSGVO gilt, stützen sich nicht-essenzielle Cookies auf Ihre <strong>Einwilligung</strong>; essenzieller Speicher stützt sich auf berechtigtes Interesse / die Erforderlichkeit zur Erbringung des Dienstes. Wo das israelische Datenschutzgesetz gilt, erheben wir möglichst nur das Nötigste und legen dies transparent dar. Dieser Entwurf begründet für sich allein keine vollständige rechtliche Konformität — <strong>lassen Sie ihn von einem Anwalt prüfen</strong> für Ihren konkreten Einsatz.",
+      "p.rights.h2": "Ihre Rechte",
+      "p.rights.p":
+        'Vorbehaltlich des geltenden Rechts können Sie Auskunft, Berichtigung, Löschung oder Einschränkung Ihrer personenbezogenen Daten verlangen und die Einwilligung widerrufen. Da diese Website die Einwilligung nur in Ihrem Browser speichert, können Sie den Widerruf direkt über die <a href="#" data-cc-open>Cookie-Einstellungen</a> oder durch Löschen Ihres Browserspeichers ausüben.',
+      "p.third.h2": "Dritte",
+      "p.third.p":
+        "Die Website wird von einem Hosting-Anbieter gehostet und ihr Quellcode liegt auf GitHub. Standardmäßig sind keine Analyse-, Werbe-, Chat- oder Social-Pixel von Dritten eingebunden. Nehmen Sie alle von Ihnen eingeführten in diese Richtlinie und in die Einwilligungskategorien auf.",
+      "p.back": "← Zurück zur Startseite",
     },
 
     ar: {
@@ -557,6 +735,41 @@
       "footer.privacy": "الخصوصية وملفات تعريف الارتباط",
       "footer.cookies": "إعدادات ملفات تعريف الارتباط",
       "lang.label": "اللغة",
+      "p.meta.title": "سياسة الخصوصية وملفات تعريف الارتباط — NoREA",
+      "p.meta.desc": "سياسة الخصوصية وملفات تعريف الارتباط لموقع NoREA (Antirea).",
+      "p.nav.home": "الرئيسية",
+      "p.h1": "سياسة الخصوصية وملفات تعريف الارتباط",
+      "p.updated": "آخر تحديث: 2026-11-05 · <strong>مسودة — بانتظار المراجعة القانونية.</strong>",
+      "p.lead":
+        "هذه السياسة خاصة بموقع التسويق <strong>norea.rubinny.net</strong> فقط. أما برنامج NoREA / Antirea الذي تستضيفه بنفسك فيخضع لسياساتك الخاصة.",
+      "p.who.h2": "من نحن",
+      "p.who.p":
+        "يُدار هذا الموقع بواسطة Diamond Rubinny. لأسئلة الخصوصية، استخدم بيانات التواصل التي تنشرها على موقعك الرئيسي.",
+      "p.collect.h2": "ما الذي يجمعه هذا الموقع",
+      "p.collect.p1":
+        "هذا موقع ثابت. ولا يضبط <strong>أي ملفات تعريف ارتباط للتحليلات أو التسويق</strong> افتراضيًا. يستخدم قدرًا صغيرًا من <strong>التخزين المحلي</strong> على جهازك لغرض ضروري واحد فقط: تذكّر اختيارك بشأن الموافقة على ملفات تعريف الارتباط. تبقى هذه البيانات في متصفحك ولا تُرسَل إلينا أو إلى أي طرف ثالث.",
+      "p.collect.p2":
+        "قد تعالِج سجلات خادم الويب القياسية (مثل عنوان IP وUser-Agent والطابع الزمني) جهةُ الاستضافة لأغراض الأمان والموثوقية. إذا فعّلت أدوات تحليلات أو تسويق مستقبلًا، فوثّقها هنا واجعلها مشروطة بالموافقة (الموقع مُهيّأ لذلك بالفعل).",
+      "p.cookies.h2": "ملفات تعريف الارتباط والتقنيات المشابهة",
+      "p.th.name": "الاسم",
+      "p.th.cat": "الفئة",
+      "p.th.purpose": "الغرض",
+      "p.th.ret": "مدة الاحتفاظ",
+      "p.row.cat": "أساسي",
+      "p.row.purpose": "يخزّن اختيارك بشأن الموافقة على ملفات تعريف الارتباط (تخزين محلي).",
+      "p.row.ret": "حتى تمسحه / تتغيّر نسخة السياسة.",
+      "p.cookies.note":
+        'الفئات غير الأساسية (وظيفية، تحليلات، تسويق) <strong>معطّلة افتراضيًا</strong> ولا تُحمَّل إلا بموافقتك. يمكنك تغيير الموافقة أو سحبها في أي وقت: <a href="#" data-cc-open>افتح إعدادات ملفات تعريف الارتباط</a>.',
+      "p.legal.h2": "الأسس القانونية (GDPR) والقانون الإسرائيلي",
+      "p.legal.p":
+        "حيثما ينطبق نظام GDPR الأوروبي، تعتمد ملفات تعريف الارتباط غير الأساسية على <strong>موافقتك</strong>؛ ويعتمد التخزين الأساسي على المصلحة المشروعة / ضرورة تقديم الخدمة. وحيثما ينطبق قانون حماية الخصوصية الإسرائيلي، نسعى لجمع الحد الأدنى اللازم وللشفافية بشأنه. لا تُنشئ هذه المسودة بمفردها امتثالًا قانونيًا كاملًا — <strong>اعرضها على محامٍ</strong> لمراجعتها وفق استخدامك المحدد.",
+      "p.rights.h2": "حقوقك",
+      "p.rights.p":
+        'مع مراعاة القانون المعمول به، يمكنك طلب الوصول إلى بياناتك الشخصية أو تصحيحها أو حذفها أو تقييدها، وسحب الموافقة. وبما أن هذا الموقع يخزّن الموافقة في متصفحك فقط، يمكنك ممارسة السحب مباشرةً عبر <a href="#" data-cc-open>إعدادات ملفات تعريف الارتباط</a> أو بمسح تخزين متصفحك.',
+      "p.third.h2": "الأطراف الثالثة",
+      "p.third.p":
+        "يستضيف الموقعَ مزوّدُ استضافة، وشفرته المصدرية على GitHub. ولا تُضمَّن افتراضيًا أي أدوات تحليلات أو إعلانات أو دردشة أو بكسلات اجتماعية لأطراف ثالثة. أضِف أيًّا تُدخِله إلى هذه السياسة وإلى فئات الموافقة.",
+      "p.back": "← العودة إلى الرئيسية",
     },
   };
 
@@ -596,15 +809,40 @@
       var av = d[ak] != null ? d[ak] : DICT.en[ak];
       if (av != null) a.setAttribute("alt", av);
     }
+    // Attribute values (e.g. <meta name="description" data-i18n-content="...">).
+    var conts = document.querySelectorAll("[data-i18n-content]");
+    for (var m = 0; m < conts.length; m++) {
+      var cel = conts[m];
+      var ck = cel.getAttribute("data-i18n-content");
+      var cv = d[ck] != null ? d[ck] : DICT.en[ck];
+      if (cv != null) cel.setAttribute("content", cv);
+    }
 
-    if (d["meta.title"]) document.title = d["meta.title"];
+    // Page declares its own title/description keys on <html> so each page
+    // (index, privacy) swaps its own, sharing one dictionary file.
+    var root = document.documentElement;
+    var tKey = root.getAttribute("data-i18n-title");
+    if (tKey && (d[tKey] != null || DICT.en[tKey] != null)) {
+      document.title = d[tKey] != null ? d[tKey] : DICT.en[tKey];
+    }
+    var dKey = root.getAttribute("data-i18n-desc");
     var md = document.querySelector('meta[name="description"]');
-    if (md && d["meta.desc"]) md.setAttribute("content", d["meta.desc"]);
+    if (md && dKey && (d[dKey] != null || DICT.en[dKey] != null)) {
+      md.setAttribute("content", d[dKey] != null ? d[dKey] : DICT.en[dKey]);
+    }
 
     var sel = document.getElementById("lang-select");
     if (sel) {
       sel.value = lang;
       sel.setAttribute("aria-label", d["lang.label"] || "Language");
+    }
+
+    // Broadcast so other components (e.g. the cookie banner) can re-localize.
+    window.noreaLang = lang;
+    try {
+      window.dispatchEvent(new CustomEvent("norea:langchange", { detail: { lang: lang, dir: root.dir } }));
+    } catch (e) {
+      /* ignore */
     }
   }
 
