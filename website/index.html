@@ -16,6 +16,15 @@
     <link rel="canonical" href="https://norea.rubinny.net/" />
     <meta name="robots" content="index, follow" />
 
+    <!-- Language alternates (client-side i18n: en, he, es, fr, de, ar) -->
+    <link rel="alternate" hreflang="en" href="https://norea.rubinny.net/?lang=en" />
+    <link rel="alternate" hreflang="he" href="https://norea.rubinny.net/?lang=he" />
+    <link rel="alternate" hreflang="es" href="https://norea.rubinny.net/?lang=es" />
+    <link rel="alternate" hreflang="fr" href="https://norea.rubinny.net/?lang=fr" />
+    <link rel="alternate" hreflang="de" href="https://norea.rubinny.net/?lang=de" />
+    <link rel="alternate" hreflang="ar" href="https://norea.rubinny.net/?lang=ar" />
+    <link rel="alternate" hreflang="x-default" href="https://norea.rubinny.net/" />
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="NoREA" />
@@ -58,16 +67,25 @@
     </script>
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to main content</a>
+    <a class="skip-link" href="#main" data-i18n="skip">Skip to main content</a>
 
     <header class="nav">
       <div class="wrap nav-in">
-        <a class="brand" href="/" aria-label="NoREA home"><span class="no">No</span><span class="rea">REA</span></a>
+        <a class="brand" href="/" aria-label="NoREA home"
+          ><span class="no">No</span><span class="rea">REA</span></a
+        >
         <nav aria-label="Primary">
-          <a href="#how">How it works</a>
-          <a href="#quickstart">Quickstart</a>
-          <a href="#ai">AI agents</a>
-          <a class="btn btn-ghost" href="https://github.com/diamondrubinny/Antirea" rel="noopener">GitHub ★</a>
+          <a href="#how" data-i18n="nav.how">How it works</a>
+          <a href="#quickstart" data-i18n="nav.quickstart">Quickstart</a>
+          <a href="#ai" data-i18n="nav.ai">AI agents</a>
+          <a
+            class="btn btn-ghost"
+            href="https://github.com/diamondrubinny/Antirea"
+            rel="noopener"
+            data-i18n="nav.github"
+            >GitHub ★</a
+          >
+          <select id="lang-select" class="lang-select" aria-label="Language"></select>
         </nav>
       </div>
     </header>
@@ -76,63 +94,79 @@
       <section class="hero">
         <div class="wrap hero-in">
           <div class="hero-copy">
-            <p class="eyebrow">Open source · Apache-2.0 · self-hosted</p>
-            <h1>Stop <span class="accent">reverse-engineering</span> of your code.</h1>
-            <p class="lead">
+            <p class="eyebrow" data-i18n="hero.eyebrow">Open source · Apache-2.0 · self-hosted</p>
+            <h1 data-i18n="hero.h1">Stop <span class="accent">reverse-engineering</span> of your code.</h1>
+            <p class="lead" data-i18n="hero.lead">
               <strong>NoREA</strong> (“no REA”) is a drop-in toolkit that
               <strong>detects, deceives and blocks</strong> reverse-engineering tools — including
-              CDP/DevTools-based ones like <strong>REA</strong> — and keeps the logic that matters off the client
-              entirely. For websites, SaaS and apps.
+              CDP/DevTools-based ones like <strong>REA</strong> — and keeps the logic that matters off the
+              client entirely. For websites, SaaS and apps.
             </p>
             <div class="cta">
-              <a class="btn btn-primary" href="#quickstart">Get started</a>
-              <a class="btn btn-ghost" href="https://github.com/diamondrubinny/Antirea" rel="noopener">View on GitHub</a>
+              <a class="btn btn-primary" href="#quickstart" data-i18n="hero.cta1">Get started</a>
+              <a
+                class="btn btn-ghost"
+                href="https://github.com/diamondrubinny/Antirea"
+                rel="noopener"
+                data-i18n="hero.cta2"
+                >View on GitHub</a
+              >
             </div>
-            <p class="honest">
-              Honest by design: only server-side execution is hermetic; client-side layers deter, deceive and report.
+            <p class="honest" data-i18n="hero.honest">
+              Honest by design: only server-side execution is hermetic; client-side layers deter, deceive and
+              report.
             </p>
           </div>
           <div class="hero-shot">
-            <img src="assets/dashboard.png" width="900" height="563" alt="NoREA control panel showing reverse-engineering attempts by country, signal and REA fingerprints" />
+            <img
+              src="assets/dashboard.png"
+              width="900"
+              height="563"
+              data-i18n-alt="hero.imgAlt"
+              alt="NoREA control panel showing reverse-engineering attempts by country, signal and REA fingerprints"
+            />
           </div>
         </div>
       </section>
 
       <section class="band" id="problem">
         <div class="wrap">
-          <h2>The problem</h2>
-          <p class="section-lead">
+          <h2 data-i18n="problem.h2">The problem</h2>
+          <p class="section-lead" data-i18n="problem.lead">
             Reverse-engineering tools like <strong>REA</strong> attach to a browser (via the Chrome DevTools
             Protocol), read your bundles and source maps, and drive scripted sessions — turning your shipped
-            JavaScript into a blueprint for cloning. Every business that ships a web app exposes its front-end code.
+            JavaScript into a blueprint for cloning. Every business that ships a web app exposes its front-end
+            code.
           </p>
         </div>
       </section>
 
       <section class="band alt" id="how">
         <div class="wrap">
-          <h2>How NoREA protects — three layers</h2>
+          <h2 data-i18n="how.h2">How NoREA protects — three layers</h2>
           <div class="cards">
             <article class="card">
-              <h3>1 · Detect</h3>
-              <p>
-                A browser guard flags DevTools/CDP attach, automation (Playwright/Puppeteer), integrity tampering,
-                and a <strong>verified REA fingerprint</strong>. Every attempt is reported to your dashboard.
+              <h3 data-i18n="how.c1.h3">1 · Detect</h3>
+              <p data-i18n="how.c1.p">
+                A browser guard flags DevTools/CDP attach, automation (Playwright/Puppeteer), integrity
+                tampering, and a <strong>verified REA fingerprint</strong>. Every attempt is reported to your
+                dashboard.
               </p>
             </article>
             <article class="card">
-              <h3>2 · Deceive</h3>
-              <p>
-                A server-side honeypot serves <strong>inert decoy</strong> code (with canary tokens) to requests
-                scored as analysis — behavioural detection that doesn’t trust the User-Agent, so forging headers
-                raises the score.
+              <h3 data-i18n="how.c2.h3">2 · Deceive</h3>
+              <p data-i18n="how.c2.p">
+                A server-side honeypot serves <strong>inert decoy</strong> code (with canary tokens) to
+                requests scored as analysis — behavioural detection that doesn’t trust the User-Agent, so
+                forging headers raises the score.
               </p>
             </article>
             <article class="card">
-              <h3>3 · Protect</h3>
-              <p>
-                The logic that matters runs <strong>server-side</strong> (hermetic — REA never sees the algorithm);
-                code that must ship to the browser can be compiled to <strong>WASM</strong> (an opaque binary).
+              <h3 data-i18n="how.c3.h3">3 · Protect</h3>
+              <p data-i18n="how.c3.p">
+                The logic that matters runs <strong>server-side</strong> (hermetic — REA never sees the
+                algorithm); code that must ship to the browser can be compiled to <strong>WASM</strong> (an
+                opaque binary).
               </p>
             </article>
           </div>
@@ -141,31 +175,49 @@
 
       <section class="band" id="more">
         <div class="wrap">
-          <h2>More ways it protects</h2>
+          <h2 data-i18n="more.h2">More ways it protects</h2>
           <div class="cards">
             <article class="card">
-              <h3>Proof of work</h3>
-              <p>Make mass scraping pay CPU: suspicious clients must solve a small challenge before they can reach protected routes.</p>
+              <h3 data-i18n="more.c1.h3">Proof of work</h3>
+              <p data-i18n="more.c1.p">
+                Make mass scraping pay CPU: suspicious clients must solve a small challenge before they can
+                reach protected routes.
+              </p>
             </article>
             <article class="card">
-              <h3>Tarpit &amp; TLS fingerprint</h3>
-              <p>Slow down detected bots, and flag <code>curl</code>/<code>python</code>/<code>scrapy</code> by their TLS (JA3) handshake — not just the User-Agent.</p>
+              <h3 data-i18n="more.c2.h3">Tarpit &amp; TLS fingerprint</h3>
+              <p data-i18n="more.c2.p">
+                Slow down detected bots, and flag <code>curl</code>/<code>python</code>/<code>scrapy</code> by
+                their TLS (JA3) handshake — not just the User-Agent.
+              </p>
             </article>
             <article class="card">
-              <h3>WebAssembly</h3>
-              <p>Ship client-side logic as an opaque WASM binary instead of readable JavaScript — much harder to reverse.</p>
+              <h3 data-i18n="more.c3.h3">WebAssembly</h3>
+              <p data-i18n="more.c3.p">
+                Ship client-side logic as an opaque WASM binary instead of readable JavaScript — much harder
+                to reverse.
+              </p>
             </article>
             <article class="card">
-              <h3>Traitor tracing</h3>
-              <p>Watermark each viewer invisibly, scan public code for leaks, and get a webhook alert when attacks spike.</p>
+              <h3 data-i18n="more.c4.h3">Traitor tracing</h3>
+              <p data-i18n="more.c4.p">
+                Watermark each viewer invisibly, scan public code for leaks, and get a webhook alert when
+                attacks spike.
+              </p>
             </article>
             <article class="card">
-              <h3>Domain lock</h3>
-              <p>Flag — and optionally shut down — your front-end when it's rehosted on a domain you didn't authorize (a cloned site).</p>
+              <h3 data-i18n="more.c5.h3">Domain lock</h3>
+              <p data-i18n="more.c5.p">
+                Flag — and optionally shut down — your front-end when it's rehosted on a domain you didn't
+                authorize (a cloned site).
+              </p>
             </article>
             <article class="card">
-              <h3>Hardening</h3>
-              <p>Obfuscate shipped JavaScript, pin assets with SRI, set a strict CSP, and deliver the real bundle encrypted — the key reaches verified clients only.</p>
+              <h3 data-i18n="more.c6.h3">Hardening</h3>
+              <p data-i18n="more.c6.p">
+                Obfuscate shipped JavaScript, pin assets with SRI, set a strict CSP, and deliver the real
+                bundle encrypted — the key reaches verified clients only.
+              </p>
             </article>
           </div>
         </div>
@@ -173,32 +225,43 @@
 
       <section class="band" id="rea">
         <div class="wrap">
-          <h2>We know REA</h2>
-          <p class="section-lead">
-            NoREA ships fingerprints <strong>verified against REA’s public source</strong>, each documented with its
-            evadability:
+          <h2 data-i18n="rea.h2">We know REA</h2>
+          <p class="section-lead" data-i18n="rea.lead">
+            NoREA ships fingerprints <strong>verified against REA’s public source</strong>, each documented
+            with its evadability:
           </p>
           <ul class="checks">
-            <li><strong>Server signal</strong> — REA’s source-map fetcher sends a distinctive <code>Accept: application/source-map+json</code> with no cookie or referer. No browser does this → near-certain, hard to evade.</li>
-            <li><strong>Client signal</strong> — REA’s default Playwright profile (headless + <code>navigator.webdriver</code> + 1280×720 + UTC + reduced-motion…) is a distinctive combination.</li>
-            <li><strong>Adaptive</strong> — an optional AI advisor learns attack patterns and proposes <em>bounded</em> defense changes (you approve them).</li>
+            <li data-i18n="rea.li1">
+              <strong>Server signal</strong> — REA’s source-map fetcher sends a distinctive
+              <code>Accept: application/source-map+json</code> with no cookie or referer. No browser does this
+              → near-certain, hard to evade.
+            </li>
+            <li data-i18n="rea.li2">
+              <strong>Client signal</strong> — REA’s default Playwright profile (headless +
+              <code>navigator.webdriver</code> + 1280×720 + UTC + reduced-motion…) is a distinctive
+              combination.
+            </li>
+            <li data-i18n="rea.li3">
+              <strong>Adaptive</strong> — an optional AI advisor learns attack patterns and proposes
+              <em>bounded</em> defense changes (you approve them).
+            </li>
           </ul>
         </div>
       </section>
 
       <section class="band alt" id="quickstart">
         <div class="wrap">
-          <h2>Quickstart</h2>
+          <h2 data-i18n="qs.h2">Quickstart</h2>
           <ol class="steps">
             <li>
-              <h3>Add the guard to your pages</h3>
+              <h3 data-i18n="qs.s1.h3">Add the guard to your pages</h3>
               <pre><code>&lt;script src="/antirea-guard.iife.js"
         data-site-id="my-site"
         data-endpoint="https://collector.example.com/api/events"
         data-mode="silent"&gt;&lt;/script&gt;</code></pre>
             </li>
             <li>
-              <h3>Add the honeypot to your server</h3>
+              <h3 data-i18n="qs.s2.h3">Add the honeypot to your server</h3>
               <pre><code>import express from "express";
 import { honeypot } from "@antirea/honeypot";
 
@@ -212,7 +275,7 @@ app.use(honeypot({
 app.use(express.static("public"));</code></pre>
             </li>
             <li>
-              <h3>Keep the crown jewels off the client</h3>
+              <h3 data-i18n="qs.s3.h3">Keep the crown jewels off the client</h3>
               <pre><code>// server — the algorithm never reaches the browser
 import { createSecureFnRouter } from "@antirea/secure-fn";
 app.use("/secure", createSecureFnRouter({
@@ -221,16 +284,19 @@ app.use("/secure", createSecureFnRouter({
 }));</code></pre>
             </li>
           </ol>
-          <p class="section-lead">Full docs, Docker deploy and the control panel are in the <a href="https://github.com/diamondrubinny/Antirea" rel="noopener">GitHub repository</a>.</p>
+          <p class="section-lead" data-i18n="qs.foot">
+            Full docs, Docker deploy and the control panel are in the
+            <a href="https://github.com/diamondrubinny/Antirea" rel="noopener">GitHub repository</a>.
+          </p>
         </div>
       </section>
 
       <section class="band" id="ai">
         <div class="wrap">
-          <h2>Install it with an AI agent</h2>
-          <p class="section-lead">
-            Using <strong>Claude Code</strong>, <strong>Cursor</strong>, <strong>GitHub Copilot</strong> or any coding
-            agent? Paste this prompt and let it wire NoREA into your project:
+          <h2 data-i18n="ai.h2">Install it with an AI agent</h2>
+          <p class="section-lead" data-i18n="ai.lead">
+            Using <strong>Claude Code</strong>, <strong>Cursor</strong>, <strong>GitHub Copilot</strong> or
+            any coding agent? Paste this prompt and let it wire NoREA into your project:
           </p>
           <pre class="prompt"><code>Add NoREA (Antirea) anti reverse-engineering protection to this project,
 from https://github.com/diamondrubinny/Antirea.
@@ -248,7 +314,7 @@ from https://github.com/diamondrubinny/Antirea.
    examples/wasm-logic and load it via instantiateProtectedWasm.
 Follow the repo's README and docs/ for exact APIs. Keep everything type-checked
 and run the tests.</code></pre>
-          <p class="honest">
+          <p class="honest" data-i18n="ai.tip">
             Tip: point the agent at the repo’s <code>README.md</code>, <code>docs/REA-SIGNATURES.md</code> and
             <code>docs/WASM.md</code> for exact APIs.
           </p>
@@ -257,14 +323,20 @@ and run the tests.</code></pre>
 
       <section class="band alt" id="who">
         <div class="wrap">
-          <h2>Who it’s for</h2>
-          <p class="section-lead">
-            SaaS and software owners, agencies, and product teams who ship proprietary web apps and want to make
-            cloning and reverse-engineering expensive — and <em>visible</em>. Self-hosted, privacy-respecting
-            (no raw IPs stored), and free under Apache-2.0.
+          <h2 data-i18n="who.h2">Who it’s for</h2>
+          <p class="section-lead" data-i18n="who.lead">
+            SaaS and software owners, agencies, and product teams who ship proprietary web apps and want to
+            make cloning and reverse-engineering expensive — and <em>visible</em>. Self-hosted,
+            privacy-respecting (no raw IPs stored), and free under Apache-2.0.
           </p>
           <div class="cta">
-            <a class="btn btn-primary" href="https://github.com/diamondrubinny/Antirea" rel="noopener">Protect your code →</a>
+            <a
+              class="btn btn-primary"
+              href="https://github.com/diamondrubinny/Antirea"
+              rel="noopener"
+              data-i18n="who.cta"
+              >Protect your code →</a
+            >
           </div>
         </div>
       </section>
@@ -272,16 +344,28 @@ and run the tests.</code></pre>
 
     <section class="band" id="support">
       <div class="wrap">
-        <h2>Support this project</h2>
-        <p class="section-lead">
+        <h2 data-i18n="support.h2">Support this project</h2>
+        <p class="section-lead" data-i18n="support.lead">
           NoREA is free and open source (Apache-2.0). If it helps you or your team, a small donation keeps it
           maintained and independent. Thank you.
         </p>
         <div class="support">
-          <a class="btn btn-primary" href="https://www.paypal.com/paypalme/scarynetwork" rel="noopener" target="_blank">Donate with PayPal</a>
+          <a
+            class="btn btn-primary"
+            href="https://www.paypal.com/paypalme/scarynetwork"
+            rel="noopener"
+            target="_blank"
+            data-i18n="support.donate"
+            >Donate with PayPal</a
+          >
           <div class="qr-card">
-            <img src="assets/paypal-qr.png" width="168" height="168" alt="Scan this QR code to donate via PayPal" />
-            <span>Scan to donate</span>
+            <img
+              src="assets/paypal-qr.png"
+              width="168"
+              height="168"
+              alt="Scan this QR code to donate via PayPal"
+            />
+            <span data-i18n="support.scan">Scan to donate</span>
           </div>
         </div>
       </div>
@@ -289,23 +373,27 @@ and run the tests.</code></pre>
 
     <footer class="footer">
       <div class="wrap footer-in">
-        <p><strong>NoREA</strong> · <span class="muted">anti-REA code protection</span></p>
-        <p class="muted">
+        <p>
+          <strong>NoREA</strong> ·
+          <span class="muted" data-i18n="footer.tagline">anti-REA code protection</span>
+        </p>
+        <p class="muted" data-i18n="footer.created">
           Created by <strong>Diamond Rubinny</strong> · Apache-2.0 ·
           <a href="https://github.com/diamondrubinny/Antirea" rel="noopener">GitHub</a>
         </p>
-        <p class="muted small">
-          NoREA is independent software; “REA” is referenced only to describe the reverse-engineering tooling NoREA
-          helps defend against.
+        <p class="muted small" data-i18n="footer.disclaimer">
+          NoREA is independent software; “REA” is referenced only to describe the reverse-engineering tooling
+          NoREA helps defend against.
         </p>
         <p class="muted small">
-          <a href="#support">Donate</a> ·
-          <a href="privacy.html">Privacy &amp; Cookie Policy</a> ·
-          <a href="#" data-cc-open>Cookie settings</a>
+          <a href="#support" data-i18n="footer.donate">Donate</a> ·
+          <a href="privacy.html" data-i18n="footer.privacy">Privacy &amp; Cookie Policy</a> ·
+          <a href="#" data-cc-open data-i18n="footer.cookies">Cookie settings</a>
         </p>
       </div>
     </footer>
 
+    <script src="i18n.js" defer></script>
     <script src="consent.js" defer></script>
   </body>
 </html>

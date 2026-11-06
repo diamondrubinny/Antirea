@@ -21,7 +21,13 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
   line-height: 1.6;
   overflow-x: hidden; /* safety net against horizontal page scroll */
 }
@@ -44,15 +50,18 @@ a:hover {
 }
 .skip-link {
   position: absolute;
-  left: -999px;
+  inset-inline-start: 0;
   top: 0;
   background: var(--accent);
   color: #042039;
   padding: 0.5rem 1rem;
   z-index: 20;
+  /* Off-screen vertically (not horizontally) so it never adds page width,
+     in LTR or RTL. Becomes visible on focus. */
+  transform: translateY(-200%);
 }
 .skip-link:focus {
-  left: 0;
+  transform: translateY(0);
 }
 
 /* Nav */
@@ -94,6 +103,31 @@ a:hover {
   .nav nav a:not(.btn) {
     display: none;
   }
+}
+
+/* Language selector */
+.lang-select {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+.lang-select:hover {
+  filter: brightness(1.1);
+}
+
+/* Code always reads left-to-right, even on RTL pages (he/ar). */
+pre,
+code,
+.prompt {
+  direction: ltr;
+}
+pre {
+  text-align: left;
 }
 
 /* Buttons */
