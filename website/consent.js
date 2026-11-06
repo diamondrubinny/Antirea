@@ -15,8 +15,9 @@
  * any such scripts you add later: call window.noreaConsent.get("analytics")
  * before loading them, or subscribe with window.noreaConsent.onChange(...).
  *
- * NOTE: this is a technical control, not legal advice. Have the cookie/privacy
- * texts reviewed by a lawyer before relying on them.
+ * NOTE: this is a technical control, not legal advice. The cookie/privacy
+ * wording shown is the site owner's approved text; keep it in sync with your
+ * actual data practices.
  */
 (function () {
   "use strict";

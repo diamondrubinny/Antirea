@@ -110,7 +110,7 @@
       "p.meta.desc": "Privacy and cookie policy for the NoREA (Antirea) website.",
       "p.nav.home": "Home",
       "p.h1": "Privacy & Cookie Policy",
-      "p.updated": "Last updated: 2026-11-05 · <strong>Draft — pending legal review.</strong>",
+      "p.updated": "Last updated: 2026-11-06",
       "p.lead":
         "This is the policy for the <strong>norea.rubinny.net</strong> marketing website only. The NoREA / Antirea software you self-host is governed by your own policies.",
       "p.who.h2": "Who we are",
@@ -133,7 +133,7 @@
         'Non-essential categories (functional, analytics, marketing) are <strong>off by default</strong> and load only with your consent. You can change or withdraw consent anytime: <a href="#" data-cc-open>open cookie settings</a>.',
       "p.legal.h2": "Legal bases (GDPR) & Israeli law",
       "p.legal.p":
-        "Where the EU GDPR applies, non-essential cookies rely on your <strong>consent</strong>; essential storage relies on legitimate interest / necessity to provide the service. Where the Israeli Protection of Privacy Law applies, we aim to collect the minimum necessary and to be transparent about it. This draft does not establish full legal compliance on its own — <strong>have it reviewed by a lawyer</strong> for your specific use.",
+        "Where the EU GDPR applies, non-essential cookies rely on your <strong>consent</strong>; essential storage relies on legitimate interest / necessity to provide the service. Where the Israeli Protection of Privacy Law applies, we aim to collect the minimum necessary and to be transparent about it.",
       "p.rights.h2": "Your rights",
       "p.rights.p":
         'Subject to applicable law, you may request access, correction, deletion, or restriction of your personal data, and withdraw consent. Because this site stores consent only in your browser, you can exercise withdrawal directly via <a href="#" data-cc-open>cookie settings</a> or by clearing your browser storage.',
@@ -233,7 +233,7 @@
       "p.meta.desc": "מדיניות פרטיות ועוגיות עבור אתר NoREA (Antirea).",
       "p.nav.home": "בית",
       "p.h1": "מדיניות פרטיות ועוגיות",
-      "p.updated": "עודכן לאחרונה: 2026-11-05 · <strong>טיוטה — ממתינה לבדיקה משפטית.</strong>",
+      "p.updated": "עודכן לאחרונה: 2026-11-06",
       "p.lead":
         "זוהי המדיניות עבור אתר השיווק <strong>norea.rubinny.net</strong> בלבד. תוכנת NoREA / Antirea שאתה מארח בעצמך כפופה למדיניות שלך.",
       "p.who.h2": "מי אנחנו",
@@ -256,7 +256,7 @@
         'קטגוריות לא-חיוניות (פונקציונלית, אנליטיקה, שיווק) <strong>כבויות כברירת מחדל</strong> ונטענות רק בהסכמתך. אפשר לשנות או למשוך הסכמה בכל עת: <a href="#" data-cc-open>פתיחת הגדרות עוגיות</a>.',
       "p.legal.h2": "בסיסים חוקיים (GDPR) והדין הישראלי",
       "p.legal.p":
-        "כאשר חל ה-GDPR האירופי, עוגיות לא-חיוניות מסתמכות על <strong>הסכמתך</strong>; אחסון חיוני מסתמך על אינטרס לגיטימי / נחיצות לאספקת השירות. כאשר חל חוק הגנת הפרטיות הישראלי, אנו שואפים לאסוף את המינימום הנדרש ולהיות שקופים לגביו. טיוטה זו אינה מבססת ציות משפטי מלא בפני עצמה — <strong>יש להעבירה לבדיקת עורך דין</strong> לשימושך הספציפי.",
+        "כאשר חל ה-GDPR האירופי, עוגיות לא-חיוניות מסתמכות על <strong>הסכמתך</strong>; אחסון חיוני מסתמך על אינטרס לגיטימי / נחיצות לאספקת השירות. כאשר חל חוק הגנת הפרטיות הישראלי, אנו שואפים לאסוף את המינימום הנדרש ולהיות שקופים לגביו.",
       "p.rights.h2": "הזכויות שלך",
       "p.rights.p":
         'בכפוף לדין החל, אתה רשאי לבקש גישה, תיקון, מחיקה או הגבלה של המידע האישי שלך, ולמשוך הסכמה. מאחר שהאתר שומר הסכמה רק בדפדפן שלך, תוכל לממש משיכה ישירות דרך <a href="#" data-cc-open>הגדרות עוגיות</a> או על ידי ניקוי אחסון הדפדפן.',
@@ -359,8 +359,7 @@
       "p.meta.desc": "Política de privacidad y cookies del sitio web NoREA (Antirea).",
       "p.nav.home": "Inicio",
       "p.h1": "Política de privacidad y cookies",
-      "p.updated":
-        "Última actualización: 2026-11-05 · <strong>Borrador — pendiente de revisión legal.</strong>",
+      "p.updated": "Última actualización: 2026-11-06",
       "p.lead":
         "Esta es la política solo para el sitio web de marketing <strong>norea.rubinny.net</strong>. El software NoREA / Antirea que autoalojas se rige por tus propias políticas.",
       "p.who.h2": "Quiénes somos",
@@ -383,7 +382,7 @@
         'Las categorías no esenciales (funcional, analítica, marketing) están <strong>desactivadas de forma predeterminada</strong> y se cargan solo con tu consentimiento. Puedes cambiar o retirar el consentimiento en cualquier momento: <a href="#" data-cc-open>abrir ajustes de cookies</a>.',
       "p.legal.h2": "Bases legales (RGPD) y ley israelí",
       "p.legal.p":
-        "Cuando se aplica el RGPD de la UE, las cookies no esenciales se basan en tu <strong>consentimiento</strong>; el almacenamiento esencial se basa en el interés legítimo / la necesidad de prestar el servicio. Cuando se aplica la Ley de Protección de la Privacidad de Israel, procuramos recopilar lo mínimo necesario y ser transparentes al respecto. Este borrador no establece por sí solo el cumplimiento legal completo — <strong>haz que lo revise un abogado</strong> para tu uso específico.",
+        "Cuando se aplica el RGPD de la UE, las cookies no esenciales se basan en tu <strong>consentimiento</strong>; el almacenamiento esencial se basa en el interés legítimo / la necesidad de prestar el servicio. Cuando se aplica la Ley de Protección de la Privacidad de Israel, procuramos recopilar lo mínimo necesario y ser transparentes al respecto.",
       "p.rights.h2": "Tus derechos",
       "p.rights.p":
         'Con sujeción a la ley aplicable, puedes solicitar acceso, rectificación, supresión o limitación de tus datos personales, y retirar el consentimiento. Como este sitio almacena el consentimiento solo en tu navegador, puedes ejercer la retirada directamente mediante <a href="#" data-cc-open>ajustes de cookies</a> o borrando el almacenamiento de tu navegador.',
@@ -486,8 +485,7 @@
       "p.meta.desc": "Politique de confidentialité et de cookies du site web NoREA (Antirea).",
       "p.nav.home": "Accueil",
       "p.h1": "Politique de confidentialité et de cookies",
-      "p.updated":
-        "Dernière mise à jour : 2026-11-05 · <strong>Brouillon — en attente de revue juridique.</strong>",
+      "p.updated": "Dernière mise à jour : 2026-11-06",
       "p.lead":
         "Cette politique concerne uniquement le site vitrine <strong>norea.rubinny.net</strong>. Le logiciel NoREA / Antirea que vous auto-hébergez est régi par vos propres politiques.",
       "p.who.h2": "Qui nous sommes",
@@ -510,7 +508,7 @@
         'Les catégories non essentielles (fonctionnel, analyse, marketing) sont <strong>désactivées par défaut</strong> et ne se chargent qu’avec votre consentement. Vous pouvez modifier ou retirer votre consentement à tout moment : <a href="#" data-cc-open>ouvrir les paramètres des cookies</a>.',
       "p.legal.h2": "Bases légales (RGPD) et droit israélien",
       "p.legal.p":
-        "Lorsque le RGPD de l’UE s’applique, les cookies non essentiels reposent sur votre <strong>consentement</strong> ; le stockage essentiel repose sur l’intérêt légitime / la nécessité de fournir le service. Lorsque la loi israélienne sur la protection de la vie privée s’applique, nous visons à collecter le minimum nécessaire et à être transparents. Ce brouillon n’établit pas à lui seul une conformité juridique complète — <strong>faites-le relire par un avocat</strong> pour votre usage spécifique.",
+        "Lorsque le RGPD de l’UE s’applique, les cookies non essentiels reposent sur votre <strong>consentement</strong> ; le stockage essentiel repose sur l’intérêt légitime / la nécessité de fournir le service. Lorsque la loi israélienne sur la protection de la vie privée s’applique, nous visons à collecter le minimum nécessaire et à être transparents.",
       "p.rights.h2": "Vos droits",
       "p.rights.p":
         'Sous réserve du droit applicable, vous pouvez demander l’accès, la rectification, l’effacement ou la limitation de vos données personnelles, et retirer votre consentement. Comme ce site ne stocke le consentement que dans votre navigateur, vous pouvez exercer le retrait directement via les <a href="#" data-cc-open>paramètres des cookies</a> ou en effaçant le stockage de votre navigateur.',
@@ -613,8 +611,7 @@
       "p.meta.desc": "Datenschutz- und Cookie-Richtlinie für die NoREA-(Antirea-)Website.",
       "p.nav.home": "Startseite",
       "p.h1": "Datenschutz- & Cookie-Richtlinie",
-      "p.updated":
-        "Zuletzt aktualisiert: 2026-11-05 · <strong>Entwurf — rechtliche Prüfung ausstehend.</strong>",
+      "p.updated": "Zuletzt aktualisiert: 2026-11-06",
       "p.lead":
         "Dies ist die Richtlinie nur für die Marketing-Website <strong>norea.rubinny.net</strong>. Die von Ihnen selbst gehostete NoREA-/Antirea-Software unterliegt Ihren eigenen Richtlinien.",
       "p.who.h2": "Wer wir sind",
@@ -637,7 +634,7 @@
         'Nicht-essenzielle Kategorien (funktional, Analyse, Marketing) sind <strong>standardmäßig deaktiviert</strong> und werden nur mit Ihrer Einwilligung geladen. Sie können die Einwilligung jederzeit ändern oder widerrufen: <a href="#" data-cc-open>Cookie-Einstellungen öffnen</a>.',
       "p.legal.h2": "Rechtsgrundlagen (DSGVO) & israelisches Recht",
       "p.legal.p":
-        "Wo die EU-DSGVO gilt, stützen sich nicht-essenzielle Cookies auf Ihre <strong>Einwilligung</strong>; essenzieller Speicher stützt sich auf berechtigtes Interesse / die Erforderlichkeit zur Erbringung des Dienstes. Wo das israelische Datenschutzgesetz gilt, erheben wir möglichst nur das Nötigste und legen dies transparent dar. Dieser Entwurf begründet für sich allein keine vollständige rechtliche Konformität — <strong>lassen Sie ihn von einem Anwalt prüfen</strong> für Ihren konkreten Einsatz.",
+        "Wo die EU-DSGVO gilt, stützen sich nicht-essenzielle Cookies auf Ihre <strong>Einwilligung</strong>; essenzieller Speicher stützt sich auf berechtigtes Interesse / die Erforderlichkeit zur Erbringung des Dienstes. Wo das israelische Datenschutzgesetz gilt, erheben wir möglichst nur das Nötigste und legen dies transparent dar.",
       "p.rights.h2": "Ihre Rechte",
       "p.rights.p":
         'Vorbehaltlich des geltenden Rechts können Sie Auskunft, Berichtigung, Löschung oder Einschränkung Ihrer personenbezogenen Daten verlangen und die Einwilligung widerrufen. Da diese Website die Einwilligung nur in Ihrem Browser speichert, können Sie den Widerruf direkt über die <a href="#" data-cc-open>Cookie-Einstellungen</a> oder durch Löschen Ihres Browserspeichers ausüben.',
@@ -739,7 +736,7 @@
       "p.meta.desc": "سياسة الخصوصية وملفات تعريف الارتباط لموقع NoREA (Antirea).",
       "p.nav.home": "الرئيسية",
       "p.h1": "سياسة الخصوصية وملفات تعريف الارتباط",
-      "p.updated": "آخر تحديث: 2026-11-05 · <strong>مسودة — بانتظار المراجعة القانونية.</strong>",
+      "p.updated": "آخر تحديث: 2026-11-06",
       "p.lead":
         "هذه السياسة خاصة بموقع التسويق <strong>norea.rubinny.net</strong> فقط. أما برنامج NoREA / Antirea الذي تستضيفه بنفسك فيخضع لسياساتك الخاصة.",
       "p.who.h2": "من نحن",
@@ -762,7 +759,7 @@
         'الفئات غير الأساسية (وظيفية، تحليلات، تسويق) <strong>معطّلة افتراضيًا</strong> ولا تُحمَّل إلا بموافقتك. يمكنك تغيير الموافقة أو سحبها في أي وقت: <a href="#" data-cc-open>افتح إعدادات ملفات تعريف الارتباط</a>.',
       "p.legal.h2": "الأسس القانونية (GDPR) والقانون الإسرائيلي",
       "p.legal.p":
-        "حيثما ينطبق نظام GDPR الأوروبي، تعتمد ملفات تعريف الارتباط غير الأساسية على <strong>موافقتك</strong>؛ ويعتمد التخزين الأساسي على المصلحة المشروعة / ضرورة تقديم الخدمة. وحيثما ينطبق قانون حماية الخصوصية الإسرائيلي، نسعى لجمع الحد الأدنى اللازم وللشفافية بشأنه. لا تُنشئ هذه المسودة بمفردها امتثالًا قانونيًا كاملًا — <strong>اعرضها على محامٍ</strong> لمراجعتها وفق استخدامك المحدد.",
+        "حيثما ينطبق نظام GDPR الأوروبي، تعتمد ملفات تعريف الارتباط غير الأساسية على <strong>موافقتك</strong>؛ ويعتمد التخزين الأساسي على المصلحة المشروعة / ضرورة تقديم الخدمة. وحيثما ينطبق قانون حماية الخصوصية الإسرائيلي، نسعى لجمع الحد الأدنى اللازم وللشفافية بشأنه.",
       "p.rights.h2": "حقوقك",
       "p.rights.p":
         'مع مراعاة القانون المعمول به، يمكنك طلب الوصول إلى بياناتك الشخصية أو تصحيحها أو حذفها أو تقييدها، وسحب الموافقة. وبما أن هذا الموقع يخزّن الموافقة في متصفحك فقط، يمكنك ممارسة السحب مباشرةً عبر <a href="#" data-cc-open>إعدادات ملفات تعريف الارتباط</a> أو بمسح تخزين متصفحك.',
