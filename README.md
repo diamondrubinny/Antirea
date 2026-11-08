@@ -21,7 +21,7 @@ Any website, SaaS, or app can add Antirea to deter analysis tools (including CDP
 ## Screenshots
 
 The self-hosted control panel — live stats, behavioural detection, honeypot
-activity, top sources, and the adaptive AI advisor (dark & light themes, 9
+activity, top sources, and the adaptive AI advisor (dark & light themes, 20
 languages, RTL):
 
 <p align="center">
@@ -142,7 +142,9 @@ At `http://<collector>/` (behind your `ADMIN_TOKEN`):
 - **Live stats** — events, unique sources, timeline, by country, by signal.
 - **Top sources** — the most active (hashed) sources and their last action.
 - **Protection settings (live)** — toggle protection, switch Shadow/Live, set the detection threshold, manage **Allow/Block IP lists**, and set the **Site key**. Changes are pulled by your honeypot within ~30s — no redeploy. (Requires wiring the honeypot `config` option in step 2.)
-- **Languages** — switch instantly; RTL for Hebrew/Arabic.
+- **Languages** — 20 languages (en, he, es, fr, de, ar, pt, ru, zh, it, ja, ko, tr, hi, nl, pl, id, vi, fa, uk), switch instantly; RTL for Hebrew, Arabic and Persian.
+
+The project website, [norea.rubinny.net](https://norea.rubinny.net), is in six languages (English, Hebrew, Spanish, French, German, Arabic) with RTL, a localized cookie banner and privacy page.
 
 ---
 
