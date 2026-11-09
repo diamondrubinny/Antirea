@@ -26,6 +26,13 @@ All notable changes to this project are documented here. The format is based on
 - **Audit trail:** structured JSON lines for failed authentication, config
   changes, proposal approve/reject and AI auto-applied changes. Salted IP hash
   only — never the token or raw IP.
+- **`secure-fn`: client IP could be forged behind a proxy.** `trustProxy` used
+  the leftmost (client-supplied) `X-Forwarded-For` entry; it now means a number
+  of trusted hops (`true` = 1), like the collector. The session-issuing limit
+  is keyed on that address.
+- `secure-fn`: replay nonces are scoped to their session (one session can no
+  longer burn another's nonce), must be 1–128 characters, and expired
+  rate-limit windows are pruned (memory grew with every session).
 - Startup warning when `ADMIN_TOKEN` is shorter than 32 characters.
 - Docker image runs as the unprivileged `node` user with read-only app code.
 - Dependencies: **0 known vulnerabilities** (`minimatch` override for a ReDoS
@@ -83,6 +90,11 @@ All notable changes to this project are documented here. The format is based on
   - Docs: an honest "what REA can and cannot defeat" table — including that a
     CDP tool attaching *after* an encrypted bundle was decrypted can read it, and
     that the key gate's attestation is forgeable and not a security boundary.
+- **`@antirea/secure-fn/web`**: a Fetch-API handler
+  (`createSecureFnHandler`) with the same guards as the Express router, for
+  Next.js App Router and other Node.js frameworks; Express is now an optional
+  peer dependency. Adapters, guards and a migration guide in
+  `docs/SECURE-FN.md`.
 - **Signature regression + false-positive gate** (honeypot): recorded request
   fixtures — measured from real headed Chromium, Playwright-default headless
   Chromium and Node `fetch` with REA's options, plus clearly labelled synthetic
@@ -124,6 +136,9 @@ All notable changes to this project are documented here. The format is based on
   ```
   Then start the new image with `-v antirea-data:/data`. Keep the old container
   until you have checked the data in the control panel.
+- **`secure-fn` `trustProxy`**: `true` now trusts exactly one proxy and reads
+  the rightmost `X-Forwarded-For` entry. Behind two proxies set `trustProxy: 2`.
+  A request without a nonce now gets `400` instead of `409`.
 - `TRUST_PROXY` accepts `false`, `true` (= 1) or `1`–`10`; anything else now
   refuses to start instead of silently trusting no proxy. Expose the collector
   only through that proxy chain.

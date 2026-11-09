@@ -43,6 +43,7 @@ export class RateLimiter {
   /** Returns { ok, count }. ok=false means the key is over its limit. */
   hit(key: string): { ok: boolean; count: number } {
     const now = Date.now();
+    this.prune(now);
     let w = this.windows.get(key);
     if (!w || w.resetAt < now) {
       w = { count: 0, resetAt: now + this.windowMs };
@@ -50,5 +51,18 @@ export class RateLimiter {
     }
     w.count += 1;
     return { ok: w.count <= this.limit, count: w.count };
+  }
+
+  /** Number of tracked keys (for tests/monitoring). */
+  get size(): number {
+    return this.windows.size;
+  }
+
+  private lastPrune = 0;
+  /** Drop expired windows at most once per window, so memory stays bounded. */
+  private prune(now: number): void {
+    if (now - this.lastPrune < this.windowMs) return;
+    this.lastPrune = now;
+    for (const [k, w] of this.windows) if (w.resetAt < now) this.windows.delete(k);
   }
 }

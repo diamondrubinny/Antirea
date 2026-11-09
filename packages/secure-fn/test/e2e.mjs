@@ -69,6 +69,31 @@ for (let i = 0; i < 6; i++) {
 }
 ok(got429, "rate limit triggers 429");
 
+// Behind one trusted proxy, a client-supplied X-Forwarded-For entry is ignored.
+{
+  let seen = "";
+  const app2 = express();
+  app2.use(
+    "/secure",
+    createSecureFnRouter({
+      secret: "test-secret",
+      trustProxy: true,
+      functions: { whoami: (_a, ctx) => ((seen = ctx.ip), "ok") },
+    }),
+  );
+  const srv2 = app2.listen(0);
+  const base2 = `http://127.0.0.1:${srv2.address().port}/secure`;
+  const xff = { "X-Forwarded-For": "6.6.6.6, 203.0.113.9" };
+  const s2 = await fetch(`${base2}/session`, { method: "POST", headers: xff }).then((r) => r.json());
+  await fetch(`${base2}/invoke`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${s2.token}`, ...xff },
+    body: JSON.stringify({ name: "whoami", nonce: "n-" + Math.random() }),
+  });
+  ok(seen === "203.0.113.9", `forged leftmost X-Forwarded-For entry is not trusted (got ${seen})`);
+  srv2.close();
+}
+
 console.log(`\nRESULT: ${pass} passed, ${fail} failed`);
 srv.close();
 process.exit(fail ? 1 : 0);
