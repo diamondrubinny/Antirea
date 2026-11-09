@@ -18,7 +18,7 @@
     "@antirea/watermark": "*",
     "better-sqlite3": "^13.0.3",
     "express": "^4.21.0",
-    "express-rate-limit": "^7.4.0",
+    "express-rate-limit": "^8.7.3",
     "geoip-lite": "^2.0.3"
   },
   "optionalDependencies": {

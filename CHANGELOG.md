@@ -12,8 +12,13 @@ All notable changes to this project are documented here. The format is based on
   honeypot `site-key` are compared via SHA-256 + `crypto.timingSafeEqual`; the
   previous comparison leaked the secret's length and mismatch position.
 - **Brute-force protection** on all admin endpoints and `/api/site-config`:
-  30 failed attempts per IP per 15 minutes, then `429`. Successful requests
-  (dashboard polling, honeypot config pulls) never count.
+  30 rejected credentials (401/403) per IP per 15 minutes, then `429`; the
+  first throttled attempt of each window is audited. Successful requests and
+  ordinary 400/404s never count. IPv6 clients are grouped by /56, so rotating
+  addresses within one allocation buys no extra attempts.
+- `express-rate-limit` 7 → 8 in the collector **and `secure-fn`**: the
+  session-issuing limiter of the hermetic core keyed on the full IPv6 address,
+  letting one client mint unlimited session tokens by rotating addresses.
 - **Client IPs can no longer be forged.** `TRUST_PROXY` now means a number of
   trusted proxy hops; only that hop of `X-Forwarded-For` is used. Previously the
   leftmost (client-supplied) value was trusted, which allowed rate-limit
@@ -59,6 +64,15 @@ All notable changes to this project are documented here. The format is based on
 - **Existing Docker volumes** were created by the old root-run image. Make the
   data directory writable by the new non-root user once:
   `docker compose run --rm -u root collector chown -R node:node /data`
+- **Docker without compose:** the image now defaults `DB_FILE` to
+  `/data/antirea.db`. If you ran the old image without setting `DB_FILE`, your
+  database is inside the old container at `/app/packages/collector/antirea.db`.
+  Copy it out before removing that container, then onto the new volume:
+  `docker cp <old-container>:/app/packages/collector/antirea.db ./antirea.db`
+  (or keep the old path by setting `DB_FILE` explicitly).
+- `TRUST_PROXY` accepts `false`, `true` (= 1) or `1`–`10`; anything else now
+  refuses to start instead of silently trusting no proxy. Expose the collector
+  only through that proxy chain.
 
 ## [0.1.0] - 2026-11-05
 

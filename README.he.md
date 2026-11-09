@@ -46,11 +46,12 @@
    app.use(honeypot({ siteId: "my-site", protect: [/\.js$/, /\.map$/], mode: "shadow",
      reportUrl: "https://collector/api/events", allowlist: { verifyReverseDns: true } }));
    ```
-3. **guard בדפים:** `<script src="antirea-guard.iife.js" data-site-id="..." data-endpoint="...">`
+3. **guard בדפים:** `<script src="antirea-guard.iife.js" data-site-id="..." data-endpoint="..."></script>`
 4. **לוגיקה קניינית — הרמטית:** `createSecureFnRouter` בשרת, `createSecureClient().invoke(...)` בלקוח.
 
 > מאחורי reverse proxy: הגדר `TRUST_PROXY` ל**מספר** ה-proxies שלפני ה-collector (`true` = 1).
 > רק ה-hop הזה ב-`X-Forwarded-For` נאמן — לקוח לא יכול לזייף IP כדי לעקוף הגבלות קצב.
+> זה נכון רק אם ה-collector נגיש **אך ורק דרך שרשרת ה-proxy**: חסום גישה ישירה אליו (ועם `TRUST_PROXY=2` גם ל-proxy הפנימי), וודא שכל proxy מוסיף (append) את כתובת הלקוח. ערך מקסימלי 10; ערך לא תקין — השרת לא יעלה.
 
 ## פריסה
 
@@ -69,7 +70,7 @@
 
 ## אבטחה ופרטיות
 
-- לא נשמר IP גולמי — רק מדינה + גיבוב מומלח (`sha256(salt|ip)`). איסוף מינימלי ומחיקה אוטומטית (retention).
+- לא נשמר IP גולמי של מבקרים — לכל אירוע נשמרים רק מדינה + גיבוב מומלח (`sha256(salt|ip)`). איסוף מינימלי ומחיקה אוטומטית (retention). (כתובות IP שמנהל מקליד ברשימות Allow/Block הן הגדרות ונשמרות כפי שהוקלדו.)
 - גישת ניהול: השוואת טוקן constant-time, הגבלת ניסיונות כושלים, ו-audit log לפעולות רגישות (ללא סודות וללא IP גולמי).
 - **מי שמפעיל את ה-collector באתר שלו** אחראי למדיניות הפרטיות שלו ולבדיקה משפטית מול השימוש הספציפי (חוק הגנת הפרטיות / תיקון 13, ואם רלוונטי GDPR).
 

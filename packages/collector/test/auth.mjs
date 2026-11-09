@@ -55,7 +55,10 @@ ok(parseTrustProxy(undefined) === 0, "unset → 0 hops");
 ok(parseTrustProxy("false") === 0, "false → 0 hops");
 ok(parseTrustProxy("true") === 1, "true → exactly 1 hop (never trust-all)");
 ok(parseTrustProxy("2") === 2, "numeric hops honoured");
-ok(parseTrustProxy("-1") === 0 && parseTrustProxy("abc") === 0 && parseTrustProxy("99") === 0, "invalid values → 0");
+ok(parseTrustProxy("10") === 10, "upper bound 10 accepted");
+for (const bad of ["-1", "abc", "11", "99", "1.5", " 2", "TRUE"]) {
+  ok(parseTrustProxy(bad) === null, `invalid TRUST_PROXY ${JSON.stringify(bad)} → null (refuse to start)`);
+}
 
 // --- extractIp: forged X-Forwarded-For must not win ---
 {

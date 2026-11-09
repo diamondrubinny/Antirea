@@ -41,7 +41,16 @@ const IP_SALT = process.env.IP_SALT ?? "";
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? "";
 // Number of trusted reverse-proxy hops ("true" = 1). Never "trust all": that
 // would let clients forge X-Forwarded-For and bypass rate limits.
-const TRUST_HOPS = parseTrustProxy(process.env.TRUST_PROXY);
+const TRUST_HOPS_PARSED = parseTrustProxy(process.env.TRUST_PROXY);
+if (TRUST_HOPS_PARSED === null) {
+  // Fail fast: silently falling back to 0 would make every client behind the
+  // proxy share one rate-limit bucket.
+  console.error(
+    `[antirea] FATAL: invalid TRUST_PROXY=${JSON.stringify(process.env.TRUST_PROXY)}; use false, true (=1) or a hop count from 1 to 10.`,
+  );
+  process.exit(1);
+}
+const TRUST_HOPS: number = TRUST_HOPS_PARSED;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "*").split(",").map((s) => s.trim());
 const RETENTION_DAYS = Number(process.env.RETENTION_DAYS ?? 90);
 
@@ -181,17 +190,41 @@ function callerHash(req: Request): string {
   return hashIp(extractIp(req.headers, req.socket.remoteAddress, TRUST_HOPS), IP_SALT);
 }
 
-// Brute-force guard: only failed (>= 400) responses count, so normal dashboard
-// polling and honeypot config pulls are never throttled.
+// Brute-force guard: only rejected credentials (401/403) count, so dashboard
+// polling, honeypot config pulls and ordinary 400/404s never use the budget.
+// IPv6 clients are grouped by /56, so rotating addresses inside one allocation
+// does not buy new attempts.
+const AUTH_FAIL_LIMIT = 30;
 const authFailLimiter = rateLimit({
   windowMs: 15 * 60_000,
-  limit: 30,
+  limit: AUTH_FAIL_LIMIT,
+  ipv6Subnet: 56,
   skipSuccessfulRequests: true,
+  // 429 must also count: otherwise each throttled request is refunded and the
+  // lockout's audit line would repeat on every attempt.
+  requestWasSuccessful: (_req, res) => ![401, 403, 429].includes(res.statusCode),
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "too many failed attempts, try again later" },
+  handler: (req, res, _next, options) => {
+    // Audit the first throttled request of each window (not every one, so an
+    // attacker cannot flood the log), recording that the lockout engaged.
+    const used = (req as Request & { rateLimit?: { used?: number } }).rateLimit?.used;
+    if (used === AUTH_FAIL_LIMIT + 1) {
+      audit({
+        action: "auth.rateLimited",
+        outcome: "denied",
+        ipHash: callerHash(req),
+        detail: { path: req.path, limit: AUTH_FAIL_LIMIT, windowMin: 15 },
+      });
+    }
+    res.status(options.statusCode).json({ error: "too many failed attempts, try again later" });
+  },
 });
 
+/**
+ * Admin gate: constant-time bearer-token check. Failures are audited (salted
+ * IP hash only) and counted by `authFailLimiter`, which runs first.
+ */
 function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   if (!safeEqual(bearerToken(req.headers.authorization), ADMIN_TOKEN)) {
     audit({ action: "admin.auth", outcome: "denied", ipHash: callerHash(req), detail: { path: req.path } });
@@ -342,6 +375,11 @@ function canAutoApply(p: Proposal, currentThreshold: number): boolean {
   return Math.abs(next - currentThreshold) <= 0.15;
 }
 
+/**
+ * Run adaptive analysis for one site: build context, get heuristic (and, when
+ * enabled, AI) proposals, store them, and auto-apply only bounded changes when
+ * AI_AUTO_APPLY is on. Every auto-applied change is audited.
+ */
 async function runAnalysis(siteId: string): Promise<{ analysis: string; count: number }> {
   const since = Date.now() - 24 * 36e5;
   const rows = store.recentRows(since, siteId, 5000);

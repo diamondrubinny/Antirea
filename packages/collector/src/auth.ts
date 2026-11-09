@@ -42,17 +42,23 @@ export function tokenStrengthWarning(token: string): string | null {
   return null;
 }
 
+/** Highest accepted TRUST_PROXY hop count. */
+export const MAX_TRUST_HOPS = 10;
+
 /**
- * Parse TRUST_PROXY into a number of trusted proxy hops.
- * "true" means one hop (a single reverse proxy such as nginx or a load
- * balancer). Trusting every hop would let clients forge their IP through
- * X-Forwarded-For and bypass rate limits, so that is never the default.
+ * Parse TRUST_PROXY into a number of trusted proxy hops, or `null` when the
+ * value is invalid (the caller should refuse to start).
+ * Unset / "false" / "0" → 0. "true" → 1 (a single reverse proxy such as nginx
+ * or a load balancer). An integer 1..10 → that many hops. Trusting every hop
+ * would let clients forge X-Forwarded-For and bypass rate limits, so that is
+ * never the default.
  */
-export function parseTrustProxy(value: string | undefined): number {
-  if (!value || value === "false" || value === "0") return 0;
+export function parseTrustProxy(value: string | undefined): number | null {
+  if (value === undefined || value === "" || value === "false" || value === "0") return 0;
   if (value === "true") return 1;
+  if (!/^\d+$/.test(value)) return null;
   const n = Number(value);
-  return Number.isInteger(n) && n > 0 && n <= 10 ? n : 0;
+  return n >= 1 && n <= MAX_TRUST_HOPS ? n : null;
 }
 
 export type AuditOutcome = "ok" | "denied" | "error";

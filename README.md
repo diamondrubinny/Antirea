@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/diamondrubinny/Antirea/actions/workflows/ci.yml/badge.svg)](https://github.com/diamondrubinny/Antirea/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
-![Node](https://img.shields.io/badge/node-%E2%89%A520-brightgreen.svg)
+![Node](https://img.shields.io/badge/node-%E2%89%A522-brightgreen.svg)
 
 **Drop-in protection against reverse-engineering and cloning, with a control panel that shows who tried, from where, and how often.**
 
@@ -90,8 +90,12 @@ npm start
 Open `http://localhost:8080/`, enter your `ADMIN_TOKEN`, pick a language.
 
 > Behind a reverse proxy, set `TRUST_PROXY` to the **number** of proxies in front
-> of the collector (`true` = 1). Only that hop of `X-Forwarded-For` is trusted, so
-> clients cannot forge their IP to dodge rate limits.
+> of the collector (`true` = 1, maximum 10; any other value refuses to start). Only
+> that hop of `X-Forwarded-For` is trusted, so clients cannot forge their IP to
+> dodge rate limits. This holds only if the collector is reachable **solely
+> through that proxy chain**: firewall direct access to the collector (and, with
+> `TRUST_PROXY=2`, to the inner proxy, so traffic cannot skip the CDN), and make
+> each trusted proxy *append* the client address to `X-Forwarded-For`.
 
 ### 2. Add the honeypot to your server (one middleware)
 
@@ -226,7 +230,7 @@ Learns from the attacks it sees and proposes defense changes. **Off by default; 
 
 ## Security & privacy (GDPR / IL Privacy Law — draft, needs legal review)
 
-- **No raw IP is stored.** The collector derives a country and stores `sha256(ip + secret salt)` only.
+- **No raw visitor IP is stored.** For every event the collector derives a country and stores `sha256(ip + secret salt)` only. (IP addresses an administrator types into the Allow/Block lists are configuration and are stored as entered.)
 - Telemetry is minimal: event type, signal names, path (query stripped by default), UA, language, screen, timezone.
 - Admin panel + APIs require a bearer token; the per-site config read requires a Site key.
 - Automatic retention pruning (`RETENTION_DAYS`, default 90).
@@ -249,6 +253,8 @@ Learns from the attacks it sees and proposes defense changes. **Off by default; 
 
 - **Docker:** `docker compose up --build` (see `docker-compose.yml`). The image runs
   on Node 24 as the unprivileged `node` user; data lives on the `/data` volume.
+  **Upgrading an existing deployment?** Follow the one-time volume-ownership and
+  database-path steps in the [CHANGELOG upgrade notes](./CHANGELOG.md#upgrade-notes).
 - **Windows Server:** run the collector as a Windows Service — see
   [`packages/collector/windows/README.md`](./packages/collector/windows/README.md).
   (The `honeypot`/`secure-fn` packages need no installer; they `npm install`
