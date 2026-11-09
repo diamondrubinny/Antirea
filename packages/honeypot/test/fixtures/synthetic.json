@@ -1,0 +1,99 @@
+{
+  "$comment": "SYNTHETIC fixtures — header sets written from each client's documented behaviour, NOT captured from the real client. They guard against false positives until a real capture replaces them. Never present these as measurements.",
+  "fixtures": [
+    {
+      "id": "firefox.script",
+      "client": "Firefox (synthetic)",
+      "path": "/assets/app.js",
+      "expect": "clean",
+      "note": "Firefox sends Sec-Fetch-* but no Client Hints.",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0",
+      "headers": {
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0",
+        "accept": "*/*",
+        "accept-language": "en-US,en;q=0.5",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "referer": "https://example.test/",
+        "sec-fetch-dest": "script",
+        "sec-fetch-mode": "no-cors",
+        "sec-fetch-site": "same-origin",
+        "cookie": "sid=test"
+      }
+    },
+    {
+      "id": "safari.script",
+      "client": "Safari 18 (synthetic)",
+      "path": "/assets/app.js",
+      "expect": "clean",
+      "note": "Safari 16.4+ sends Sec-Fetch-*; no Client Hints.",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
+      "headers": {
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
+        "accept": "*/*",
+        "accept-language": "he-IL,he;q=0.9",
+        "accept-encoding": "gzip, deflate, br",
+        "referer": "https://example.test/",
+        "sec-fetch-dest": "script",
+        "sec-fetch-mode": "no-cors",
+        "sec-fetch-site": "same-origin",
+        "cookie": "sid=test"
+      }
+    },
+    {
+      "id": "safari-old.script",
+      "client": "Safari 15 (synthetic)",
+      "path": "/assets/app.js",
+      "expect": "report",
+      "note": "Safari before 16.4 sends no Sec-Fetch-*: visible in the dashboard, never decoyed.",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6 Mobile/15E148 Safari/604.1",
+      "headers": {
+        "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6 Mobile/15E148 Safari/604.1",
+        "accept": "*/*",
+        "accept-language": "en-GB,en;q=0.9",
+        "accept-encoding": "gzip, deflate, br",
+        "referer": "https://example.test/",
+        "cookie": "sid=test"
+      }
+    },
+    {
+      "id": "chrome-proxied.script",
+      "client": "Chrome behind a header-stripping proxy (synthetic)",
+      "path": "/assets/app.js",
+      "expect": "report",
+      "note": "A corporate proxy removed Sec-Fetch-Site/Dest and Accept-Language. Must not be decoyed.",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+      "headers": {
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+        "accept": "*/*",
+        "sec-ch-ua": "\"Chromium\";v=\"153\", \"Not_A Brand\";v=\"8\"",
+        "sec-fetch-mode": "no-cors",
+        "referer": "https://example.test/",
+        "cookie": "sid=test"
+      }
+    },
+    {
+      "id": "node-service.script",
+      "client": "Legitimate Node service, e.g. uptime monitor (synthetic)",
+      "path": "/assets/app.js",
+      "expect": "report",
+      "note": "Server-side client with Node defaults and its own Accept. Must not be decoyed.",
+      "userAgent": "node",
+      "headers": {
+        "user-agent": "node",
+        "accept": "application/javascript",
+        "accept-language": "*",
+        "sec-fetch-mode": "cors",
+        "accept-encoding": "gzip, deflate"
+      }
+    },
+    {
+      "id": "curl.script",
+      "client": "curl (synthetic)",
+      "path": "/assets/app.js",
+      "expect": "decoy",
+      "note": "Command-line download of a protected bundle.",
+      "userAgent": "curl/8.9.1",
+      "headers": { "user-agent": "curl/8.9.1", "accept": "*/*" }
+    }
+  ]
+}
