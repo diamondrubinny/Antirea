@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en" data-i18n-title="a.meta.title" data-i18n-desc="a.meta.desc">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Accessibility Statement — NoREA</title>
+    <meta
+      name="description"
+      content="Accessibility statement for the NoREA (Antirea) website: the standard we aim for, what we have done, known limitations and how to report a problem."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://norea.rubinny.net/accessibility.html" />
+    <link rel="alternate" hreflang="en" href="https://norea.rubinny.net/accessibility.html?lang=en" />
+    <link rel="alternate" hreflang="he" href="https://norea.rubinny.net/accessibility.html?lang=he" />
+    <link rel="alternate" hreflang="es" href="https://norea.rubinny.net/accessibility.html?lang=es" />
+    <link rel="alternate" hreflang="fr" href="https://norea.rubinny.net/accessibility.html?lang=fr" />
+    <link rel="alternate" hreflang="de" href="https://norea.rubinny.net/accessibility.html?lang=de" />
+    <link rel="alternate" hreflang="ar" href="https://norea.rubinny.net/accessibility.html?lang=ar" />
+    <link rel="alternate" hreflang="x-default" href="https://norea.rubinny.net/accessibility.html" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="consent.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main" data-i18n="skip">Skip to main content</a>
+    <header class="nav">
+      <div class="wrap nav-in">
+        <a class="brand" href="/" aria-label="NoREA home"
+          ><span class="no">No</span><span class="rea">REA</span></a
+        >
+        <nav aria-label="Primary">
+          <a href="/" data-i18n="p.nav.home">Home</a>
+          <a
+            class="btn btn-ghost"
+            href="https://github.com/diamondrubinny/Antirea"
+            rel="noopener"
+            data-i18n="nav.github"
+            >GitHub ★</a
+          >
+          <select id="lang-select" class="lang-select" aria-label="Language"></select>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="band">
+      <div class="wrap doc">
+        <h1 data-i18n="a.h1">Accessibility Statement</h1>
+        <p class="muted" data-i18n="a.updated">Last updated: 2026-11-09</p>
+        <p class="section-lead" data-i18n="a.lead">
+          We want everyone, including people with disabilities, to be able to use
+          <strong>norea.rubinny.net</strong>. This statement covers this website only.
+        </p>
+
+        <h2 data-i18n="a.std.h2">The standard we aim for</h2>
+        <p data-i18n="a.std.p">
+          This website aims to conform to <strong>WCAG 2.1 level AA</strong> and to Israeli Standard
+          <strong>IS 5568</strong>, which is based on the WCAG guidelines.
+        </p>
+
+        <h2 data-i18n="a.done.h2">What we have done</h2>
+        <ul data-i18n="a.done.list">
+          <li>
+            Semantic HTML with ordered headings and landmarks (header, navigation, main content, footer).
+          </li>
+          <li>
+            A “Skip to main content” link, and full keyboard operation with a clearly visible focus indicator.
+          </li>
+          <li>
+            Right-to-left layout and correct language settings for Hebrew and Arabic — six languages in total.
+          </li>
+          <li>Text alternatives for informative images.</li>
+          <li>
+            Links in running text are underlined, not identified by colour alone; text colours meet AA
+            contrast.
+          </li>
+          <li>Responsive layout: no horizontal scrolling on phones, and usable at 200% zoom.</li>
+          <li>
+            The cookie banner works with a keyboard and with screen readers, and “Reject” is as prominent as
+            “Accept”.
+          </li>
+          <li>Animations and smooth scrolling are switched off when your system asks for reduced motion.</li>
+          <li>An accessibility toolbar (see below).</li>
+        </ul>
+
+        <h2 data-i18n="a.tb.h2">Accessibility toolbar</h2>
+        <p data-i18n="a.tb.p">
+          The <span aria-hidden="true">♿</span> button in the bottom corner of every page opens options for
+          larger text, high contrast, underlined links, a readable font and stopping animations. Your settings
+          are saved only in your browser. The toolbar is a convenience — the site is built to be accessible
+          without it.
+        </p>
+
+        <h2 data-i18n="a.test.h2">How we tested</h2>
+        <p data-i18n="a.test.p">
+          Self-assessment carried out on 9 November 2026: automated checks with axe-core (WCAG 2.0 and 2.1,
+          levels A and AA) on every page in English, Hebrew and Arabic, with no violations found;
+          keyboard-only testing; and layout checks on a 390-pixel-wide screen and at 200% zoom, left-to-right
+          and right-to-left.
+          <strong>This site has not yet been audited by an independent accessibility expert.</strong>
+        </p>
+
+        <h2 data-i18n="a.limit.h2">Known limitations</h2>
+        <ul data-i18n="a.limit.list">
+          <li>Languages other than English are machine-translated and may contain awkward wording.</li>
+          <li>The control-panel screenshot is illustrative; the text around it describes what it shows.</li>
+          <li>Testing with screen readers (NVDA, JAWS, VoiceOver) has not been completed yet.</li>
+          <li>
+            The source code and documentation on GitHub are outside this website and follow GitHub’s own
+            accessibility.
+          </li>
+        </ul>
+
+        <h2 data-i18n="a.contact.h2">Report a problem</h2>
+        <p data-i18n="a.contact.p">
+          If anything on this site is hard or impossible to use, please tell us:
+          <a
+            href="https://github.com/diamondrubinny/Antirea/issues/new?labels=accessibility&amp;title=Accessibility%3A%20"
+            rel="noopener"
+            >open an issue on GitHub</a
+          >
+          with the page address, what you were trying to do, and the browser or assistive technology you use.
+          GitHub issues are public — please do not include personal information. Accessibility contact:
+          <strong>Diamond Rubinny</strong>. We aim to respond within 14 days.
+        </p>
+
+        <p class="space-top-lg">
+          <a class="btn btn-ghost" href="/" data-i18n="a.back">← Back to home</a>
+        </p>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap footer-in">
+        <p>
+          <strong>NoREA</strong> ·
+          <span class="muted" data-i18n="footer.tagline">anti-REA code protection</span>
+        </p>
+        <p class="muted" data-i18n="footer.created">
+          Created by <strong>Diamond Rubinny</strong> · Apache-2.0 ·
+          <a href="https://github.com/diamondrubinny/Antirea" rel="noopener">GitHub</a>
+        </p>
+        <p class="muted small">
+          <a href="privacy.html" data-i18n="footer.privacy">Privacy &amp; Cookie Policy</a> ·
+          <a href="accessibility.html" aria-current="page" data-i18n="footer.a11y">Accessibility statement</a>
+          ·
+          <a href="#" data-cc-open data-i18n="footer.cookies">Cookie settings</a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="i18n-a11y.js" defer></script>
+    <script src="a11y.js" defer></script>
+    <script src="i18n.js" defer></script>
+    <script src="consent.js" defer></script>
+  </body>
+</html>
