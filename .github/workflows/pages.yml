@@ -29,5 +29,8 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: website
+          # Publish .well-known/security.txt (dot-directories are skipped by
+          # default). .htaccess is the only other dot-file and holds no secrets.
+          include-hidden-files: true
       - id: deployment
         uses: actions/deploy-pages@v5

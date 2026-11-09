@@ -28,6 +28,8 @@ All notable changes to this project are documented here. The format is based on
   only — never the token or raw IP.
 - Startup warning when `ADMIN_TOKEN` is shorter than 32 characters.
 - Docker image runs as the unprivileged `node` user with read-only app code.
+- Website CSP: `style-src 'self'` — `'unsafe-inline'` removed (no inline styles
+  remain).
 - Dependencies: **0 known vulnerabilities** (`minimatch` override for a ReDoS
   advisory in lint tooling). CI now fails on high-severity runtime advisories.
 
@@ -55,6 +57,13 @@ All notable changes to this project are documented here. The format is based on
   scored 0.2 (`accept.wildcard`) as if it were a navigation — found by the new
   fixture suite; subresource requests are no longer counted.
 - Website: horizontal overflow on RTL pages and on the privacy table (mobile).
+- Website: links in running text were distinguished by colour alone (WCAG
+  1.4.1); the donation section sat outside any landmark; the header forced
+  horizontal scrolling at 320px with enlarged text (WCAG 1.4.10).
+- Website privacy policy now lists every browser-storage key (`norea_lang` was
+  missing; `norea_a11y` is new).
+- GitHub Pages deploy now publishes `.well-known/` (hidden directories were
+  silently dropped from the artifact).
 
 ### Added
 
@@ -83,6 +92,16 @@ All notable changes to this project are documented here. The format is based on
   - Docs: an honest "what REA can and cannot defeat" table — including that a
     CDP tool attaching *after* an encrypted bundle was decrypted can read it, and
     that the key gate's attestation is forgeable and not a security boundary.
+- **Website accessibility & compliance:**
+  - Accessibility statement (`accessibility.html`, 6 languages; WCAG 2.1 AA /
+    IS 5568 target, self-assessed — not yet externally audited).
+  - Accessibility toolbar (larger text, high contrast, underline links,
+    readable font, stop animations); keyboard and screen-reader operable,
+    stays above the cookie banner.
+  - Localized `404.html`; RFC 9116 `/.well-known/security.txt`; sitemap with
+    `hreflang` alternates for every page.
+  - Verified with axe-core: 0 violations on every page × 6 languages, toolbar
+    open and closed, including high-contrast mode.
 - **Signature regression + false-positive gate** (honeypot): recorded request
   fixtures — measured from real headed Chromium, Playwright-default headless
   Chromium and Node `fetch` with REA's options, plus clearly labelled synthetic

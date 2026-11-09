@@ -110,7 +110,7 @@
       "p.meta.desc": "Privacy and cookie policy for the NoREA (Antirea) website.",
       "p.nav.home": "Home",
       "p.h1": "Privacy & Cookie Policy",
-      "p.updated": "Last updated: 2026-11-06",
+      "p.updated": "Last updated: 2026-11-09",
       "p.lead":
         "This is the policy for the <strong>norea.rubinny.net</strong> marketing website only. The NoREA / Antirea software you self-host is governed by your own policies.",
       "p.who.h2": "Who we are",
@@ -118,7 +118,7 @@
         "This site is operated by Diamond Rubinny. For privacy questions, use the contact details you publish on your main site.",
       "p.collect.h2": "What this website collects",
       "p.collect.p1":
-        "This is a static website. It sets <strong>no analytics or marketing cookies</strong> by default. It uses a small amount of <strong>local storage</strong> on your device for one strictly-necessary purpose: to remember your cookie-consent choice. That data stays in your browser and is not sent to us or any third party.",
+        "This is a static website. It sets <strong>no analytics or marketing cookies</strong> by default. It uses a small amount of <strong>local storage</strong> on your device only to remember choices you make: your cookie-consent choice, your language and your accessibility-toolbar settings. That data stays in your browser and is not sent to us or any third party.",
       "p.collect.p2":
         "Standard web-server logs (e.g. IP address, user-agent, timestamp) may be processed by the hosting provider for security and reliability. If you enable analytics or marketing tools in the future, document them here and gate them behind consent (the site is already built to do this).",
       "p.cookies.h2": "Cookies & similar technologies",
@@ -141,6 +141,30 @@
       "p.third.p":
         "The site is hosted by a hosting provider and its source lives on GitHub. No third-party analytics, advertising, chat or social pixels are embedded by default. Add any you introduce to this policy and to the consent categories.",
       "p.back": "← Back to home",
+      "footer.a11y": "Accessibility statement",
+      "tb.open": "Accessibility options",
+      "tb.title": "Accessibility options",
+      "tb.text": "Larger text",
+      "tb.contrast": "High contrast",
+      "tb.links": "Underline links",
+      "tb.font": "Readable font",
+      "tb.motion": "Stop animations",
+      "tb.reset": "Reset",
+      "tb.close": "Close",
+      "tb.statement": "Accessibility statement",
+      "nf.meta.title": "Page not found — NoREA",
+      "nf.meta.desc": "The page you requested does not exist on the NoREA website.",
+      "nf.h1": "Page not found",
+      "nf.p":
+        "The page you asked for doesn’t exist or has moved. Check the address, or continue from one of these pages:",
+      "nf.home": "Home page",
+      "nf.privacy": "Privacy &amp; Cookie Policy",
+      "p.row.pref": "Essential (a setting you chose)",
+      "p.row2.purpose": "Remembers the language you chose (local storage).",
+      "p.row2.ret": "Until you clear it.",
+      "p.row3.purpose":
+        "Remembers your accessibility-toolbar settings (local storage). Removed when you press Reset.",
+      "p.row3.ret": "Until you clear it or press Reset.",
     },
 
     he: {
@@ -233,7 +257,7 @@
       "p.meta.desc": "מדיניות פרטיות ועוגיות עבור אתר NoREA (Antirea).",
       "p.nav.home": "בית",
       "p.h1": "מדיניות פרטיות ועוגיות",
-      "p.updated": "עודכן לאחרונה: 2026-11-06",
+      "p.updated": "עודכן לאחרונה: 2026-11-09",
       "p.lead":
         "זוהי המדיניות עבור אתר השיווק <strong>norea.rubinny.net</strong> בלבד. תוכנת NoREA / Antirea שאתה מארח בעצמך כפופה למדיניות שלך.",
       "p.who.h2": "מי אנחנו",
@@ -241,7 +265,7 @@
         "האתר מופעל על ידי Diamond Rubinny. לשאלות פרטיות, השתמש בפרטי הקשר שאתה מפרסם באתר הראשי שלך.",
       "p.collect.h2": "מה האתר אוסף",
       "p.collect.p1":
-        "זהו אתר סטטי. הוא אינו מגדיר <strong>עוגיות אנליטיקה או שיווק</strong> כברירת מחדל. הוא משתמש בכמות קטנה של <strong>אחסון מקומי</strong> במכשירך למטרה הכרחית אחת בלבד: לזכור את בחירת ההסכמה שלך לעוגיות. המידע נשאר בדפדפן שלך ואינו נשלח אלינו או לצד שלישי.",
+        "זהו אתר סטטי. כברירת מחדל הוא <strong>אינו מציב עוגיות אנליטיקה או שיווק</strong>. הוא משתמש בכמות קטנה של <strong>אחסון מקומי</strong> במכשיר שלך רק כדי לזכור בחירות שעשית: בחירת ההסכמה לעוגיות, השפה והגדרות סרגל הנגישות. המידע נשאר בדפדפן שלך ואינו נשלח אלינו או לצד שלישי כלשהו.",
       "p.collect.p2":
         "יומני שרת סטנדרטיים (למשל כתובת IP, user-agent, חותמת זמן) עשויים להתעבד על ידי ספק האירוח לצורכי אבטחה ואמינות. אם תפעיל כלי אנליטיקה או שיווק בעתיד, תעד אותם כאן והתנה אותם בהסכמה (האתר כבר בנוי לכך).",
       "p.cookies.h2": "עוגיות וטכנולוגיות דומות",
@@ -264,6 +288,28 @@
       "p.third.p":
         "האתר מתארח אצל ספק אירוח וקוד המקור שלו נמצא ב-GitHub. לא מוטמעים כברירת מחדל כלי אנליטיקה, פרסום, צ'אט או פיקסלים חברתיים של צד שלישי. הוסף כל כזה שתכניס למדיניות זו ולקטגוריות ההסכמה.",
       "p.back": "← חזרה לדף הבית",
+      "footer.a11y": "הצהרת נגישות",
+      "tb.open": "אפשרויות נגישות",
+      "tb.title": "אפשרויות נגישות",
+      "tb.text": "הגדלת טקסט",
+      "tb.contrast": "ניגודיות גבוהה",
+      "tb.links": "הדגשת קישורים",
+      "tb.font": "גופן קריא",
+      "tb.motion": "עצירת אנימציות",
+      "tb.reset": "איפוס",
+      "tb.close": "סגירה",
+      "tb.statement": "הצהרת נגישות",
+      "nf.meta.title": "הדף לא נמצא — NoREA",
+      "nf.meta.desc": "הדף שביקשת אינו קיים באתר NoREA.",
+      "nf.h1": "הדף לא נמצא",
+      "nf.p": "הדף שביקשת אינו קיים או שהועבר. בדקו את הכתובת, או המשיכו לאחד מהדפים האלה:",
+      "nf.home": "דף הבית",
+      "nf.privacy": "פרטיות ומדיניות עוגיות",
+      "p.row.pref": "חיוני (הגדרה שבחרת)",
+      "p.row2.purpose": "זוכר את השפה שבחרת (אחסון מקומי).",
+      "p.row2.ret": "עד שתנקה אותו.",
+      "p.row3.purpose": "זוכר את הגדרות סרגל הנגישות שלך (אחסון מקומי). נמחק כשלוחצים על „איפוס”.",
+      "p.row3.ret": "עד שתנקה אותו או תלחץ על „איפוס”.",
     },
 
     es: {
@@ -359,7 +405,7 @@
       "p.meta.desc": "Política de privacidad y cookies del sitio web NoREA (Antirea).",
       "p.nav.home": "Inicio",
       "p.h1": "Política de privacidad y cookies",
-      "p.updated": "Última actualización: 2026-11-06",
+      "p.updated": "Última actualización: 2026-11-09",
       "p.lead":
         "Esta es la política solo para el sitio web de marketing <strong>norea.rubinny.net</strong>. El software NoREA / Antirea que autoalojas se rige por tus propias políticas.",
       "p.who.h2": "Quiénes somos",
@@ -367,7 +413,7 @@
         "Este sitio está operado por Diamond Rubinny. Para consultas de privacidad, usa los datos de contacto que publicas en tu sitio principal.",
       "p.collect.h2": "Qué recopila este sitio",
       "p.collect.p1":
-        "Este es un sitio estático. No establece <strong>cookies de analítica ni de marketing</strong> de forma predeterminada. Usa una pequeña cantidad de <strong>almacenamiento local</strong> en tu dispositivo con un único fin estrictamente necesario: recordar tu elección de consentimiento de cookies. Esos datos permanecen en tu navegador y no se nos envían a nosotros ni a terceros.",
+        "Este es un sitio web estático. Por defecto <strong>no establece cookies analíticas ni de marketing</strong>. Usa una pequeña cantidad de <strong>almacenamiento local</strong> en tu dispositivo solo para recordar las elecciones que haces: tu elección de consentimiento de cookies, tu idioma y los ajustes de la barra de accesibilidad. Esos datos permanecen en tu navegador y no se envían a nosotros ni a terceros.",
       "p.collect.p2":
         "Los registros estándar del servidor web (p. ej., dirección IP, user-agent, marca de tiempo) pueden ser procesados por el proveedor de alojamiento por seguridad y fiabilidad. Si habilitas herramientas de analítica o marketing en el futuro, documéntalas aquí y condiciónalas al consentimiento (el sitio ya está preparado para ello).",
       "p.cookies.h2": "Cookies y tecnologías similares",
@@ -390,6 +436,30 @@
       "p.third.p":
         "El sitio está alojado por un proveedor de alojamiento y su código fuente está en GitHub. No se incrustan de forma predeterminada analíticas, publicidad, chat ni píxeles sociales de terceros. Añade a esta política y a las categorías de consentimiento cualquiera que introduzcas.",
       "p.back": "← Volver al inicio",
+      "footer.a11y": "Declaración de accesibilidad",
+      "tb.open": "Opciones de accesibilidad",
+      "tb.title": "Opciones de accesibilidad",
+      "tb.text": "Texto más grande",
+      "tb.contrast": "Alto contraste",
+      "tb.links": "Subrayar enlaces",
+      "tb.font": "Fuente legible",
+      "tb.motion": "Detener animaciones",
+      "tb.reset": "Restablecer",
+      "tb.close": "Cerrar",
+      "tb.statement": "Declaración de accesibilidad",
+      "nf.meta.title": "Página no encontrada — NoREA",
+      "nf.meta.desc": "La página solicitada no existe en el sitio de NoREA.",
+      "nf.h1": "Página no encontrada",
+      "nf.p":
+        "La página que buscas no existe o se ha movido. Revisa la dirección o continúa desde una de estas páginas:",
+      "nf.home": "Página de inicio",
+      "nf.privacy": "Privacidad y cookies",
+      "p.row.pref": "Esencial (un ajuste que elegiste)",
+      "p.row2.purpose": "Recuerda el idioma que elegiste (almacenamiento local).",
+      "p.row2.ret": "Hasta que lo borres.",
+      "p.row3.purpose":
+        "Recuerda los ajustes de la barra de accesibilidad (almacenamiento local). Se elimina al pulsar Restablecer.",
+      "p.row3.ret": "Hasta que lo borres o pulses Restablecer.",
     },
 
     fr: {
@@ -485,7 +555,7 @@
       "p.meta.desc": "Politique de confidentialité et de cookies du site web NoREA (Antirea).",
       "p.nav.home": "Accueil",
       "p.h1": "Politique de confidentialité et de cookies",
-      "p.updated": "Dernière mise à jour : 2026-11-06",
+      "p.updated": "Dernière mise à jour : 2026-11-09",
       "p.lead":
         "Cette politique concerne uniquement le site vitrine <strong>norea.rubinny.net</strong>. Le logiciel NoREA / Antirea que vous auto-hébergez est régi par vos propres politiques.",
       "p.who.h2": "Qui nous sommes",
@@ -493,7 +563,7 @@
         "Ce site est exploité par Diamond Rubinny. Pour toute question de confidentialité, utilisez les coordonnées publiées sur votre site principal.",
       "p.collect.h2": "Ce que ce site collecte",
       "p.collect.p1":
-        "Ceci est un site statique. Il ne dépose <strong>aucun cookie d’analyse ou de marketing</strong> par défaut. Il utilise une petite quantité de <strong>stockage local</strong> sur votre appareil dans un seul but strictement nécessaire : mémoriser votre choix de consentement aux cookies. Ces données restent dans votre navigateur et ne nous sont pas transmises, ni à un tiers.",
+        "Ce site est un site statique. Par défaut, il <strong>ne dépose aucun cookie d’analyse ou de marketing</strong>. Il utilise une petite quantité de <strong>stockage local</strong> sur votre appareil uniquement pour mémoriser vos choix : votre choix de consentement aux cookies, votre langue et vos réglages de la barre d’accessibilité. Ces données restent dans votre navigateur et ne nous sont pas envoyées, ni à aucun tiers.",
       "p.collect.p2":
         "Les journaux standard du serveur web (p. ex. adresse IP, user-agent, horodatage) peuvent être traités par l’hébergeur à des fins de sécurité et de fiabilité. Si vous activez des outils d’analyse ou de marketing à l’avenir, documentez-les ici et conditionnez-les au consentement (le site est déjà prévu pour cela).",
       "p.cookies.h2": "Cookies et technologies similaires",
@@ -516,6 +586,30 @@
       "p.third.p":
         "Le site est hébergé par un hébergeur et son code source se trouve sur GitHub. Aucun service tiers d’analyse, de publicité, de chat ou de pixel social n’est intégré par défaut. Ajoutez à cette politique et aux catégories de consentement tout service que vous introduisez.",
       "p.back": "← Retour à l’accueil",
+      "footer.a11y": "Déclaration d’accessibilité",
+      "tb.open": "Options d’accessibilité",
+      "tb.title": "Options d’accessibilité",
+      "tb.text": "Texte plus grand",
+      "tb.contrast": "Contraste élevé",
+      "tb.links": "Souligner les liens",
+      "tb.font": "Police lisible",
+      "tb.motion": "Arrêter les animations",
+      "tb.reset": "Réinitialiser",
+      "tb.close": "Fermer",
+      "tb.statement": "Déclaration d’accessibilité",
+      "nf.meta.title": "Page introuvable — NoREA",
+      "nf.meta.desc": "La page demandée n’existe pas sur le site NoREA.",
+      "nf.h1": "Page introuvable",
+      "nf.p":
+        "La page demandée n’existe pas ou a été déplacée. Vérifiez l’adresse ou continuez depuis l’une de ces pages :",
+      "nf.home": "Page d’accueil",
+      "nf.privacy": "Confidentialité et cookies",
+      "p.row.pref": "Essentiel (un réglage que vous avez choisi)",
+      "p.row2.purpose": "Mémorise la langue choisie (stockage local).",
+      "p.row2.ret": "Jusqu’à ce que vous l’effaciez.",
+      "p.row3.purpose":
+        "Mémorise les réglages de la barre d’accessibilité (stockage local). Supprimé lorsque vous cliquez sur Réinitialiser.",
+      "p.row3.ret": "Jusqu’à ce que vous l’effaciez ou cliquiez sur Réinitialiser.",
     },
 
     de: {
@@ -611,7 +705,7 @@
       "p.meta.desc": "Datenschutz- und Cookie-Richtlinie für die NoREA-(Antirea-)Website.",
       "p.nav.home": "Startseite",
       "p.h1": "Datenschutz- & Cookie-Richtlinie",
-      "p.updated": "Zuletzt aktualisiert: 2026-11-06",
+      "p.updated": "Zuletzt aktualisiert: 2026-11-09",
       "p.lead":
         "Dies ist die Richtlinie nur für die Marketing-Website <strong>norea.rubinny.net</strong>. Die von Ihnen selbst gehostete NoREA-/Antirea-Software unterliegt Ihren eigenen Richtlinien.",
       "p.who.h2": "Wer wir sind",
@@ -619,7 +713,7 @@
         "Diese Website wird von Diamond Rubinny betrieben. Für Datenschutzfragen verwenden Sie die auf Ihrer Hauptseite veröffentlichten Kontaktdaten.",
       "p.collect.h2": "Was diese Website erfasst",
       "p.collect.p1":
-        "Dies ist eine statische Website. Sie setzt standardmäßig <strong>keine Analyse- oder Marketing-Cookies</strong>. Sie nutzt eine kleine Menge <strong>lokalen Speicher</strong> auf Ihrem Gerät für genau einen zwingend erforderlichen Zweck: Ihre Cookie-Einwilligung zu merken. Diese Daten bleiben in Ihrem Browser und werden weder an uns noch an Dritte gesendet.",
+        "Dies ist eine statische Website. Standardmäßig setzt sie <strong>keine Analyse- oder Marketing-Cookies</strong>. Sie nutzt eine kleine Menge <strong>lokalen Speicher</strong> auf Ihrem Gerät nur, um Ihre Auswahl zu speichern: Ihre Cookie-Einwilligung, Ihre Sprache und Ihre Einstellungen der Barrierefreiheits-Leiste. Diese Daten bleiben in Ihrem Browser und werden weder an uns noch an Dritte gesendet.",
       "p.collect.p2":
         "Standard-Webserver-Logs (z. B. IP-Adresse, User-Agent, Zeitstempel) können vom Hosting-Anbieter zu Sicherheits- und Zuverlässigkeitszwecken verarbeitet werden. Wenn Sie künftig Analyse- oder Marketing-Tools aktivieren, dokumentieren Sie sie hier und machen Sie sie von der Einwilligung abhängig (die Website ist dafür bereits vorbereitet).",
       "p.cookies.h2": "Cookies & ähnliche Technologien",
@@ -642,6 +736,30 @@
       "p.third.p":
         "Die Website wird von einem Hosting-Anbieter gehostet und ihr Quellcode liegt auf GitHub. Standardmäßig sind keine Analyse-, Werbe-, Chat- oder Social-Pixel von Dritten eingebunden. Nehmen Sie alle von Ihnen eingeführten in diese Richtlinie und in die Einwilligungskategorien auf.",
       "p.back": "← Zurück zur Startseite",
+      "footer.a11y": "Erklärung zur Barrierefreiheit",
+      "tb.open": "Optionen zur Barrierefreiheit",
+      "tb.title": "Optionen zur Barrierefreiheit",
+      "tb.text": "Größerer Text",
+      "tb.contrast": "Hoher Kontrast",
+      "tb.links": "Links unterstreichen",
+      "tb.font": "Gut lesbare Schrift",
+      "tb.motion": "Animationen stoppen",
+      "tb.reset": "Zurücksetzen",
+      "tb.close": "Schließen",
+      "tb.statement": "Erklärung zur Barrierefreiheit",
+      "nf.meta.title": "Seite nicht gefunden — NoREA",
+      "nf.meta.desc": "Die angeforderte Seite existiert auf der NoREA-Website nicht.",
+      "nf.h1": "Seite nicht gefunden",
+      "nf.p":
+        "Die angeforderte Seite existiert nicht oder wurde verschoben. Prüfen Sie die Adresse oder machen Sie auf einer dieser Seiten weiter:",
+      "nf.home": "Startseite",
+      "nf.privacy": "Datenschutz & Cookies",
+      "p.row.pref": "Notwendig (eine von Ihnen gewählte Einstellung)",
+      "p.row2.purpose": "Speichert die von Ihnen gewählte Sprache (lokaler Speicher).",
+      "p.row2.ret": "Bis Sie ihn löschen.",
+      "p.row3.purpose":
+        "Speichert Ihre Einstellungen der Barrierefreiheits-Leiste (lokaler Speicher). Wird mit „Zurücksetzen“ entfernt.",
+      "p.row3.ret": "Bis Sie ihn löschen oder „Zurücksetzen“ wählen.",
     },
 
     ar: {
@@ -736,7 +854,7 @@
       "p.meta.desc": "سياسة الخصوصية وملفات تعريف الارتباط لموقع NoREA (Antirea).",
       "p.nav.home": "الرئيسية",
       "p.h1": "سياسة الخصوصية وملفات تعريف الارتباط",
-      "p.updated": "آخر تحديث: 2026-11-06",
+      "p.updated": "آخر تحديث: 2026-11-09",
       "p.lead":
         "هذه السياسة خاصة بموقع التسويق <strong>norea.rubinny.net</strong> فقط. أما برنامج NoREA / Antirea الذي تستضيفه بنفسك فيخضع لسياساتك الخاصة.",
       "p.who.h2": "من نحن",
@@ -744,7 +862,7 @@
         "يُدار هذا الموقع بواسطة Diamond Rubinny. لأسئلة الخصوصية، استخدم بيانات التواصل التي تنشرها على موقعك الرئيسي.",
       "p.collect.h2": "ما الذي يجمعه هذا الموقع",
       "p.collect.p1":
-        "هذا موقع ثابت. ولا يضبط <strong>أي ملفات تعريف ارتباط للتحليلات أو التسويق</strong> افتراضيًا. يستخدم قدرًا صغيرًا من <strong>التخزين المحلي</strong> على جهازك لغرض ضروري واحد فقط: تذكّر اختيارك بشأن الموافقة على ملفات تعريف الارتباط. تبقى هذه البيانات في متصفحك ولا تُرسَل إلينا أو إلى أي طرف ثالث.",
+        "هذا موقع ثابت. وهو افتراضيًا <strong>لا يضع ملفات تعريف ارتباط للتحليلات أو التسويق</strong>. ويستخدم قدرًا صغيرًا من <strong>التخزين المحلي</strong> على جهازك فقط لتذكّر اختياراتك: اختيار الموافقة على ملفات تعريف الارتباط، ولغتك، وإعدادات شريط إمكانية الوصول. تبقى هذه البيانات في متصفحك ولا تُرسَل إلينا أو إلى أي طرف ثالث.",
       "p.collect.p2":
         "قد تعالِج سجلات خادم الويب القياسية (مثل عنوان IP وUser-Agent والطابع الزمني) جهةُ الاستضافة لأغراض الأمان والموثوقية. إذا فعّلت أدوات تحليلات أو تسويق مستقبلًا، فوثّقها هنا واجعلها مشروطة بالموافقة (الموقع مُهيّأ لذلك بالفعل).",
       "p.cookies.h2": "ملفات تعريف الارتباط والتقنيات المشابهة",
@@ -767,8 +885,42 @@
       "p.third.p":
         "يستضيف الموقعَ مزوّدُ استضافة، وشفرته المصدرية على GitHub. ولا تُضمَّن افتراضيًا أي أدوات تحليلات أو إعلانات أو دردشة أو بكسلات اجتماعية لأطراف ثالثة. أضِف أيًّا تُدخِله إلى هذه السياسة وإلى فئات الموافقة.",
       "p.back": "← العودة إلى الرئيسية",
+      "footer.a11y": "بيان إمكانية الوصول",
+      "tb.open": "خيارات إمكانية الوصول",
+      "tb.title": "خيارات إمكانية الوصول",
+      "tb.text": "تكبير النص",
+      "tb.contrast": "تباين عالٍ",
+      "tb.links": "تسطير الروابط",
+      "tb.font": "خط سهل القراءة",
+      "tb.motion": "إيقاف الحركة",
+      "tb.reset": "إعادة الضبط",
+      "tb.close": "إغلاق",
+      "tb.statement": "بيان إمكانية الوصول",
+      "nf.meta.title": "الصفحة غير موجودة — NoREA",
+      "nf.meta.desc": "الصفحة المطلوبة غير موجودة على موقع NoREA.",
+      "nf.h1": "الصفحة غير موجودة",
+      "nf.p": "الصفحة التي طلبتها غير موجودة أو نُقلت. تحقّق من العنوان، أو تابع من إحدى هذه الصفحات:",
+      "nf.home": "الصفحة الرئيسية",
+      "nf.privacy": "الخصوصية وملفات تعريف الارتباط",
+      "p.row.pref": "ضروري (إعداد اخترته)",
+      "p.row2.purpose": "يتذكّر اللغة التي اخترتها (تخزين محلي).",
+      "p.row2.ret": "حتى تمسحه.",
+      "p.row3.purpose": "يتذكّر إعدادات شريط إمكانية الوصول (تخزين محلي). يُحذف عند الضغط على «إعادة الضبط».",
+      "p.row3.ret": "حتى تمسحه أو تضغط «إعادة الضبط».",
     },
   };
+
+  // Page-specific dictionaries (e.g. i18n-a11y.js) register themselves on
+  // window.NOREA_I18N_EXTRA before this file runs, so long texts load only on
+  // the page that needs them.
+  (function mergeExtra() {
+    var ex = window.NOREA_I18N_EXTRA;
+    if (!ex || typeof ex !== "object") return;
+    for (var l in ex) {
+      if (!DICT[l] || typeof ex[l] !== "object") continue;
+      for (var k in ex[l]) DICT[l][k] = ex[l][k];
+    }
+  })();
 
   function pick() {
     try {
