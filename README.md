@@ -75,16 +75,23 @@ Shipping a security tool means being honest about its guarantees. Antirea has **
 
 ### 1. Run the collector + control panel
 
+Requires **Node.js 22+** (24 LTS recommended).
+
 ```bash
 npm install
+npm run build            # builds every package; the collector imports adaptive + watermark
 cd packages/collector && cp .env.example .env
 node -e "console.log('IP_SALT='+require('crypto').randomBytes(32).toString('hex'))"
 node -e "console.log('ADMIN_TOKEN='+require('crypto').randomBytes(32).toString('hex'))"
 # paste both into .env, then:
-npm run build && npm start
+npm start
 ```
 
 Open `http://localhost:8080/`, enter your `ADMIN_TOKEN`, pick a language.
+
+> Behind a reverse proxy, set `TRUST_PROXY` to the **number** of proxies in front
+> of the collector (`true` = 1). Only that hop of `X-Forwarded-For` is trusted, so
+> clients cannot forge their IP to dodge rate limits.
 
 ### 2. Add the honeypot to your server (one middleware)
 
@@ -240,7 +247,8 @@ Learns from the attacks it sees and proposes defense changes. **Off by default; 
 
 ## Deploy
 
-- **Docker:** `docker compose up --build` (see `docker-compose.yml`).
+- **Docker:** `docker compose up --build` (see `docker-compose.yml`). The image runs
+  on Node 24 as the unprivileged `node` user; data lives on the `/data` volume.
 - **Windows Server:** run the collector as a Windows Service — see
   [`packages/collector/windows/README.md`](./packages/collector/windows/README.md).
   (The `honeypot`/`secure-fn` packages need no installer; they `npm install`
