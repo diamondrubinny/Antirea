@@ -66,10 +66,20 @@ All notable changes to this project are documented here. The format is based on
   `docker compose run --rm -u root collector chown -R node:node /data`
 - **Docker without compose:** the image now defaults `DB_FILE` to
   `/data/antirea.db`. If you ran the old image without setting `DB_FILE`, your
-  database is inside the old container at `/app/packages/collector/antirea.db`.
-  Copy it out before removing that container, then onto the new volume:
-  `docker cp <old-container>:/app/packages/collector/antirea.db ./antirea.db`
-  (or keep the old path by setting `DB_FILE` explicitly).
+  database is inside the old container at `/app/packages/collector/`. **Stop the
+  container first** — SQLite runs in WAL mode, and a copy taken while it runs can
+  be missing the schema and recent rows. Then copy the database (and any
+  `-wal`/`-shm` files) out and onto the new volume, owned by `node`:
+  ```bash
+  docker stop <old-container>
+  for f in antirea.db antirea.db-wal antirea.db-shm; do
+    docker cp <old-container>:/app/packages/collector/$f . 2>/dev/null
+  done
+  docker run --rm -u root -v antirea-data:/data -v "$PWD":/src --entrypoint sh <new-image> \
+    -c 'cp /src/antirea.db* /data/ && chown node:node /data/antirea.db*'
+  ```
+  Then start the new image with `-v antirea-data:/data`. (Alternatively keep the
+  old location by setting `DB_FILE` explicitly.)
 - `TRUST_PROXY` accepts `false`, `true` (= 1) or `1`–`10`; anything else now
   refuses to start instead of silently trusting no proxy. Expose the collector
   only through that proxy chain.
