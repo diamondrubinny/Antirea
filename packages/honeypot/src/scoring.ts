@@ -222,8 +222,13 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
     }
   }
   // A real browser's Accept for a navigation includes text/html; tools send */*.
+  // Browser subresource requests (fetch/XHR, images, styles) legitimately send
+  // */* and declare a non-document Sec-Fetch-Dest, so they are not navigations
+  // (measured: Chromium fetch() sends "accept: */*", "sec-fetch-dest: empty").
   const accept = header(h, "accept");
-  if (accept === "*/*" && !isScript) {
+  const fetchDest = header(h, "sec-fetch-dest");
+  const maybeNavigation = fetchDest === "" || fetchDest === "document";
+  if (accept === "*/*" && !isScript && maybeNavigation) {
     score += 0.2;
     reasons.push("accept.wildcard");
   }

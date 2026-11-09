@@ -1,0 +1,54 @@
+name: REA upstream watch
+
+# Weekly: if REA published a release newer than the one our signatures were
+# verified against, open ONE issue asking for re-verification. Defensive
+# housekeeping only — it reads public npm metadata and never runs REA.
+
+on:
+  schedule:
+    - cron: "23 5 * * 1" # Mondays 05:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: rea-watch
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - id: rea
+        run: node scripts/check-rea-version.mjs
+      - name: Open a re-verification issue
+        if: steps.rea.outputs.stale == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFIED: ${{ steps.rea.outputs.verified }}
+          LATEST: ${{ steps.rea.outputs.latest }}
+        run: |
+          title="Re-verify REA signatures against rea-agents ${LATEST}"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"${title}\" in:title" --json number --jq 'length')
+          if [ "$existing" != "0" ]; then
+            echo "An issue for ${LATEST} is already open."
+            exit 0
+          fi
+          {
+            echo "REA published **${LATEST}**; our signatures were last verified against **${VERIFIED}**."
+            echo
+            echo "Checklist:"
+            echo "- [ ] Read the upstream changelog for changes to the source-map fetcher, scenario defaults and service-worker policy."
+            echo "- [ ] Re-capture fixtures: \`xvfb-run -a node packages/honeypot/test/fixtures/capture.mjs\` and review the diff."
+            echo "- [ ] Update \`reaVersion\` in the capture script, \`docs/REA-SIGNATURES.md\` (matrix + verified date) and the CHANGELOG."
+            echo "- [ ] \`npm test\` — the fixture suite must report 0 false positives."
+            echo
+            echo "_Opened automatically by the \`REA upstream watch\` workflow._"
+          } > body.md
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file body.md
