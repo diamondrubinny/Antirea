@@ -51,6 +51,9 @@ All notable changes to this project are documented here. The format is based on
 - **README Quickstart failed on a fresh clone** for the same reason; it now
   builds all packages from the repo root first.
 - Published packages now include `LICENSE` and `NOTICE` (Apache-2.0 §4).
+- Honeypot: a real browser's `fetch()`/XHR to a protected non-script path was
+  scored 0.2 (`accept.wildcard`) as if it were a navigation — found by the new
+  fixture suite; subresource requests are no longer counted.
 - Website: horizontal overflow on RTL pages and on the privacy table (mobile).
 
 ### Added
@@ -80,6 +83,14 @@ All notable changes to this project are documented here. The format is based on
   - Docs: an honest "what REA can and cannot defeat" table — including that a
     CDP tool attaching *after* an encrypted bundle was decrypted can read it, and
     that the key gate's attestation is forgeable and not a security boundary.
+- **Signature regression + false-positive gate** (honeypot): recorded request
+  fixtures — measured from real headed Chromium, Playwright-default headless
+  Chromium and Node `fetch` with REA's options, plus clearly labelled synthetic
+  Firefox/Safari/proxy/service shapes — are scored on every CI run; a signature
+  that stops firing or a legitimate client that would be decoyed fails the
+  build. Coverage matrix in `docs/REA-SIGNATURES.md`.
+- **REA upstream watch**: weekly workflow opens an issue when REA publishes a
+  release newer than the verified one.
 - Collector test suite (auth, IP extraction, ingest validation).
 - npm metadata (`repository`, `homepage`, `bugs`, `keywords`) on all packages.
 

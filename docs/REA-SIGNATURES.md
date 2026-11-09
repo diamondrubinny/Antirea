@@ -16,6 +16,39 @@ access controls on systems you are not authorized to test" and "copying
 proprietary software or reproducing its protected code" — exactly the use these
 signatures surface.
 
+## Coverage matrix
+
+| Signature | Layer | REA 6.8.0 | How it is verified | Last verified |
+|---|---|---|---|---|
+| `rea.sourceMapAccept` | server | ✅ | **Measured fixture** (Node `fetch` with REA's exact options) | 2026-11-09 |
+| `ua.runtimeFetch` / `forgery.partialSecFetch` / `acceptLanguage.wildcard` | server | ✅ (report; decoy when corroborated) | **Measured fixture** | 2026-11-09 |
+| `rea.sourceMapShape` (fork with changed `Accept`) | server | ✅ | **Measured fixture** | 2026-11-09 |
+| `ua.headless` / `ua.headlessClientHint` (launch mode) | server | ✅ | **Measured fixture** (Playwright-default Chromium) | 2026-11-09 |
+| `canary.sourceMap` | server | ✅ | Unit + end-to-end test | 2026-11-09 |
+| `rea.scenarioSwPolicy` | client | ✅ | Unit test + Chromium run; source read | 2026-11-09 |
+| `automation.swBlockPatch` | client | ✅ (report-only) | Unit test + Chromium run | 2026-11-09 |
+| `cdp.debuggerPause` | client | ✅ | Source read (no pause suppression in REA) | 2026-11-09 |
+| `rea.playwrightDefaults` | client | ✅ | Source read + Chromium run | 2026-11-09 |
+
+**Regression and false-positive gate.** `packages/honeypot/test/fixtures.mjs`
+runs on every CI build. It scores recorded requests and fails if a signature
+stops firing **or if any legitimate client would be decoyed**:
+
+- `fixtures/captured.json` — **measured**: headers recorded from real headed
+  Chromium (a normal user), Playwright-default headless Chromium (REA launch
+  mode) and Node `fetch` with REA's options. Regenerate with
+  `xvfb-run -a node packages/honeypot/test/fixtures/capture.mjs`.
+- `fixtures/synthetic.json` — **not measured**: Firefox, Safari, a proxied
+  Chrome, a legitimate Node service and curl, written from documented
+  behaviour and labelled as such until real captures replace them.
+
+Current result: **0 of 10 legitimate request shapes decoyed** (5 measured, 5
+synthetic). This is a small corpus, not a field
+false-positive rate — run shadow mode on your own traffic before going live.
+
+A weekly workflow (`.github/workflows/rea-watch.yml`) opens an issue when REA
+publishes a release newer than the one in this table.
+
 ## How REA touches a website
 
 REA drives a browser for an AI coding agent over MCP (`npx rea-agents mcp`,
