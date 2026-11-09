@@ -54,16 +54,29 @@ export function hashIp(ip: string, salt: string): string {
   return createHash("sha256").update(salt).update("|").update(ip).digest("hex").slice(0, 32);
 }
 
-/** Extract client IP honoring a trusted proxy's X-Forwarded-For. */
+/**
+ * Extract the client IP, trusting exactly `trustHops` reverse proxies.
+ *
+ * Each trusted proxy appends the address it saw to X-Forwarded-For, so the
+ * client is the entry `trustHops` places from the right. Entries further left
+ * are client-supplied and can be forged, so they are never used. With
+ * `trustHops = 0` the socket address is used and the header is ignored.
+ */
 export function extractIp(
   headers: Record<string, string | string[] | undefined>,
   socketAddr: string | undefined,
-  trustProxy: boolean,
+  trustHops: number,
 ): string {
-  if (trustProxy) {
+  if (trustHops > 0) {
     const xff = headers["x-forwarded-for"];
-    const val = Array.isArray(xff) ? xff[0] : xff;
-    if (val) return val.split(",")[0].trim();
+    const val = Array.isArray(xff) ? xff.join(",") : xff;
+    if (val) {
+      const parts = val
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (parts.length > 0) return parts[Math.max(parts.length - trustHops, 0)];
+    }
   }
   return socketAddr ?? "";
 }

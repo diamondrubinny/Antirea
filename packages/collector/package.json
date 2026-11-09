@@ -5,19 +5,20 @@
   "type": "module",
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "build": "tsc",
     "dev": "node --loader ts-node/esm --env-file=.env src/server.ts",
-    "start": "node --env-file=.env dist/server.js"
+    "start": "node --env-file=.env dist/server.js",
+    "test": "node test/auth.mjs && node test/validate.mjs"
   },
   "dependencies": {
     "@antirea/adaptive": "*",
     "@antirea/watermark": "*",
-    "better-sqlite3": "^11.3.0",
+    "better-sqlite3": "^13.0.3",
     "express": "^4.21.0",
-    "express-rate-limit": "^7.4.0",
+    "express-rate-limit": "^8.7.3",
     "geoip-lite": "^2.0.3"
   },
   "optionalDependencies": {
@@ -32,5 +33,25 @@
     "typescript": "^5.6.3"
   },
   "author": "Diamond Rubinny",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diamondrubinny/Antirea.git",
+    "directory": "packages/collector"
+  },
+  "homepage": "https://norea.rubinny.net",
+  "bugs": {
+    "url": "https://github.com/diamondrubinny/Antirea/issues"
+  },
+  "keywords": [
+    "antirea",
+    "norea",
+    "anti-reverse-engineering",
+    "code-protection",
+    "rea",
+    "telemetry",
+    "dashboard",
+    "security-monitoring",
+    "geoip"
+  ]
 }

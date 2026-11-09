@@ -13,17 +13,41 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json && node build.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "node test/rea.mjs && node test/domainlock.mjs"
+    "test": "node test/rea.mjs && node test/domainlock.mjs",
+    "prepack": "node ../../scripts/copy-legal.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
     "typescript": "^5.6.3"
   },
   "author": "Diamond Rubinny",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diamondrubinny/Antirea.git",
+    "directory": "packages/guard"
+  },
+  "homepage": "https://norea.rubinny.net",
+  "bugs": {
+    "url": "https://github.com/diamondrubinny/Antirea/issues"
+  },
+  "keywords": [
+    "antirea",
+    "norea",
+    "anti-reverse-engineering",
+    "code-protection",
+    "rea",
+    "devtools-detection",
+    "cdp",
+    "anti-debugging",
+    "bot-detection",
+    "browser"
+  ]
 }

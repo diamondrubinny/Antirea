@@ -29,6 +29,7 @@ import {
 } from "@antirea/adaptive";
 import { Alerter, SpikeDetector } from "@antirea/watermark";
 import { Store } from "./db.js";
+import { audit, bearerToken, parseTrustProxy, safeEqual, tokenStrengthWarning } from "./auth.js";
 import { countryFor, extractIp, hashIp, initGeo } from "./geo.js";
 import { validateEvent } from "./validate.js";
 
@@ -38,7 +39,18 @@ const PORT = Number(process.env.PORT ?? 8080);
 const DB_FILE = process.env.DB_FILE ?? "./antirea.db";
 const IP_SALT = process.env.IP_SALT ?? "";
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? "";
-const TRUST_PROXY = process.env.TRUST_PROXY === "true";
+// Number of trusted reverse-proxy hops ("true" = 1). Never "trust all": that
+// would let clients forge X-Forwarded-For and bypass rate limits.
+const TRUST_HOPS_PARSED = parseTrustProxy(process.env.TRUST_PROXY);
+if (TRUST_HOPS_PARSED === null) {
+  // Fail fast: silently falling back to 0 would make every client behind the
+  // proxy share one rate-limit bucket.
+  console.error(
+    `[antirea] FATAL: invalid TRUST_PROXY=${JSON.stringify(process.env.TRUST_PROXY)}; use false, true (=1) or a hop count from 1 to 10.`,
+  );
+  process.exit(1);
+}
+const TRUST_HOPS: number = TRUST_HOPS_PARSED;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "*").split(",").map((s) => s.trim());
 const RETENTION_DAYS = Number(process.env.RETENTION_DAYS ?? 90);
 
@@ -64,12 +76,16 @@ if (!ADMIN_TOKEN) {
   console.error("[antirea] FATAL: ADMIN_TOKEN env var is required to protect the dashboard.");
   process.exit(1);
 }
+{
+  const weak = tokenStrengthWarning(ADMIN_TOKEN);
+  if (weak) console.warn(`[antirea] WARNING: ${weak}`);
+}
 
 const store = new Store(DB_FILE);
 await initGeo();
 
 const app = express();
-if (TRUST_PROXY) app.set("trust proxy", true);
+if (TRUST_HOPS > 0) app.set("trust proxy", TRUST_HOPS);
 app.disable("x-powered-by");
 
 // --- Security headers (lightweight; a CDN/proxy may add more) ---
@@ -125,7 +141,7 @@ app.post(
     if (!result.ok) return res.status(400).json({ error: result.error });
     const ev = result.value;
 
-    const ip = extractIp(req.headers, req.socket.remoteAddress, TRUST_PROXY);
+    const ip = extractIp(req.headers, req.socket.remoteAddress, TRUST_HOPS);
     const country = countryFor(ip);
     const ipHash = hashIp(ip, IP_SALT);
 
@@ -169,16 +185,57 @@ app.post(
 );
 
 // --- Admin auth ---
+/** Salted hash of the caller's IP, for audit lines (never the raw address). */
+function callerHash(req: Request): string {
+  return hashIp(extractIp(req.headers, req.socket.remoteAddress, TRUST_HOPS), IP_SALT);
+}
+
+// Brute-force guard: only rejected credentials (401/403) count, so dashboard
+// polling, honeypot config pulls and ordinary 400/404s never use the budget.
+// IPv6 clients are grouped by /56, so rotating addresses inside one allocation
+// does not buy new attempts.
+const AUTH_FAIL_LIMIT = 30;
+const authFailLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  limit: AUTH_FAIL_LIMIT,
+  ipv6Subnet: 56,
+  skipSuccessfulRequests: true,
+  // 429 must also count: otherwise each throttled request is refunded and the
+  // lockout's audit line would repeat on every attempt.
+  requestWasSuccessful: (_req, res) => ![401, 403, 429].includes(res.statusCode),
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res, _next, options) => {
+    // Audit the first throttled request of each window (not every one, so an
+    // attacker cannot flood the log), recording that the lockout engaged.
+    const used = (req as Request & { rateLimit?: { used?: number } }).rateLimit?.used;
+    if (used === AUTH_FAIL_LIMIT + 1) {
+      audit({
+        action: "auth.rateLimited",
+        outcome: "denied",
+        ipHash: callerHash(req),
+        detail: { path: req.path, limit: AUTH_FAIL_LIMIT, windowMin: 15 },
+      });
+    }
+    res.status(options.statusCode).json({ error: "too many failed attempts, try again later" });
+  },
+});
+
+/**
+ * Admin gate: constant-time bearer-token check. Failures are audited (salted
+ * IP hash only) and counted by `authFailLimiter`, which runs first.
+ */
 function requireAdmin(req: Request, res: Response, next: NextFunction): void {
-  const auth = req.headers.authorization ?? "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  // Constant-time-ish compare.
-  if (token.length !== ADMIN_TOKEN.length || token !== ADMIN_TOKEN) {
+  if (!safeEqual(bearerToken(req.headers.authorization), ADMIN_TOKEN)) {
+    audit({ action: "admin.auth", outcome: "denied", ipHash: callerHash(req), detail: { path: req.path } });
     res.status(401).json({ error: "unauthorized" });
     return;
   }
   next();
 }
+
+/** Admin middleware chain: failure limiter, then constant-time token check. */
+const admin = [authFailLimiter, requireAdmin];
 
 function sinceFromQuery(req: Request): number {
   const days = Math.min(365, Math.max(1, Number(req.query.days ?? 7)));
@@ -186,7 +243,7 @@ function sinceFromQuery(req: Request): number {
 }
 
 // --- Dashboard data APIs ---
-app.get("/api/stats", requireAdmin, (req: Request, res: Response) => {
+app.get("/api/stats", admin, (req: Request, res: Response) => {
   const since = sinceFromQuery(req);
   const siteId = typeof req.query.site === "string" && req.query.site ? req.query.site : undefined;
   const days = Math.min(365, Math.max(1, Number(req.query.days ?? 7)));
@@ -201,7 +258,7 @@ app.get("/api/stats", requireAdmin, (req: Request, res: Response) => {
   });
 });
 
-app.get("/api/offenders", requireAdmin, (req: Request, res: Response) => {
+app.get("/api/offenders", admin, (req: Request, res: Response) => {
   const since = sinceFromQuery(req);
   const siteId = typeof req.query.site === "string" && req.query.site ? req.query.site : undefined;
   res.json({ offenders: store.topOffenders(since, siteId, 50) });
@@ -234,29 +291,42 @@ function sanitizeConfig(input: unknown, prev: SiteConfig | null): SiteConfig {
   };
 }
 
-app.get("/api/config", requireAdmin, (req: Request, res: Response) => {
+app.get("/api/config", admin, (req: Request, res: Response) => {
   const siteId = typeof req.query.site === "string" ? req.query.site : "";
   if (!siteId) return res.status(400).json({ error: "site required" });
   const cfg = (store.getConfig(siteId) as SiteConfig | null) ?? sanitizeConfig({}, null);
   return res.json({ config: cfg });
 });
 
-app.put("/api/config", requireAdmin, express.json({ limit: "32kb" }), (req: Request, res: Response) => {
+app.put("/api/config", admin, express.json({ limit: "32kb" }), (req: Request, res: Response) => {
   const siteId = typeof req.query.site === "string" ? req.query.site : "";
   if (!siteId) return res.status(400).json({ error: "site required" });
   const prev = store.getConfig(siteId) as SiteConfig | null;
   const next = sanitizeConfig(req.body, prev);
   store.setConfig(siteId, next as unknown as Record<string, unknown>);
+  audit({
+    action: "config.update",
+    outcome: "ok",
+    siteId,
+    ipHash: callerHash(req),
+    detail: {
+      enabled: next.enabled,
+      mode: next.mode,
+      threshold: next.threshold,
+      siteKeyChanged: (prev?.siteKey ?? "") !== (next.siteKey ?? ""),
+    },
+  });
   return res.json({ config: next });
 });
 
 // Honeypot pulls live config here. Authenticated by the per-site key, so an
 // attacker cannot read or change rules. Never returns the siteKey itself.
-app.get("/api/site-config", (req: Request, res: Response) => {
+app.get("/api/site-config", authFailLimiter, (req: Request, res: Response) => {
   const siteId = typeof req.query.site === "string" ? req.query.site : "";
   const key = (req.headers["x-antirea-site-key"] as string) ?? "";
   const cfg = siteId ? (store.getConfig(siteId) as SiteConfig | null) : null;
-  if (!cfg || !cfg.siteKey || key.length !== cfg.siteKey.length || key !== cfg.siteKey) {
+  if (!cfg || !safeEqual(key, cfg.siteKey ?? "")) {
+    audit({ action: "site-config.auth", outcome: "denied", siteId, ipHash: callerHash(req) });
     return res.status(403).json({ error: "forbidden" });
   }
   return res.json({
@@ -305,6 +375,11 @@ function canAutoApply(p: Proposal, currentThreshold: number): boolean {
   return Math.abs(next - currentThreshold) <= 0.15;
 }
 
+/**
+ * Run adaptive analysis for one site: build context, get heuristic (and, when
+ * enabled, AI) proposals, store them, and auto-apply only bounded changes when
+ * AI_AUTO_APPLY is on. Every auto-applied change is audited.
+ */
 async function runAnalysis(siteId: string): Promise<{ analysis: string; count: number }> {
   const since = Date.now() - 24 * 36e5;
   const rows = store.recentRows(since, siteId, 5000);
@@ -329,13 +404,19 @@ async function runAnalysis(siteId: string): Promise<{ analysis: string; count: n
     if (AI_AUTO_APPLY && canAutoApply(p, ctx.currentThreshold)) {
       applyProposal(siteId, p);
       status = "applied";
+      audit({
+        action: "proposal.autoApply",
+        outcome: "ok",
+        siteId,
+        detail: { type: p.type, proposed: String(p.proposed ?? "") },
+      });
     }
     store.insertProposal({ ...p, status });
   }
   return { analysis, count: proposals.length };
 }
 
-app.post("/api/analyze", requireAdmin, (req: Request, res: Response) => {
+app.post("/api/analyze", admin, (req: Request, res: Response) => {
   const siteId = typeof req.query.site === "string" ? req.query.site : "";
   if (!siteId) return res.status(400).json({ error: "site required" });
   void runAnalysis(siteId)
@@ -344,45 +425,50 @@ app.post("/api/analyze", requireAdmin, (req: Request, res: Response) => {
   return undefined;
 });
 
-app.get("/api/proposals", requireAdmin, (req: Request, res: Response) => {
+app.get("/api/proposals", admin, (req: Request, res: Response) => {
   const siteId = typeof req.query.site === "string" && req.query.site ? req.query.site : undefined;
   const status = typeof req.query.status === "string" ? req.query.status : undefined;
   res.json({ proposals: store.listProposals(siteId, status, 100) });
 });
 
-app.get("/api/knowledge", requireAdmin, (req: Request, res: Response) => {
+app.get("/api/knowledge", admin, (req: Request, res: Response) => {
   const siteId = typeof req.query.site === "string" ? req.query.site : "";
   if (!siteId) return res.status(400).json({ error: "site required" });
   return res.json({ knowledge: store.knowledgeList(siteId, 50) });
 });
 
-app.post(
-  "/api/proposals/approve",
-  requireAdmin,
-  express.json({ limit: "4kb" }),
-  (req: Request, res: Response) => {
-    const id = (req.body as { id?: string })?.id ?? "";
-    const p = store.getProposal(id);
-    if (!p) return res.status(404).json({ error: "not found" });
-    applyProposal(String(p.site_id), { type: String(p.type), proposed: p.proposed_val as string });
-    store.setProposalStatus(id, "applied");
-    return res.json({ ok: true });
-  },
-);
+app.post("/api/proposals/approve", admin, express.json({ limit: "4kb" }), (req: Request, res: Response) => {
+  const id = (req.body as { id?: string })?.id ?? "";
+  const p = store.getProposal(id);
+  if (!p) return res.status(404).json({ error: "not found" });
+  applyProposal(String(p.site_id), { type: String(p.type), proposed: p.proposed_val as string });
+  store.setProposalStatus(id, "applied");
+  audit({
+    action: "proposal.approve",
+    outcome: "ok",
+    siteId: String(p.site_id),
+    ipHash: callerHash(req),
+    detail: { id, type: String(p.type) },
+  });
+  return res.json({ ok: true });
+});
 
-app.post(
-  "/api/proposals/reject",
-  requireAdmin,
-  express.json({ limit: "4kb" }),
-  (req: Request, res: Response) => {
-    const id = (req.body as { id?: string })?.id ?? "";
-    if (!store.getProposal(id)) return res.status(404).json({ error: "not found" });
-    store.setProposalStatus(id, "rejected");
-    return res.json({ ok: true });
-  },
-);
+app.post("/api/proposals/reject", admin, express.json({ limit: "4kb" }), (req: Request, res: Response) => {
+  const id = (req.body as { id?: string })?.id ?? "";
+  const p = store.getProposal(id);
+  if (!p) return res.status(404).json({ error: "not found" });
+  store.setProposalStatus(id, "rejected");
+  audit({
+    action: "proposal.reject",
+    outcome: "ok",
+    siteId: String(p.site_id),
+    ipHash: callerHash(req),
+    detail: { id, type: String(p.type) },
+  });
+  return res.json({ ok: true });
+});
 
-app.get("/api/events", requireAdmin, (req: Request, res: Response) => {
+app.get("/api/events", admin, (req: Request, res: Response) => {
   const since = sinceFromQuery(req);
   const siteId = typeof req.query.site === "string" && req.query.site ? req.query.site : undefined;
   const rows = store.recent(since, siteId, 200).map((r) => ({

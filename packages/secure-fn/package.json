@@ -16,19 +16,22 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "NOTICE"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node test/e2e.mjs"
+    "test": "node test/e2e.mjs",
+    "prepack": "node ../../scripts/copy-legal.mjs"
   },
   "peerDependencies": {
     "express": "^4.21.0",
-    "express-rate-limit": "^7.4.0"
+    "express-rate-limit": "^8.7.3"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
@@ -36,5 +39,24 @@
     "typescript": "^5.6.3"
   },
   "author": "Diamond Rubinny",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diamondrubinny/Antirea.git",
+    "directory": "packages/secure-fn"
+  },
+  "homepage": "https://norea.rubinny.net",
+  "bugs": {
+    "url": "https://github.com/diamondrubinny/Antirea/issues"
+  },
+  "keywords": [
+    "antirea",
+    "norea",
+    "anti-reverse-engineering",
+    "code-protection",
+    "rea",
+    "server-side-execution",
+    "rpc",
+    "hmac"
+  ]
 }

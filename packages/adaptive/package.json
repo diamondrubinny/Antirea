@@ -12,15 +12,18 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "NOTICE"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node test/analyzer.mjs"
+    "test": "node test/analyzer.mjs",
+    "prepack": "node ../../scripts/copy-legal.mjs"
   },
   "peerDependencies": {
     "@anthropic-ai/sdk": ">=0.40.0"
@@ -35,5 +38,25 @@
     "typescript": "^5.6.3"
   },
   "author": "Diamond Rubinny",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diamondrubinny/Antirea.git",
+    "directory": "packages/adaptive"
+  },
+  "homepage": "https://norea.rubinny.net",
+  "bugs": {
+    "url": "https://github.com/diamondrubinny/Antirea/issues"
+  },
+  "keywords": [
+    "antirea",
+    "norea",
+    "anti-reverse-engineering",
+    "code-protection",
+    "rea",
+    "adaptive-defense",
+    "ai",
+    "anomaly-detection",
+    "security"
+  ]
 }

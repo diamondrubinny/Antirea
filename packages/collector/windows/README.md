@@ -16,7 +16,7 @@ on Windows — not the Microsoft Store.
 
 ## Prerequisites
 
-- Windows Server (or Windows 10/11) with **Node.js 20+** installed.
+- Windows Server (or Windows 10/11) with **Node.js 22+** installed (Node 24 LTS recommended).
 - A build toolchain for the native `better-sqlite3` module: install
   **"Desktop development with C++"** (Visual Studio Build Tools) and Python 3,
   or run `npm install --global windows-build-tools` (older setups).
@@ -56,7 +56,9 @@ node windows\uninstall.mjs
 
 Put the collector behind a reverse proxy that terminates TLS and forwards to
 `127.0.0.1:8080` (IIS with ARR, or nginx/Caddy for Windows). Set
-`TRUST_PROXY=true` in `.env` so client IPs are read from `X-Forwarded-For`, and
+`TRUST_PROXY=true` (one proxy) in `.env` so the real client IP is read from
+`X-Forwarded-For` — use `2` if a CDN also sits in front. Only the entry that many
+hops from the right is trusted, so clients cannot forge their IP. Also
 restrict `ALLOWED_ORIGINS` to your real site origins.
 
 ## Building a signed installer (optional)
