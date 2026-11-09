@@ -86,9 +86,9 @@ const price = await api.invoke<number>("pricing", { x: 2 });
 1). The address is the `X-Forwarded-For` entry that many hops from the right.
 If the header has fewer entries than trusted hops, the request did not pass
 through your whole proxy chain and the socket address is used instead. Set the
-number to match your deployment exactly: too high falls back to the proxy's
-address, too low (or set on a directly exposed app) trusts a client-supplied
-value.
+number to match your deployment exactly. **Too low** keys every client on a
+proxy's address (one shared bucket). **Too high**, or set on a directly exposed
+app, can select an entry that the client supplied.
 
 - **Express:** if the app sets Express's own `trust proxy`, `req.ip` is used and
   the option is ignored — configure one or the other.
