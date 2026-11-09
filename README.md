@@ -196,7 +196,8 @@ its evadability in [`docs/REA-SIGNATURES.md`](./docs/REA-SIGNATURES.md):
   fork with a changed `Accept` is still caught).
 - **Source-map canary** (`canary.sourceMap`) — REA fetches every source map a
   page declares; point a bundle at an unlinked map URL with
-  `sourceMapCanaryComment()` and a hit means *some* source-map consumer read it
+  `sourceMapCanaryComment()` — or let the Vite/Rollup plugin
+  (`@antirea/honeypot/build`) add one to every chunk — and a hit means *some* source-map consumer read it
   (REA, a harvester — or a developer with DevTools open). Strong evidence of
   analysis, not proof of REA; not scored for allowlisted or disabled traffic.
 - **Client** — REA's scripted-scenario patches: unique `rea-restore-*` /

@@ -120,6 +120,10 @@ All notable changes to this project are documented here. The format is based on
     `hreflang` alternates for every page.
   - Verified with axe-core: 0 violations on every page × 6 languages, toolbar
     open and closed, including high-contrast mode.
+- **`@antirea/honeypot/build`**: a Vite/Rollup plugin
+  (`sourceMapCanaryPlugin`) that appends a per-chunk source-map canary after
+  minification; skipped with a warning when the build emits linked source
+  maps. Verified on Vite 8.3 and Rollup 4.68.
 - **Signature regression + false-positive gate** (honeypot): recorded request
   fixtures — measured from real headed Chromium, Playwright-default headless
   Chromium and Node `fetch` with REA's options, plus clearly labelled synthetic

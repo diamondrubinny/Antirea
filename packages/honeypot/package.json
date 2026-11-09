@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./build": {
+      "types": "./dist/build.d.ts",
+      "import": "./dist/build.js"
     }
   },
   "files": [
@@ -22,7 +26,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node test/behavior.mjs && node test/scoring.mjs && node test/fixtures.mjs && node test/ja3-tarpit.mjs",
+    "test": "node test/behavior.mjs && node test/scoring.mjs && node test/fixtures.mjs && node test/build.mjs && node test/ja3-tarpit.mjs",
     "prepack": "node ../../scripts/copy-legal.mjs"
   },
   "devDependencies": {

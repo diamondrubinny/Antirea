@@ -119,6 +119,23 @@ import { honeypot, sourceMapCanaryComment } from "@antirea/honeypot";
 app.use(honeypot({ siteId, protect: [/\.js$/, /\.map$/], sourceMapCanary: "/__antirea/m/" }));
 bundleSource += "\n" + sourceMapCanaryComment("/__antirea/m/");   // unique random token
 ```
+With Vite or Rollup, let the build add the comment to every JavaScript chunk:
+
+```ts
+// vite.config.ts (or rollup.config.js → plugins)
+import { sourceMapCanaryPlugin } from "@antirea/honeypot/build";
+
+export default {
+  build: { sourcemap: false }, // or "hidden"; with linked maps the canary is skipped
+  plugins: [sourceMapCanaryPlugin({ prefix: "/__antirea/m/", seed: process.env.CANARY_SEED })],
+};
+```
+
+Each chunk gets its own URL, derived from the secret `seed` and the chunk name
+(random per build when no seed is given; a fixed seed keeps hashed files
+byte-identical between builds). `onCanary` reports which URL belongs to which
+file. Verified on Vite 8.3 and Rollup 4.68; webpack is not supported yet.
+
 A hit scores **1.0** and, in live mode, gets an empty decoy map. REA accepts
 maps without authenticity checks (`trace_web_source_location`: "Deployment
 authenticity and execution remain unknown"), so decoys are taken at face value.
