@@ -24,6 +24,12 @@ export interface ScoreInput {
   headers: Record<string, string | string[] | undefined>;
   /** Request path. */
   path: string;
+  /**
+   * Path prefixes of source-map canaries: URLs that are only ever referenced
+   * from a `sourceMappingURL` comment, never linked. Browsers do not fetch
+   * source maps unless DevTools is open, so any hit is analysis.
+   */
+  canaryPaths?: string[];
 }
 
 export interface ScoreResult {
@@ -35,6 +41,13 @@ export interface ScoreResult {
 
 const HEADLESS_UA =
   /HeadlessChrome|PhantomJS|SlimerJS|Nightmare|Electron\/|python-requests|node-fetch|axios\/|curl\/|wget\/|Go-http-client|Java\/|okhttp|Scrapy/i;
+
+/**
+ * Built-in fetch of server-side JS runtimes, which identify themselves plainly:
+ * Node (undici) sends exactly "node". REA's source-map fetcher runs on it
+ * (verified against morluto/rea 6.8.0 and measured on Node 22).
+ */
+const RUNTIME_FETCH_UA = /^(?:node|undici)(?:\/[\w.-]+)?$|^(?:Bun|Deno)\/\d/i;
 
 /** Known analysis/automation libraries sometimes present in UA or headers. */
 const AUTOMATION_HINTS = /playwright|puppeteer|webdriver|selenium|headless/i;
@@ -67,6 +80,13 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
   let score = 0;
   const ua = input.userAgent || "";
   const h = input.headers;
+
+  // Source-map canary: an unlinked map URL that only a source-map consumer
+  // (REA's fetcher, an open DevTools, a harvesting script) would request.
+  if (input.canaryPaths?.some((p) => p !== "" && input.path.startsWith(p))) {
+    score += 1;
+    reasons.push("canary.sourceMap");
+  }
 
   // 0. Client attestation: if an honest client reported a CDP/inspector
   //    attach, that is a strong signal to serve a decoy. (Forgeable; see note.)
@@ -113,6 +133,16 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
     score += 0.4;
     reasons.push("ua.empty");
   }
+  if (RUNTIME_FETCH_UA.test(ua.trim())) {
+    score += 0.6;
+    reasons.push("ua.runtimeFetch");
+  }
+  // Headless Chromium also brands itself in Client Hints; count it only when
+  // the UA did not already say so (e.g. a UA override left the hint intact).
+  if (!HEADLESS_UA.test(ua) && /HeadlessChrome/i.test(header(h, "sec-ch-ua"))) {
+    score += 0.6;
+    reasons.push("ua.headlessClientHint");
+  }
 
   // 2. Real browsers send Sec-Fetch-* and Accept for script requests.
   //    Their absence on a .js request is a strong harvesting signal.
@@ -131,6 +161,19 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
       score += 0.3;
       reasons.push("request.sourceMap");
     }
+  }
+
+  // Browsers send Sec-Fetch-Site, -Mode and -Dest together (or none, on
+  // non-secure origins). Node's fetch sends only Sec-Fetch-Mode, so a partial
+  // set means a non-browser client.
+  if (header(h, "sec-fetch-mode") && !header(h, "sec-fetch-site") && !header(h, "sec-fetch-dest")) {
+    score += 0.35;
+    reasons.push("forgery.partialSecFetch");
+  }
+  // Browsers send a concrete language list; Node's fetch sends "*".
+  if (header(h, "accept-language").trim() === "*") {
+    score += 0.3;
+    reasons.push("acceptLanguage.wildcard");
   }
 
   // 3. No Accept-Language is uncommon for real browsers.

@@ -25,6 +25,7 @@ import { probeCdp } from "./detectors/cdp";
 import { detectDevtools } from "./detectors/devtools";
 import { detectIntegrity } from "./detectors/integrity";
 import { detectRea } from "./detectors/rea";
+import { detectScenarioPatches } from "./detectors/scenario";
 import { checkDomainLock, currentHost } from "./detectors/domainlock";
 import { Reporter } from "./reporter";
 import type { GuardConfig, Signal } from "./types";
@@ -32,6 +33,7 @@ import type { GuardConfig, Signal } from "./types";
 export type { GuardConfig, GuardMode, Signal, SignalType, GuardEvent } from "./types";
 export { probeCdp } from "./detectors/cdp";
 export { detectRea, readReaEnv } from "./detectors/rea";
+export { detectScenarioPatches, readScenarioPatchEnv } from "./detectors/scenario";
 export type { ReaEnv } from "./detectors/rea";
 export { checkDomainLock, currentHost } from "./detectors/domainlock";
 export { fetchProtected, fetchProtectedBytes, importProtected, instantiateProtectedWasm } from "./protected";
@@ -100,7 +102,7 @@ export function initGuard(cfg: GuardConfig): { stop: () => void } {
         '<meta name="viewport" content="width=device-width,initial-scale=1">' +
         '<title>גישה מוגבלת</title></head><body style="font-family:system-ui;' +
         'padding:2rem;max-width:40rem;margin:auto">' +
-        "<h1>גישה מוגבלת</h1><p>הזוהתה פעילות ניתוח אוטומטי. אם לדעתך מדובר בטעות, " +
+        "<h1>גישה מוגבלת</h1><p>זוהתה פעילות ניתוח אוטומטית. אם לדעתך מדובר בטעות, " +
         "פנה לתמיכה.</p></body></html>";
       document.open();
       document.write(html);
@@ -118,6 +120,7 @@ export function initGuard(cfg: GuardConfig): { stop: () => void } {
     const signals: Signal[] = [
       ...detectAutomation(),
       ...detectRea(),
+      ...detectScenarioPatches(),
       ...detectDevtools(),
       ...detectIntegrity(),
     ];
@@ -131,7 +134,9 @@ export function initGuard(cfg: GuardConfig): { stop: () => void } {
   sweep();
   // Live detectors (devtools/CDP can attach after load) poll on an interval.
   const interval = setInterval(() => {
-    handle([...detectDevtools()]);
+    // Scenario patches too: REA can attach to an already-open tab, injecting
+    // its service-worker policy after our first sweep.
+    handle([...detectDevtools(), ...detectScenarioPatches()]);
   }, pollMs);
   // CDP probe runs on a slower cadence (the debugger trap is intrusive).
   const cdpInterval = cdpProbeEnabled ? setInterval(() => handle(probeCdp().signals), cdpIntervalMs) : null;

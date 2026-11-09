@@ -176,20 +176,29 @@ Attackers spoof the `User-Agent` and other headers. Antirea's engine (`@antirea/
 
 ## REA signature pack
 
-Antirea ships fingerprints for the `morluto/rea` tool, each **verified against
-its public source** and documented with its evadability in
-[`docs/REA-SIGNATURES.md`](./docs/REA-SIGNATURES.md):
+Antirea ships fingerprints for the `morluto/rea` tool — **verified against REA
+6.8.0's source and measured on real Node and Chromium** — each documented with
+its evadability in [`docs/REA-SIGNATURES.md`](./docs/REA-SIGNATURES.md):
 
-- **Server (`rea.sourceMapAccept`)** — REA's source-map fetcher sends a
-  distinctive `Accept: application/source-map+json` with no cookie and no
-  referer (`WebSourceMapFetcher.ts`). No browser does this → near-certain, hard
-  to evade (hardcoded in REA).
-- **Client (`rea.playwrightDefaults`)** — REA's default Playwright profile
-  (headless + `navigator.webdriver` + 1280×720 + DPR 1 + UTC + en-US +
-  reduced-motion + light; `browserScenarioValues.ts`). The *combination* is
-  distinctive; individual markers are overridable, so this catches defaults.
+- **Server** — REA's source-map fetcher runs on Node's `fetch`: a distinctive
+  `Accept: application/source-map+json` (`rea.sourceMapAccept`), plus
+  `user-agent: node`, `accept-language: *` and a *partial* Sec-Fetch set that no
+  browser sends (`ua.runtimeFetch`, `forgery.partialSecFetch`,
+  `acceptLanguage.wildcard`). A fork that changes the `Accept` header is still
+  caught, and so is any plain Node script harvesting your bundles.
+- **Source-map canary** (`canary.sourceMap`) — REA fetches every source map a
+  page declares; point a bundle at an unlinked map URL with
+  `sourceMapCanaryComment()` and any hit is decisive.
+- **Client** — REA's scripted-scenario patches: unique `rea-restore-*` /
+  `rea-service-workers-*` markers (`rea.scenarioSwPolicy`, near-certain) and
+  Playwright's service-worker block (`automation.swBlockPatch`); the default
+  Playwright profile (`rea.playwrightDefaults`); and the `debugger` pause REA
+  never suppresses (`cdp.debuggerPause`).
 
-These are deterrence + intelligence. The hermetic protection remains
+REA has no stealth code. It **can** read a protected bundle that was already
+decrypted before it attached — see the honest
+[what REA can and cannot defeat](./docs/REA-SIGNATURES.md#what-rea-can-and-cannot-defeat-honest)
+table. These are deterrence + intelligence; the hermetic protection remains
 `@antirea/secure-fn`.
 
 ## Client logic that must ship → WASM

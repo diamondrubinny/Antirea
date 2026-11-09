@@ -33,6 +33,7 @@ import { scoreRequest } from "./scoring.js";
 
 export { scoreRequest } from "./scoring.js";
 export { buildDecoy } from "./decoy.js";
+export { DEFAULT_CANARY_PREFIX, sourceMapCanaryComment } from "./canary.js";
 export { Allowlist } from "./allowlist.js";
 export { BehaviorTracker, fingerprintHeaders } from "./behavior.js";
 export { RemoteConfigClient } from "./config.js";
@@ -71,6 +72,12 @@ export interface HoneypotOptions {
    * before serving (wastes a scraper's time/connections). 0 = off (default).
    */
   tarpitMs?: number;
+  /**
+   * Path prefix of source-map canaries (see `sourceMapCanaryComment`), e.g.
+   * "/__antirea/m/". Requests under it are always scored as analysis, even if
+   * they are not in `protect`, and get an empty decoy map in live mode.
+   */
+  sourceMapCanary?: string;
   /** Live config from the admin panel. */
   config?: HoneypotConfigSource;
   onDecoyServed?: (info: { canary: string; path: string; ip: string }) => void;
@@ -177,7 +184,9 @@ export function honeypot(opts: HoneypotOptions): HoneypotMiddleware {
 
   const mw = function honeypotMiddleware(req: Req, res: ServerResponse, next: Next): void {
     const path = reqPath(req);
-    if (!matches(path, opts.protect)) return next();
+    const canaryPaths = opts.sourceMapCanary ? [opts.sourceMapCanary] : undefined;
+    const isCanary = canaryPaths?.some((p) => path.startsWith(p)) ?? false;
+    if (!isCanary && !matches(path, opts.protect)) return next();
 
     const cfg = remote?.get() ?? {};
     if (cfg.enabled === false) return next(); // master switch from the panel
@@ -204,7 +213,7 @@ export function honeypot(opts: HoneypotOptions): HoneypotMiddleware {
         isNavigation: nav,
       });
 
-      const req_ = scoreRequest({ userAgent: ua, headers: req.headers, path });
+      const req_ = scoreRequest({ userAgent: ua, headers: req.headers, path, canaryPaths });
       const reasons = [...new Set([...req_.reasons, ...behavior.reasons])];
 
       // TLS fingerprint (JA3/JA4) from the proxy — independent of HTTP headers.

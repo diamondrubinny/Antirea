@@ -9,7 +9,7 @@
  * Tests for request scoring, including the REA source-map fetch signature.
  * Build first (tsc), then: node packages/honeypot/test/scoring.mjs
  */
-import { scoreRequest } from "../dist/index.js";
+import { scoreRequest, sourceMapCanaryComment } from "../dist/index.js";
 
 let pass = 0;
 let fail = 0;
@@ -52,6 +52,58 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } 
 {
   const r = scoreRequest({ userAgent: "HeadlessChrome/130", path: "/app.js", headers: {} });
   ok(r.reasons.includes("ua.headless"), "headless UA flagged");
+}
+
+// --- REA 6.8.0 / Node built-in fetch (measured headers of REA's source-map fetcher on Node 22) ---
+const nodeFetch = { "user-agent": "node", accept: "*/*", "accept-language": "*", "sec-fetch-mode": "cors", "accept-encoding": "gzip, deflate" };
+{
+  const r = scoreRequest({ userAgent: "node", headers: nodeFetch, path: "/assets/app.js" });
+  ok(r.reasons.includes("ua.runtimeFetch"), "Node fetch UA flagged");
+  ok(r.reasons.includes("forgery.partialSecFetch"), "Sec-Fetch-Mode without Site/Dest flagged");
+  ok(r.reasons.includes("acceptLanguage.wildcard"), "Accept-Language * flagged");
+  ok(r.score >= 0.7, "Node bundle harvester crosses the default threshold (was 0.00 before these rules)");
+}
+{
+  const r = scoreRequest({ userAgent: "node", headers: nodeFetch, path: "/assets/app.js.map" });
+  ok(r.score >= 0.7 && !r.reasons.includes("rea.sourceMapAccept"), "REA fork that changed Accept is still caught");
+}
+ok(scoreRequest({ userAgent: "Bun/1.2.3", headers: {}, path: "/a.js" }).reasons.includes("ua.runtimeFetch"), "Bun runtime UA flagged");
+ok(!scoreRequest({ userAgent: "nodejs-monitor/2 (+https://x)", headers: {}, path: "/a.js" }).reasons.includes("ua.runtimeFetch"), "UA merely containing 'node' is not the runtime rule");
+{
+  const r = scoreRequest({
+    userAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    headers: { "sec-ch-ua": '"HeadlessChrome";v="153", "Chromium";v="153"', "sec-fetch-site": "same-origin", "sec-fetch-mode": "no-cors", "sec-fetch-dest": "script", accept: "*/*", "accept-language": "en-US" },
+    path: "/assets/app.js",
+  });
+  ok(r.reasons.includes("ua.headlessClientHint"), "HeadlessChrome brand in Client Hints flagged despite a spoofed UA");
+}
+{
+  const r = scoreRequest({ userAgent: "HeadlessChrome/153", headers: { "sec-ch-ua": '"HeadlessChrome";v="153"' }, path: "/a.js" });
+  ok(r.reasons.includes("ua.headless") && !r.reasons.includes("ua.headlessClientHint"), "headless not double-counted when the UA already says so");
+}
+// --- false-positive guard: a real desktop Chrome script request gains no new reasons ---
+{
+  const r = scoreRequest({
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    headers: {
+      accept: "*/*", "accept-language": "he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7", "sec-ch-ua": '"Chromium";v="153", "Google Chrome";v="153", "Not_A Brand";v="99"',
+      "sec-fetch-site": "same-origin", "sec-fetch-mode": "no-cors", "sec-fetch-dest": "script", referer: "https://example.com/", cookie: "sid=1",
+    },
+    path: "/assets/app.js",
+  });
+  ok(r.score === 0 && r.reasons.length === 0, `real Chrome request scores 0 (got ${r.score} ${r.reasons})`);
+}
+// --- source-map canary ---
+{
+  const c = sourceMapCanaryComment("/__antirea/m/", "release42abc");
+  ok(c === "//# sourceMappingURL=/__antirea/m/release42abc.map", "canary comment format");
+  ok(/^\/\/# sourceMappingURL=\/__antirea\/m\/[0-9a-f]{24}\.map$/.test(sourceMapCanaryComment()), "default canary is random and unguessable");
+  let threw = false;
+  try { sourceMapCanaryComment("/x/", "../../etc"); } catch { threw = true; }
+  ok(threw, "canary token rejects path traversal / unsafe characters");
+  const r = scoreRequest({ userAgent: "Mozilla/5.0 Chrome/153", headers: { cookie: "a=1" }, path: "/__antirea/m/release42abc.map", canaryPaths: ["/__antirea/m/"] });
+  ok(r.reasons.includes("canary.sourceMap") && r.score === 1, "canary hit is decisive even with browser-like headers");
+  ok(!scoreRequest({ userAgent: "x", headers: {}, path: "/__antirea/m/a.map" }).reasons.includes("canary.sourceMap"), "no canary configured → rule off");
 }
 
 console.log(`\nRESULT: ${pass} passed, ${fail} failed`);

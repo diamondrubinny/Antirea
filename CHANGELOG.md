@@ -45,6 +45,7 @@ All notable changes to this project are documented here. The format is based on
 
 ### Fixed
 
+- Guard lockout page (Hebrew): typo "הזוהתה" → "זוהתה".
 - **Docker image failed to build**: it never built `@antirea/watermark`, which
   the collector imports.
 - **README Quickstart failed on a fresh clone** for the same reason; it now
@@ -54,6 +55,23 @@ All notable changes to this project are documented here. The format is based on
 
 ### Added
 
+- **REA 6.8.0 signature pack** (verified against `morluto/rea` 6.8.0 source and
+  measured on real Node and Chromium; see `docs/REA-SIGNATURES.md`):
+  - Honeypot: `ua.runtimeFetch` (Node/Bun/Deno built-in fetch),
+    `forgery.partialSecFetch` (Sec-Fetch-Mode without Site/Dest — 0 of 11 real
+    Chromium request types do this), `acceptLanguage.wildcard`, and
+    `ua.headlessClientHint` (HeadlessChrome brand in Client Hints despite a
+    spoofed UA). A plain Node script harvesting `/assets/app.js` scored 0.00
+    before and 1.00 now; a real Chrome request still scores 0.
+  - Honeypot: **source-map canary** — `sourceMapCanaryComment()` plus the
+    `sourceMapCanary` option. REA fetches every map a page declares, browsers
+    only with DevTools open, so a hit is decisive.
+  - Guard: `rea.scenarioSwPolicy` (REA's unique `rea-restore-*` /
+    `rea-service-workers-*` markers, also when REA attaches to an open tab) and
+    `automation.swBlockPatch` (Playwright's service-worker block). A zone.js-style
+    prototype wrapper does not trigger it.
+  - Docs: an honest "what REA can and cannot defeat" table — including that a
+    CDP tool attaching *after* an encrypted bundle was decrypted can read it.
 - Collector test suite (auth, IP extraction, ingest validation).
 - npm metadata (`repository`, `homepage`, `bugs`, `keywords`) on all packages.
 
