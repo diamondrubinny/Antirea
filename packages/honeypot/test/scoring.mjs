@@ -61,11 +61,22 @@ const nodeFetch = { "user-agent": "node", accept: "*/*", "accept-language": "*",
   ok(r.reasons.includes("ua.runtimeFetch"), "Node fetch UA flagged");
   ok(r.reasons.includes("forgery.partialSecFetch"), "Sec-Fetch-Mode without Site/Dest flagged");
   ok(r.reasons.includes("acceptLanguage.wildcard"), "Accept-Language * flagged");
-  ok(r.score >= 0.7, "Node bundle harvester crosses the default threshold (was 0.00 before these rules)");
+  ok(r.score >= 0.6 && r.score < 0.7, `Node fetch of a script is reported, not decoyed on its own (got ${r.score}; was 0.00 before these rules)`);
+}
+// A legitimate server-side Node client (monitoring, SSR prefetch) fetching a
+// script must not be decoyed by its runtime defaults alone.
+{
+  const r = scoreRequest({ userAgent: "node", headers: { ...nodeFetch, accept: "application/javascript" }, path: "/assets/app.js" });
+  ok(r.score < 0.7, `legit Node service fetching a script is below threshold (got ${r.score})`);
+}
+// Runtime markers are one piece of evidence: three of them do not stack past the cap.
+{
+  const r = scoreRequest({ userAgent: "node", headers: { ...nodeFetch, accept: "application/json" }, path: "/api/status" });
+  ok(r.score < 0.7, `runtime markers counted once (got ${r.score})`);
 }
 {
   const r = scoreRequest({ userAgent: "node", headers: nodeFetch, path: "/assets/app.js.map" });
-  ok(r.score >= 0.7 && !r.reasons.includes("rea.sourceMapAccept"), "REA fork that changed Accept is still caught");
+  ok(r.score >= 0.7 && !r.reasons.includes("rea.sourceMapAccept"), "REA fork that changed Accept is still caught (runtime + .map corroboration)");
 }
 ok(scoreRequest({ userAgent: "Bun/1.2.3", headers: {}, path: "/a.js" }).reasons.includes("ua.runtimeFetch"), "Bun runtime UA flagged");
 ok(!scoreRequest({ userAgent: "nodejs-monitor/2 (+https://x)", headers: {}, path: "/a.js" }).reasons.includes("ua.runtimeFetch"), "UA merely containing 'node' is not the runtime rule");
@@ -93,6 +104,16 @@ ok(!scoreRequest({ userAgent: "nodejs-monitor/2 (+https://x)", headers: {}, path
   });
   ok(r.score === 0 && r.reasons.length === 0, `real Chrome request scores 0 (got ${r.score} ${r.reasons})`);
 }
+// --- false-positive guard: a real Chrome behind a proxy that strips Sec-Fetch-Site/Dest and Accept-Language ---
+{
+  const r = scoreRequest({
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    headers: { accept: "*/*", "sec-ch-ua": '"Chromium";v="153"', "sec-fetch-mode": "no-cors", referer: "https://example.com/", cookie: "sid=1" },
+    path: "/assets/app.js",
+  });
+  ok(!r.reasons.includes("forgery.partialSecFetch"), "partial Sec-Fetch not counted when the UA claims Chromium");
+  ok(r.score < 0.7, `proxied real Chrome stays below threshold (got ${r.score} ${r.reasons})`);
+}
 // --- source-map canary ---
 {
   const c = sourceMapCanaryComment("/__antirea/m/", "release42abc");
@@ -104,6 +125,9 @@ ok(!scoreRequest({ userAgent: "nodejs-monitor/2 (+https://x)", headers: {}, path
   const r = scoreRequest({ userAgent: "Mozilla/5.0 Chrome/153", headers: { cookie: "a=1" }, path: "/__antirea/m/release42abc.map", canaryPaths: ["/__antirea/m/"] });
   ok(r.reasons.includes("canary.sourceMap") && r.score === 1, "canary hit is decisive even with browser-like headers");
   ok(!scoreRequest({ userAgent: "x", headers: {}, path: "/__antirea/m/a.map" }).reasons.includes("canary.sourceMap"), "no canary configured → rule off");
+  ok(!scoreRequest({ userAgent: "x", headers: {}, path: "/maps-ui/app.js", canaryPaths: ["/maps"] }).reasons.includes("canary.sourceMap"), "canary prefix matches on a directory boundary (/maps ≠ /maps-ui)");
+  ok(scoreRequest({ userAgent: "x", headers: {}, path: "/maps/t0k3n.map", canaryPaths: ["/maps"] }).reasons.includes("canary.sourceMap"), "canary prefix without trailing slash still matches its directory");
+  ok(!scoreRequest({ userAgent: "x", headers: {}, path: "/app.js", canaryPaths: ["/"] }).reasons.includes("canary.sourceMap"), "root prefix is refused (would flag every request)");
 }
 
 console.log(`\nRESULT: ${pass} passed, ${fail} failed`);

@@ -37,7 +37,8 @@ ok(
 );
 {
   const s = detectScenarioPatches({ ...base, instanceRegister: true, instanceRegisterNative: false });
-  ok(s.length === 1 && s[0].name === "automation.swBlockPatch" && s[0].confidence < 0.99, "Playwright instance-level register patch → medium");
+  ok(s.length === 1 && s[0].name === "automation.swBlockPatch", "Playwright instance-level register patch → reported");
+  ok(s[0].confidence < 0.7, "instance wrapper alone stays below the aggressive-mode halt threshold (0.7)");
 }
 ok(names({ ...base, instanceRegister: true, instanceRegisterNative: true }).length === 0, "own but native register → not flagged");
 ok(names({ ...base, globalNames: ["rea-restore-notauuid", "my-rea-restore-" + uuid] }).length === 0, "lookalike names without the exact shape → not flagged");

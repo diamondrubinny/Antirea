@@ -61,17 +61,25 @@ All notable changes to this project are documented here. The format is based on
     `forgery.partialSecFetch` (Sec-Fetch-Mode without Site/Dest — 0 of 11 real
     Chromium request types do this), `acceptLanguage.wildcard`, and
     `ua.headlessClientHint` (HeadlessChrome brand in Client Hints despite a
-    spoofed UA). A plain Node script harvesting `/assets/app.js` scored 0.00
-    before and 1.00 now; a real Chrome request still scores 0.
+    spoofed UA). The Node-runtime markers count as **one** fingerprint (0.6),
+    below the decoy threshold: a plain Node script harvesting `/assets/app.js`
+    scored 0.00 before and 0.60 now (reported), and is decoyed only when
+    corroborated — e.g. a REA fork with a changed `Accept` fetching a `.map`
+    scores 1.00. A real Chrome request still scores 0, and a real Chrome behind a
+    header-stripping proxy is not penalised by the partial-Sec-Fetch rule.
   - Honeypot: **source-map canary** — `sourceMapCanaryComment()` plus the
     `sourceMapCanary` option. REA fetches every map a page declares, browsers
-    only with DevTools open, so a hit is decisive.
+    only with DevTools open, so a hit is strong evidence of analysis (not proof
+    of REA). Prefixes match on a directory boundary; the canary path must reach
+    the origin (CDN pass-through).
   - Guard: `rea.scenarioSwPolicy` (REA's unique `rea-restore-*` /
     `rea-service-workers-*` markers, also when REA attaches to an open tab) and
-    `automation.swBlockPatch` (Playwright's service-worker block). A zone.js-style
-    prototype wrapper does not trigger it.
+    `automation.swBlockPatch` (Playwright's service-worker block; report-only at
+    0.5, never halts the app on its own). A zone.js-style prototype wrapper does
+    not trigger it.
   - Docs: an honest "what REA can and cannot defeat" table — including that a
-    CDP tool attaching *after* an encrypted bundle was decrypted can read it.
+    CDP tool attaching *after* an encrypted bundle was decrypted can read it, and
+    that the key gate's attestation is forgeable and not a security boundary.
 - Collector test suite (auth, IP extraction, ingest validation).
 - npm metadata (`repository`, `homepage`, `bugs`, `keywords`) on all packages.
 

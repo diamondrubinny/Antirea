@@ -19,7 +19,8 @@
  *   `rea-restore-<uuid>`. Those names are unique to REA → near-certain.
  * - Launch mode passes `serviceWorkers: "block"` to Playwright, which sets an
  *   own, non-native `register` on the `navigator.serviceWorker` instance
- *   (measured). Generic to Playwright's option, so lower confidence.
+ *   (measured). Generic to Playwright's option and could come from another
+ *   script, so it is report-only and never halts the app on its own.
  *
  * Evadability: low for the REA markers (fixed prefixes; a fork could rename
  * them), medium for the Playwright patch (`service_workers: "allow"` removes
@@ -38,6 +39,9 @@ export interface ScenarioPatchEnv {
   /** That instance property is a native function. */
   instanceRegisterNative: boolean;
 }
+
+/** Confidence of the generic Playwright patch signal — below the halt threshold. */
+export const SW_BLOCK_PATCH_CONFIDENCE = 0.5;
 
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 const REA_RESTORE = new RegExp(`^rea-restore-${UUID}$`, "i");
@@ -97,7 +101,11 @@ export function detectScenarioPatches(env: ScenarioPatchEnv = readScenarioPatchE
     return [{ type: "automation", name: "rea.scenarioSwPolicy", confidence: 0.99 }];
   }
   if (env.instanceRegister && !env.instanceRegisterNative) {
-    return [{ type: "automation", name: "automation.swBlockPatch", confidence: 0.7 }];
+    // Report-only: below the 0.7 threshold at which aggressive mode halts the
+    // app, because a legitimate script could also wrap the instance method.
+    // Real Playwright is still stopped by its independent signals (e.g.
+    // navigator.webdriver at 0.8).
+    return [{ type: "automation", name: "automation.swBlockPatch", confidence: SW_BLOCK_PATCH_CONFIDENCE }];
   }
   return [];
 }

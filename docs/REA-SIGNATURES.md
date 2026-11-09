@@ -36,7 +36,9 @@ to detect or bypass honeypots, canaries, proof-of-work or bot protection.
 ## Server-side signatures (`@antirea/honeypot`)
 
 ### `rea.sourceMapAccept` — near-certain
-REA's source-map fetcher sends (`WebSourceMapFetcher.ts:479-483`):
+REA's source-map fetcher sends (`WebSourceMapFetcher.ts:479-483`) — the rule
+matches the `application/source-map+json` **token anywhere in the header**, not
+the exact value:
 ```
 Accept: application/json, application/source-map+json;q=0.9
 credentials: "omit" · referrerPolicy: "no-referrer" · redirect: "manual"
@@ -45,26 +47,35 @@ No browser sends the `application/source-map+json` media type. Scores **0.85**.
 **Evadability:** low for stock REA (hard-coded); a fork can change it — which
 the rules below still catch.
 
-### `ua.runtimeFetch` + `forgery.partialSecFetch` + `acceptLanguage.wildcard` — strong together
+### `ua.runtimeFetch` + `forgery.partialSecFetch` + `acceptLanguage.wildcard` — one combined fingerprint
 The fetch runs on Node's built-in `fetch` (undici). Measured on Node 22, it adds:
 ```
 user-agent: node · accept-language: * · sec-fetch-mode: cors   (no sec-fetch-site / -dest)
 ```
-- `ua.runtimeFetch` (0.6): UA exactly `node` / `undici`, or `Bun/…`, `Deno/…`.
-- `forgery.partialSecFetch` (0.35): `Sec-Fetch-Mode` without `-Site`/`-Dest`.
+- `ua.runtimeFetch`: UA exactly `node` / `undici`, or `Bun/…`, `Deno/…`.
+- `forgery.partialSecFetch`: `Sec-Fetch-Mode` without `-Site`/`-Dest`.
   Measured on 11 real Chromium request types (document, script, module, CSS,
   image, iframe, fetch GET/POST, dynamic import, beacon): browsers send all three
-  or none — **0 partial sets**.
-- `acceptLanguage.wildcard` (0.3): browsers never send a bare `*`.
+  or none — **0 partial sets**. Not counted when the UA claims Chromium: a proxy
+  that strips headers from a real browser is already covered by
+  `forgery.noSecFetch`, and is not penalised twice.
+- `acceptLanguage.wildcard`: browsers never send a bare `*`.
 
-These closed a real gap: a plain Node script harvesting `/assets/app.js` scored
-**0.00** before and **1.00** now; a REA fork with a changed `Accept` still scores
-**1.00**. **Evadability:** medium — setting explicit headers removes them.
+All three come from the **same source** — the runtime's defaults — so they are
+scored as **one** piece of evidence: **0.6** with the runtime UA or ≥2 markers,
+0.2 for a lone non-UA marker. That is deliberately **below the default threshold
+(0.7)**: a legitimate server-side Node client (monitoring, SSR prefetch) is
+*reported*, not decoyed. It crosses the threshold only with an independent
+signal — e.g. a `.map` request (`rea.sourceMapShape` + `request.sourceMap`), so a
+REA fork with a changed `Accept` still scores **1.00**. A plain Node script
+harvesting `/assets/app.js` scored **0.00** before these rules and **0.60** now
+(visible in the dashboard). **Evadability:** medium — setting explicit headers
+removes them.
 
 ### `rea.sourceMapShape` — supporting
 A `.map` request with no `Cookie`, `Referer` or `Sec-Fetch-Dest` (0.5).
 
-### `canary.sourceMap` — decisive (opt-in)
+### `canary.sourceMap` — strong (opt-in)
 REA fetches the maps a page **declares** and never guesses `.map` URLs
 (`src/browser/CdpCaptureEventHandlers.ts:179-235`). Browsers fetch source maps
 only while DevTools is open. So point a bundle at a map URL that is linked
@@ -78,8 +89,22 @@ bundleSource += "\n" + sourceMapCanaryComment("/__antirea/m/");   // unique rand
 A hit scores **1.0** and, in live mode, gets an empty decoy map. REA accepts
 maps without authenticity checks (`trace_web_source_location`: "Deployment
 authenticity and execution remain unknown"), so decoys are taken at face value.
-**Evadability:** low — REA must fetch declared maps to use the feature. An open
-DevTools also hits it, which is itself an analysis signal.
+
+What a hit does and does **not** tell you:
+- It means *a source-map consumer* read the map — REA, a harvesting script, or a
+  developer with **DevTools open**. It does not identify REA; pair it with the
+  other reasons on the same event.
+- The prefix is matched on a **directory boundary** (`/maps` matches
+  `/maps/…`, never `/maps-ui/…`); `/` and `""` are refused.
+- It is checked even when the path is not in `protect`, but it is **not
+  scored** for requests the middleware skips entirely: protection switched off
+  from the control panel, or an allowlisted IP / verified bot.
+- **CDN / static hosting:** the canary path must reach the origin running the
+  middleware. If a CDN or static host serves (or 404s) `/__antirea/m/*` itself,
+  the hit is never seen — add a pass-through rule for the prefix, and do not
+  cache it.
+
+**Evadability:** low — REA must fetch declared maps to use the feature.
 
 ### `ua.headlessClientHint` — strong-but-evadable
 REA's launch mode sets no UA, so Chromium reports `HeadlessChrome` in both the UA
@@ -99,11 +124,14 @@ injects into the main world (`PlaywrightScenarioServiceWorkers.ts:222-243`):
 on the periodic sweep, so REA attaching to an **already-open tab** is caught too
 (verified in Chromium). **Evadability:** low (fixed prefixes; a fork could rename).
 
-### `automation.swBlockPatch` — medium
+### `automation.swBlockPatch` — report-only
 Launch mode passes `serviceWorkers: "block"` to Playwright, which sets an own,
 non-native `register` on the `navigator.serviceWorker` **instance** (measured).
-Scores 0.7. Prototype-level wrappers are ignored on purpose (frameworks such as
-zone.js patch prototypes); verified no signal on such a wrapper.
+Scores **0.5** — below the 0.7 at which `aggressive` mode halts the app, because
+another script could also wrap the instance method; real Playwright is still
+stopped by its independent signals (`navigator.webdriver`, 0.8).
+Prototype-level wrappers are ignored on purpose (frameworks such as zone.js
+patch prototypes); verified no signal on such a wrapper.
 **Evadability:** medium (`service_workers: "allow"`).
 
 ### `cdp.debuggerPause` — strong
@@ -129,7 +157,7 @@ plus ≥4 of 7 markers. **Evadability:** medium — the operator can override th
 | **WASM tier** | **Partially.** `inspect_wasm_artifact` disassembles to WAT (WABT `wasm2wat`); no decompiler. Our AssemblyScript build emits **no custom sections** (no `name` section), so function names do not leak. |
 | **Obfuscation** (string arrays, control-flow flattening, renaming) | **Not undone statically** — REA has no deobfuscator; its own docs say obfuscation leaves paths "unresolved". **Partially bypassed at runtime:** precise coverage shows which code ran, and network initiator stacks reveal real endpoint URLs. Hide endpoints by gating them server-side, not by encoding strings. |
 | **Decoy source maps** | **Work** — accepted without verification. |
-| **Detection** (debugger, webdriver, scenario patches, Node fetch) | **Not evaded** — REA has no stealth. |
+| **Detection** (debugger, webdriver, scenario patches, Node fetch) | **Not evaded** — REA has no stealth. Node-fetch markers alone are reported, not decoyed (see above). |
 
 ## What is NOT a usable signature
 
