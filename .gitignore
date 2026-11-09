@@ -11,3 +11,7 @@ dist/
 !.env.example
 *.log
 .DS_Store
+
+# Copied in at pack time by scripts/copy-legal.mjs (source of truth: repo root)
+packages/*/LICENSE
+packages/*/NOTICE

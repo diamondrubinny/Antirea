@@ -12,16 +12,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [20, 22]
+        node: [22, 24, 26]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
 
       # --ignore-scripts skips native builds (better-sqlite3) and the geoip-lite
-      # postinstall. CI builds (tsc/vite) and the test suites do not need them.
+      # postinstall. CI builds (tsc/esbuild) and the test suites do not need them.
       - name: Install
         run: npm install --no-audit --no-fund --ignore-scripts
 
@@ -43,12 +43,14 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
       - run: npm install --no-audit --no-fund --ignore-scripts
       - name: Lint
         run: npm run lint
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high
       - name: Format check
         run: npm run format:check

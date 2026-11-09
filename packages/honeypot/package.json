@@ -12,20 +12,43 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "NOTICE"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node test/behavior.mjs && node test/scoring.mjs && node test/ja3-tarpit.mjs"
+    "test": "node test/behavior.mjs && node test/scoring.mjs && node test/ja3-tarpit.mjs",
+    "prepack": "node ../../scripts/copy-legal.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
     "typescript": "^5.6.3"
   },
   "author": "Diamond Rubinny",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diamondrubinny/Antirea.git",
+    "directory": "packages/honeypot"
+  },
+  "homepage": "https://norea.rubinny.net",
+  "bugs": {
+    "url": "https://github.com/diamondrubinny/Antirea/issues"
+  },
+  "keywords": [
+    "antirea",
+    "norea",
+    "anti-reverse-engineering",
+    "code-protection",
+    "rea",
+    "honeypot",
+    "deception",
+    "express-middleware",
+    "bot-detection"
+  ]
 }

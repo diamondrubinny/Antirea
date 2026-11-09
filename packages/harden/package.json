@@ -6,23 +6,40 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./client": { "types": "./dist/client.d.ts", "import": "./dist/client.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
+    }
   },
-  "files": ["dist"],
-  "engines": { "node": ">=18" },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node test/harden.mjs"
+    "test": "node test/harden.mjs",
+    "prepack": "node ../../scripts/copy-legal.mjs"
   },
   "peerDependencies": {
     "express": "^4.21.0",
     "javascript-obfuscator": ">=4"
   },
   "peerDependenciesMeta": {
-    "express": { "optional": true },
-    "javascript-obfuscator": { "optional": true }
+    "express": {
+      "optional": true
+    },
+    "javascript-obfuscator": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
@@ -30,5 +47,26 @@
     "typescript": "^5.6.3"
   },
   "author": "Diamond Rubinny",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diamondrubinny/Antirea.git",
+    "directory": "packages/harden"
+  },
+  "homepage": "https://norea.rubinny.net",
+  "bugs": {
+    "url": "https://github.com/diamondrubinny/Antirea/issues"
+  },
+  "keywords": [
+    "antirea",
+    "norea",
+    "anti-reverse-engineering",
+    "code-protection",
+    "rea",
+    "sri",
+    "csp",
+    "obfuscation",
+    "security-headers",
+    "encryption"
+  ]
 }
