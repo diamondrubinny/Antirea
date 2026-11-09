@@ -94,6 +94,37 @@ ok(got429, "rate limit triggers 429");
   srv2.close();
 }
 
+// Without the trustProxy option, the app's own Express "trust proxy" setting
+// still decides the client address (no shared rate-limit bucket behind a proxy).
+{
+  let seen = "";
+  const app3 = express();
+  app3.set("trust proxy", 1);
+  app3.use(
+    "/secure",
+    createSecureFnRouter({ secret: "test-secret", functions: { whoami: (_a, ctx) => ((seen = ctx.ip), "ok") } }),
+  );
+  const srv3 = app3.listen(0);
+  const base3 = `http://127.0.0.1:${srv3.address().port}/secure`;
+  const from = (ip) => ({ "X-Forwarded-For": ip });
+  const s3 = await fetch(`${base3}/session`, { method: "POST", headers: from("203.0.113.50") }).then((r) => r.json());
+  await fetch(`${base3}/invoke`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${s3.token}`, ...from("203.0.113.50") },
+    body: JSON.stringify({ name: "whoami", nonce: "n-" + Math.random() }),
+  });
+  ok(seen === "203.0.113.50", `Express "trust proxy" is honoured when the option is unset (got ${seen})`);
+  // One client exhausting its session quota must not lock out another client.
+  let limited = false;
+  for (let i = 0; i < 31; i++) {
+    const r = await fetch(`${base3}/session`, { method: "POST", headers: from("203.0.113.51") });
+    if (r.status === 429) limited = true;
+  }
+  const other = await fetch(`${base3}/session`, { method: "POST", headers: from("203.0.113.52") });
+  ok(limited && other.status === 200, "session limit is per client behind a proxy, not one shared bucket");
+  srv3.close();
+}
+
 console.log(`\nRESULT: ${pass} passed, ${fail} failed`);
 srv.close();
 process.exit(fail ? 1 : 0);

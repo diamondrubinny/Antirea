@@ -36,9 +36,14 @@ export type { InvokeContext, SecureFn, SecureFnOptions } from "./core.js";
 export function createSecureFnRouter(opts: SecureFnOptions): Router {
   const core = createSecureFnCore(opts);
   const hops = trustHops(opts.trustProxy);
+  // With `trustProxy` set, read the trusted X-Forwarded-For hop ourselves.
+  // Otherwise defer to Express (`req.ip`), which honours the app's own
+  // "trust proxy" setting — so apps that configured Express keep working.
   const clientIp = (req: Request): string => {
+    const socketAddr = req.socket.remoteAddress ?? "";
+    if (hops < 1) return req.ip ?? socketAddr;
     const xff = req.headers["x-forwarded-for"];
-    return forwardedIp(Array.isArray(xff) ? xff.join(",") : xff, hops, req.socket.remoteAddress ?? "");
+    return forwardedIp(Array.isArray(xff) ? xff.join(",") : xff, hops, socketAddr);
   };
 
   const router = express.Router();

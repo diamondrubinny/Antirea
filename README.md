@@ -286,7 +286,7 @@ Learns from the attacks it sees and proposes defense changes. **Off by default; 
 npm install
 npm run build:guard
 # verified test suites:
-node packages/secure-fn/test/e2e.mjs      # 7 checks: session, server-side result, replay, forgery, rate limit, proxy IP
+node packages/secure-fn/test/e2e.mjs      # 9 checks: session, server-side result, replay, forgery, rate limit, proxy IP
 node packages/honeypot/test/behavior.mjs  # 4 checks: cadence, header churn, harvesting, human-like
 npm run test:integration                  # e2e proof vs. the real server (see below)
 ```
