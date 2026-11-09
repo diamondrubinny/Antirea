@@ -16,6 +16,7 @@
  * algorithm.
  */
 import { randomUUID } from "node:crypto";
+import { isIP } from "node:net";
 import { NonceStore, RateLimiter } from "./guards.js";
 import { signToken, verifyToken } from "./signing.js";
 
@@ -75,8 +76,10 @@ export function trustHops(value: boolean | number | undefined): number {
 
 /**
  * Client IP from X-Forwarded-For given `hops` trusted proxies: the entry
- * `hops` from the right. Falls back to `socketAddr` when not trusting proxies
- * or when the header is absent.
+ * `hops` from the right. Falls back to `socketAddr` when not trusting proxies,
+ * when the header is absent, or when it has FEWER entries than trusted hops —
+ * such a request did not pass through the whole proxy chain, so every entry in
+ * it may be client-supplied.
  */
 export function forwardedIp(xff: string | undefined, hops: number, socketAddr: string): string {
   if (hops < 1 || !xff) return socketAddr;
@@ -84,8 +87,17 @@ export function forwardedIp(xff: string | undefined, hops: number, socketAddr: s
     .split(",")
     .map((p) => p.trim())
     .filter(Boolean);
-  if (parts.length === 0) return socketAddr;
-  return parts[Math.max(parts.length - hops, 0)];
+  if (parts.length < hops) return socketAddr;
+  return parts[parts.length - hops];
+}
+
+/** Strip a port and IPv6 brackets: "1.2.3.4:5678", "[2001:db8::1]:443". */
+function bareAddress(raw: string): string {
+  const s = raw.trim();
+  const bracket = /^\[([^\]]+)\](?::\d+)?$/.exec(s);
+  if (bracket) return bracket[1];
+  const v4port = /^(\d{1,3}(?:\.\d{1,3}){3}):\d+$/.exec(s);
+  return v4port ? v4port[1] : s;
 }
 
 /**
@@ -93,15 +105,27 @@ export function forwardedIp(xff: string | undefined, hops: number, socketAddr: s
  * addresses inside one allocation buys no extra sessions.
  */
 export function addressKey(ip: string): string {
-  if (!ip.includes(":") || ip.includes(".")) return ip; // IPv4 or IPv4-mapped
-  const [head, tail = ""] = ip.toLowerCase().split("::");
+  const addr = bareAddress(ip).toLowerCase();
+  const family = isIP(addr);
+  // Not an address (should not happen for a socket or trusted-proxy value):
+  // keep it as its own bounded key rather than guessing a prefix.
+  if (family === 0) return addr.slice(0, 64);
+  if (family === 4 || addr.includes(".")) return addr; // IPv4, or dotted IPv4-mapped
+  const [head, tail = ""] = addr.split("::");
   const h = head ? head.split(":") : [];
   const t = tail ? tail.split(":") : [];
-  const groups = [...h, ...Array(Math.max(8 - h.length - t.length, 0)).fill("0"), ...t]
-    .slice(0, 8)
-    .map((g) => g.padStart(4, "0"));
-  if (groups.length < 4) return ip;
+  const groups = [...h, ...Array(8 - h.length - t.length).fill("0"), ...t].map((g) => g.padStart(4, "0"));
+  const prefix = groups.slice(0, 4).join(":");
+  // Prefixes that embed a full IPv4 address or are special (loopback, hex-form
+  // IPv4-mapped ::ffff:0:0/96, NAT64 64:ff9b::/96): grouping them by /56 would
+  // put unrelated clients in one bucket, so key on the whole address.
+  if (prefix === "0000:0000:0000:0000" || prefix === "0064:ff9b:0000:0000") return groups.join(":");
   return `${groups[0]}:${groups[1]}:${groups[2]}:${groups[3].slice(0, 2)}00::/56`;
+}
+
+/** True only for the `application/json` media type (parameters allowed). */
+export function isJsonContentType(value: string | null | undefined): boolean {
+  return (value ?? "").split(";")[0].trim().toLowerCase() === "application/json";
 }
 
 export interface SecureFnCore {
@@ -120,8 +144,12 @@ export function createSecureFnCore(opts: SecureFnOptions): SecureFnCore {
   const nonces = new NonceStore(nonceTtlMs);
   const invokeLimiter = new RateLimiter(maxPerMin, 60_000);
   const sessionLimiter = new RateLimiter(SESSIONS_PER_MIN, 60_000);
+  let warnedNoAddress = false;
 
-  async function reportAnomaly(name: string, ip: string, detail: string): Promise<void> {
+  async function reportAnomaly(rawName: string, ip: string, detail: string): Promise<void> {
+    // The name comes from the client: quote and bound it so it cannot forge
+    // log lines or bloat reports.
+    const name = JSON.stringify(rawName.slice(0, 64)).slice(1, -1);
     // Operational log (server-side only; not sent to the client).
     console.warn(`[secure-fn] anomaly ${detail} fn=${name} ip=${ip}`);
     if (!opts.reportUrl) return;
@@ -152,8 +180,21 @@ export function createSecureFnCore(opts: SecureFnOptions): SecureFnCore {
     sessionTtlMs,
 
     issueSession(ip, limit = false) {
-      if (limit && !sessionLimiter.hit(addressKey(ip)).ok) {
-        return { status: 429, body: { error: "rate limited" } };
+      if (limit) {
+        if (ip === "") {
+          // Without a client address a per-address limit would be ONE bucket
+          // for the whole site: 30 requests from anyone would lock everyone
+          // out. Skip it and tell the operator how to enable it.
+          if (!warnedNoAddress) {
+            warnedNoAddress = true;
+            console.warn(
+              "[secure-fn] no client address available: the per-address session limit is OFF. " +
+                "Set trustProxy to your proxy count, or pass { ip } to the handler.",
+            );
+          }
+        } else if (!sessionLimiter.hit(addressKey(ip)).ok) {
+          return { status: 429, body: { error: "rate limited" } };
+        }
       }
       const token = signToken(opts.secret, { sid: randomUUID(), exp: Date.now() + sessionTtlMs });
       return { status: 200, body: { token, ttlMs: sessionTtlMs } };
@@ -176,16 +217,19 @@ export function createSecureFnCore(opts: SecureFnOptions): SecureFnCore {
         return { status: 400, body: { error: "invalid nonce" } };
       }
 
-      // 2. Anti-replay, scoped to the session so one session cannot burn or
-      //    probe another session's nonces.
-      if (!nonces.check(`${payload.sid}:${nonce}`)) return { status: 409, body: { error: "replay" } };
-
-      // 3. Rate limit per session; a spike is a harvesting signal.
+      // 2. Rate limit per session; a spike is a harvesting signal. This runs
+      //    BEFORE the nonce is stored, so a throttled session cannot grow the
+      //    nonce table. The anomaly is reported once per window, not per
+      //    rejected request.
       const rl = invokeLimiter.hit(payload.sid);
       if (!rl.ok) {
-        void reportAnomaly(name || "?", ip, "rate_exceeded");
+        if (rl.count === maxPerMin + 1) void reportAnomaly(name || "?", ip, "rate_exceeded");
         return { status: 429, body: { error: "rate limited" } };
       }
+
+      // 3. Anti-replay, scoped to the session so one session cannot burn or
+      //    probe another session's nonces.
+      if (!nonces.check(`${payload.sid}:${nonce}`)) return { status: 409, body: { error: "replay" } };
 
       // 4. Dispatch to the server-side implementation.
       const fn = Object.prototype.hasOwnProperty.call(opts.functions, name)

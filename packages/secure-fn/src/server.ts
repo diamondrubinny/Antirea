@@ -19,12 +19,13 @@
  * signed sessions, nonce anti-replay, rate limiting, and anomaly reporting to
  * make bulk behavioural harvesting expensive and visible in the dashboard.
  */
-import express, { type Request, type Response, type Router } from "express";
+import express, { type NextFunction, type Request, type Response, type Router } from "express";
 import rateLimit from "express-rate-limit";
 import {
   addressKey,
   createSecureFnCore,
   forwardedIp,
+  isJsonContentType,
   trustHops,
   SESSIONS_PER_MIN,
   type SecureFnOptions,
@@ -36,12 +37,15 @@ export type { InvokeContext, SecureFn, SecureFnOptions } from "./core.js";
 export function createSecureFnRouter(opts: SecureFnOptions): Router {
   const core = createSecureFnCore(opts);
   const hops = trustHops(opts.trustProxy);
-  // With `trustProxy` set, read the trusted X-Forwarded-For hop ourselves.
-  // Otherwise defer to Express (`req.ip`), which honours the app's own
-  // "trust proxy" setting — so apps that configured Express keep working.
+  // Client address, in order of preference:
+  //  1. the app configured Express's own "trust proxy" → `req.ip` (Express
+  //     already resolved the chain; overriding it would mis-key clients);
+  //  2. the `trustProxy` option → the trusted X-Forwarded-For hop;
+  //  3. the socket address.
   const clientIp = (req: Request): string => {
     const socketAddr = req.socket.remoteAddress ?? "";
-    if (hops < 1) return req.ip ?? socketAddr;
+    if (req.app.get("trust proxy")) return req.ip ?? socketAddr;
+    if (hops < 1) return socketAddr;
     const xff = req.headers["x-forwarded-for"];
     return forwardedIp(Array.isArray(xff) ? xff.join(",") : xff, hops, socketAddr);
   };
@@ -54,8 +58,7 @@ export function createSecureFnRouter(opts: SecureFnOptions): Router {
     limit: SESSIONS_PER_MIN,
     standardHeaders: true,
     legacyHeaders: false,
-    // Same client address the core sees (trusted proxy hop), with IPv6
-    // clients grouped by /56.
+    // Same client address the core sees, with IPv6 clients grouped by /56.
     keyGenerator: (req) => addressKey(clientIp(req)),
   });
 
@@ -65,14 +68,31 @@ export function createSecureFnRouter(opts: SecureFnOptions): Router {
     res.status(r.status).json(r.body);
   });
 
+  // JSON only — the same rule as the Fetch-API handler.
+  const requireJson = (req: Request, res: Response, next: NextFunction): void => {
+    if (!isJsonContentType(req.headers["content-type"])) {
+      res.status(415).json({ error: "unsupported media type" });
+      return;
+    }
+    next();
+  };
+
   // Invoke a registered function.
-  router.post("/invoke", jsonBody, (req: Request, res: Response) => {
+  router.post("/invoke", requireJson, jsonBody, (req: Request, res: Response) => {
     core
       .invoke({ authorization: req.headers.authorization ?? "", body: req.body, ip: clientIp(req) })
       .then((r) => res.status(r.status).json(r.body))
       .catch(() => {
         if (!res.headersSent) res.status(500).json({ error: "internal" });
       });
+  });
+
+  // Body-parser failures (malformed JSON, too large) must not fall through to
+  // Express's default error page, which prints a stack trace outside production.
+  router.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
+    if (res.headersSent) return next(err);
+    const tooLarge = (err as { type?: string } | null)?.type === "entity.too.large";
+    res.status(tooLarge ? 413 : 400).json({ error: tooLarge ? "payload too large" : "invalid json" });
   });
 
   return router;

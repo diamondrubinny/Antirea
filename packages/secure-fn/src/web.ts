@@ -19,7 +19,14 @@
  * platforms each instance has its own counters, so limits are per instance —
  * see the README for what that does and does not protect.
  */
-import { createSecureFnCore, forwardedIp, trustHops, type CoreResult, type SecureFnOptions } from "./core.js";
+import {
+  createSecureFnCore,
+  forwardedIp,
+  isJsonContentType,
+  trustHops,
+  type CoreResult,
+  type SecureFnOptions,
+} from "./core.js";
 
 export type { InvokeContext, SecureFn, SecureFnOptions } from "./core.js";
 
@@ -80,8 +87,7 @@ export function createSecureFnHandler(opts: SecureFnOptions): SecureFnHandler {
       const ip = forwardedIp(request.headers.get("x-forwarded-for") ?? undefined, hops, ctx.ip ?? "");
       if (action === "session") return json(core.issueSession(ip, true));
 
-      const type = (request.headers.get("content-type") ?? "").toLowerCase();
-      if (!type.startsWith("application/json")) {
+      if (!isJsonContentType(request.headers.get("content-type"))) {
         return json({ status: 415, body: { error: "unsupported media type" } });
       }
       const raw = await readLimited(request, MAX_BODY_BYTES);

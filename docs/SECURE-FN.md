@@ -21,6 +21,8 @@ All adapters share one core (`core.ts`), so the guards are identical.
 
 `@antirea/secure-fn/web` does not import Express; `express` and
 `express-rate-limit` are optional peer dependencies needed only for the router.
+**Without Express installed, import from `@antirea/secure-fn/web`** — the root
+entry (`@antirea/secure-fn`) loads the Express router and fails to import.
 
 ### Express
 
@@ -73,18 +75,29 @@ const price = await api.invoke<number>("pricing", { x: 2 });
 | Guard | Behaviour |
 |---|---|
 | Session token | HMAC-SHA-256, 10 min by default; `401` when missing, forged or expired |
-| Session issuing | 30 per client address per minute (IPv6 grouped by /56); `429` |
+| Session issuing | 30 per client address per minute (IPv6 grouped by /56); `429`. **Off when the client address is unknown** — see below |
 | Replay | each nonce is accepted once per session within 2 min; `409` |
 | Nonce | required, at most 128 characters; `400` |
-| Per-session rate | `maxInvokesPerMin` (default 120); `429` and an anomaly report |
+| Per-session rate | `maxInvokesPerMin` (default 120); `429`, and one anomaly report per window. Checked before the nonce is stored, so a throttled session cannot grow memory |
 | Body | JSON only (`415`), at most 32 KB (`413`) |
 | Errors | function errors return `500 execution failed`; details are logged server-side only |
 
 **Client IP.** `trustProxy` is the number of trusted reverse proxies (`true` =
-1). The address is the `X-Forwarded-For` entry that many hops from the right;
-the leftmost entry is supplied by the client and is never trusted. Without
-`trustProxy` the socket address is used (pass it as `handler(request, { ip })`
-where your platform exposes it).
+1). The address is the `X-Forwarded-For` entry that many hops from the right.
+If the header has fewer entries than trusted hops, the request did not pass
+through your whole proxy chain and the socket address is used instead. Set the
+number to match your deployment exactly: too high falls back to the proxy's
+address, too low (or set on a directly exposed app) trusts a client-supplied
+value.
+
+- **Express:** if the app sets Express's own `trust proxy`, `req.ip` is used and
+  the option is ignored — configure one or the other.
+- **Fetch-API handler:** without `trustProxy`, pass the socket address as
+  `handler(request, { ip })` where the platform exposes it.
+- **No address at all** (no option, no `{ ip }`, or no `X-Forwarded-For`): the
+  per-address session limit is switched **off** and a warning is logged once. A
+  single shared bucket would let anyone lock out every user with 30 requests.
+  The per-session invoke limit still applies.
 
 **State is in memory, per process.** With several instances or on serverless,
 each instance keeps its own nonce and rate-limit tables: limits are per

@@ -33,6 +33,12 @@ All notable changes to this project are documented here. The format is based on
 - `secure-fn`: replay nonces are scoped to their session (one session can no
   longer burn another's nonce), must be 1–128 characters, and expired
   rate-limit windows are pruned (memory grew with every session).
+- `secure-fn`: the per-session rate limit now runs before the nonce is stored
+  (a throttled session could grow the nonce table without bound); anomalies are
+  reported once per window; client-supplied function names are escaped in logs.
+- `secure-fn` (Express): malformed or oversized JSON returned Express's default
+  error page — with a stack trace outside production. It now returns a clean
+  `400`/`413`, and non-JSON content types get `415`.
 - Startup warning when `ADMIN_TOKEN` is shorter than 32 characters.
 - Docker image runs as the unprivileged `node` user with read-only app code.
 - Website CSP: `style-src 'self'` — `'unsafe-inline'` removed (no inline styles
@@ -157,7 +163,9 @@ All notable changes to this project are documented here. The format is based on
   until you have checked the data in the control panel.
 - **`secure-fn` `trustProxy`**: `true` now trusts exactly one proxy and reads
   the rightmost `X-Forwarded-For` entry. Behind two proxies set `trustProxy: 2`.
-  A request without a nonce now gets `400` instead of `409`.
+  If the app sets Express's own `trust proxy`, that setting wins. A request
+  without a nonce now gets `400` instead of `409`; `/invoke` requires
+  `Content-Type: application/json` (`415` otherwise).
 - `TRUST_PROXY` accepts `false`, `true` (= 1) or `1`–`10`; anything else now
   refuses to start instead of silently trusting no proxy. Expose the collector
   only through that proxy chain.

@@ -20,14 +20,25 @@ export class NonceStore {
 
   /** Returns true if the nonce is fresh (and records it); false if reused. */
   check(nonce: string): boolean {
-    this.prune();
-    if (!nonce || this.seen.has(nonce)) return false;
-    this.seen.set(nonce, Date.now() + this.ttlMs);
+    const now = Date.now();
+    this.prune(now);
+    if (!nonce) return false;
+    const exp = this.seen.get(nonce);
+    if (exp !== undefined && exp >= now) return false;
+    this.seen.set(nonce, now + this.ttlMs);
     return true;
   }
 
-  private prune(): void {
-    const now = Date.now();
+  /** Number of remembered nonces (for tests/monitoring). */
+  get size(): number {
+    return this.seen.size;
+  }
+
+  private lastPrune = 0;
+  /** Full scan at most once a second, so a burst costs O(n), not O(n²). */
+  private prune(now: number): void {
+    if (now - this.lastPrune < Math.min(this.ttlMs, 1000)) return;
+    this.lastPrune = now;
     for (const [k, exp] of this.seen) if (exp < now) this.seen.delete(k);
   }
 }

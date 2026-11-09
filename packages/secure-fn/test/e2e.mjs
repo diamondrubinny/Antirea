@@ -69,6 +69,36 @@ for (let i = 0; i < 6; i++) {
 }
 ok(got429, "rate limit triggers 429");
 
+// Express adapter enforces the same body rules as the Fetch-API handler, and
+// parser errors never reach Express's default error page (stack trace).
+{
+  const raw = (type, body) =>
+    fetch(`${base}/invoke`, { method: "POST", headers: { "Content-Type": type, Authorization: `Bearer ${s.token}` }, body });
+  ok((await raw("text/plain", "{}")).status === 415, "non-JSON content type rejected (415)");
+  const bad = await raw("application/json", "{not json");
+  const badText = await bad.text();
+  ok(bad.status === 400 && badText === '{"error":"invalid json"}', `malformed JSON → clean 400 (got ${bad.status} ${badText.slice(0, 60)})`);
+  const big = await raw("application/json", JSON.stringify({ name: "pricing", nonce: "big", args: "x".repeat(40_000) }));
+  ok(big.status === 413 && (await big.text()) === '{"error":"payload too large"}', "oversized body → clean 413");
+}
+
+// CDN + reverse proxy: the app sets Express "trust proxy" to 2. Express's own
+// resolution wins, so clients behind one CDN node are not put in one bucket.
+{
+  const app4 = express();
+  app4.set("trust proxy", 2);
+  app4.use("/secure", createSecureFnRouter({ secret: "test-secret", trustProxy: true, functions: {} }));
+  const srv4 = app4.listen(0);
+  const base4 = `http://127.0.0.1:${srv4.address().port}/secure`;
+  let limited = 0;
+  for (let i = 0; i < 40; i++) {
+    const r = await fetch(`${base4}/session`, { method: "POST", headers: { "X-Forwarded-For": `203.0.113.${i + 1}, 198.51.100.7` } });
+    if (r.status === 429) limited++;
+  }
+  ok(limited === 0, `40 clients behind one CDN node are keyed separately (limited ${limited})`);
+  srv4.close();
+}
+
 // Behind one trusted proxy, a client-supplied X-Forwarded-For entry is ignored.
 {
   let seen = "";
