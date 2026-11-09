@@ -66,20 +66,27 @@ All notable changes to this project are documented here. The format is based on
   `docker compose run --rm -u root collector chown -R node:node /data`
 - **Docker without compose:** the image now defaults `DB_FILE` to
   `/data/antirea.db`. If you ran the old image without setting `DB_FILE`, your
-  database is inside the old container at `/app/packages/collector/`. **Stop the
-  container first** — SQLite runs in WAL mode, and a copy taken while it runs can
-  be missing the schema and recent rows. Then copy the database (and any
-  `-wal`/`-shm` files) out and onto the new volume, owned by `node`:
+  database lives inside the old container at `/app/packages/collector/`, so a
+  new container cannot see it. Migrate it once with the steps below (verified:
+  migrates all rows; refuses to overwrite a volume that already holds a
+  database; aborts before touching the volume if the copy fails). Stop the old
+  container first — SQLite runs in WAL mode, and a copy taken while it runs can
+  miss the schema and recent rows.
   ```bash
+  set -e
   docker stop <old-container>
-  for f in antirea.db antirea.db-wal antirea.db-shm; do
-    docker cp <old-container>:/app/packages/collector/$f . 2>/dev/null
+  mkdir antirea-migrate && cd antirea-migrate                    # fresh, empty staging directory
+  docker cp <old-container>:/app/packages/collector/antirea.db . # required: fails loudly if missing
+  for f in antirea.db-wal antirea.db-shm; do                     # optional (absent after a clean stop)
+    docker cp <old-container>:/app/packages/collector/$f . 2>/dev/null || true
   done
-  docker run --rm -u root -v antirea-data:/data -v "$PWD":/src --entrypoint sh <new-image> \
-    -c 'cp /src/antirea.db* /data/ && chown node:node /data/antirea.db*'
+  docker run --rm -u root -v antirea-data:/data -v "$PWD":/src --entrypoint sh <new-image> -c '
+    set -e
+    if ls /data/antirea.db* >/dev/null 2>&1; then echo "refusing: /data already holds a database" >&2; exit 1; fi
+    cp /src/antirea.db* /data/ && chown node:node /data/antirea.db*'
   ```
-  Then start the new image with `-v antirea-data:/data`. (Alternatively keep the
-  old location by setting `DB_FILE` explicitly.)
+  Then start the new image with `-v antirea-data:/data`. Keep the old container
+  until you have checked the data in the control panel.
 - `TRUST_PROXY` accepts `false`, `true` (= 1) or `1`–`10`; anything else now
   refuses to start instead of silently trusting no proxy. Expose the collector
   only through that proxy chain.
