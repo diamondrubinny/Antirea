@@ -176,20 +176,34 @@ Attackers spoof the `User-Agent` and other headers. Antirea's engine (`@antirea/
 
 ## REA signature pack
 
-Antirea ships fingerprints for the `morluto/rea` tool, each **verified against
-its public source** and documented with its evadability in
-[`docs/REA-SIGNATURES.md`](./docs/REA-SIGNATURES.md):
+Antirea ships fingerprints for the `morluto/rea` tool — **verified against REA
+6.8.0's source and measured on real Node and Chromium** — each documented with
+its evadability in [`docs/REA-SIGNATURES.md`](./docs/REA-SIGNATURES.md):
 
-- **Server (`rea.sourceMapAccept`)** — REA's source-map fetcher sends a
-  distinctive `Accept: application/source-map+json` with no cookie and no
-  referer (`WebSourceMapFetcher.ts`). No browser does this → near-certain, hard
-  to evade (hardcoded in REA).
-- **Client (`rea.playwrightDefaults`)** — REA's default Playwright profile
-  (headless + `navigator.webdriver` + 1280×720 + DPR 1 + UTC + en-US +
-  reduced-motion + light; `browserScenarioValues.ts`). The *combination* is
-  distinctive; individual markers are overridable, so this catches defaults.
+- **Server** — REA's source-map fetcher runs on Node's `fetch`: its `Accept`
+  header contains the `application/source-map+json` media type, which no
+  browser sends (`rea.sourceMapAccept`). Node's own defaults —
+  `user-agent: node`, `accept-language: *` and a *partial* Sec-Fetch set — form
+  one combined runtime fingerprint (`ua.runtimeFetch`,
+  `forgery.partialSecFetch`, `acceptLanguage.wildcard`), capped below the decoy
+  threshold: a plain Node script harvesting your bundles is **reported**, and is
+  decoyed only when corroborated (e.g. it requests a `.map`, which is how a REA
+  fork with a changed `Accept` is still caught).
+- **Source-map canary** (`canary.sourceMap`) — REA fetches every source map a
+  page declares; point a bundle at an unlinked map URL with
+  `sourceMapCanaryComment()` and a hit means *some* source-map consumer read it
+  (REA, a harvester — or a developer with DevTools open). Strong evidence of
+  analysis, not proof of REA; not scored for allowlisted or disabled traffic.
+- **Client** — REA's scripted-scenario patches: unique `rea-restore-*` /
+  `rea-service-workers-*` markers (`rea.scenarioSwPolicy`, near-certain) and
+  Playwright's service-worker block (`automation.swBlockPatch`); the default
+  Playwright profile (`rea.playwrightDefaults`); and the `debugger` pause REA
+  never suppresses (`cdp.debuggerPause`).
 
-These are deterrence + intelligence. The hermetic protection remains
+REA has no stealth code. It **can** read a protected bundle that was already
+decrypted before it attached — see the honest
+[what REA can and cannot defeat](./docs/REA-SIGNATURES.md#what-rea-can-and-cannot-defeat-honest)
+table. These are deterrence + intelligence; the hermetic protection remains
 `@antirea/secure-fn`.
 
 ## Client logic that must ship → WASM

@@ -45,6 +45,7 @@ All notable changes to this project are documented here. The format is based on
 
 ### Fixed
 
+- Guard lockout page (Hebrew): typo "הזוהתה" → "זוהתה".
 - **Docker image failed to build**: it never built `@antirea/watermark`, which
   the collector imports.
 - **README Quickstart failed on a fresh clone** for the same reason; it now
@@ -54,6 +55,31 @@ All notable changes to this project are documented here. The format is based on
 
 ### Added
 
+- **REA 6.8.0 signature pack** (verified against `morluto/rea` 6.8.0 source and
+  measured on real Node and Chromium; see `docs/REA-SIGNATURES.md`):
+  - Honeypot: `ua.runtimeFetch` (Node/Bun/Deno built-in fetch),
+    `forgery.partialSecFetch` (Sec-Fetch-Mode without Site/Dest — 0 of 11 real
+    Chromium request types do this), `acceptLanguage.wildcard`, and
+    `ua.headlessClientHint` (HeadlessChrome brand in Client Hints despite a
+    spoofed UA). The Node-runtime markers count as **one** fingerprint (0.6),
+    below the decoy threshold: a plain Node script harvesting `/assets/app.js`
+    scored 0.00 before and 0.60 now (reported), and is decoyed only when
+    corroborated — e.g. a REA fork with a changed `Accept` fetching a `.map`
+    scores 1.00. A real Chrome request still scores 0, and a real Chrome behind a
+    header-stripping proxy is not penalised by the partial-Sec-Fetch rule.
+  - Honeypot: **source-map canary** — `sourceMapCanaryComment()` plus the
+    `sourceMapCanary` option. REA fetches every map a page declares, browsers
+    only with DevTools open, so a hit is strong evidence of analysis (not proof
+    of REA). Prefixes match on a directory boundary; the canary path must reach
+    the origin (CDN pass-through).
+  - Guard: `rea.scenarioSwPolicy` (REA's unique `rea-restore-*` /
+    `rea-service-workers-*` markers, also when REA attaches to an open tab) and
+    `automation.swBlockPatch` (Playwright's service-worker block; report-only at
+    0.5, never halts the app on its own). A zone.js-style prototype wrapper does
+    not trigger it.
+  - Docs: an honest "what REA can and cannot defeat" table — including that a
+    CDP tool attaching *after* an encrypted bundle was decrypted can read it, and
+    that the key gate's attestation is forgeable and not a security boundary.
 - Collector test suite (auth, IP extraction, ingest validation).
 - npm metadata (`repository`, `homepage`, `bugs`, `keywords`) on all packages.
 

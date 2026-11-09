@@ -1,96 +1,187 @@
 # REA signature pack
 
 Defensive fingerprints for the `morluto/rea` reverse-engineering MCP tool,
-derived from its public source. Each entry names the **source file it was
+derived from its public source (MIT). Each entry names the **source file it was
 verified against**, the **layer** that detects it, and its **evadability** — we
 do not claim a signature is conclusive when it is not.
 
-> These detect REA running **against your own site**. They let your server
-> serve decoys or your telemetry flag the attempt. They do nothing to REA
-> itself or to third parties.
+> **Verified against REA `rea-agents` 6.8.0** (`main` @ `e9b6c87`, 2026-11-09).
+> Header values were also **measured** (Node 22 `fetch`, Playwright/Chromium
+> headless), not only read. Re-check after REA updates — see the end of this file.
 
-## How REA touches a target (so you know what is detectable)
+These detect REA running **against your own site**. They let your server serve
+decoys or your telemetry flag the attempt. They do nothing to REA itself or to
+third parties. REA's own `DISCLAIMER.md` forbids "bypassing … bot protection or
+access controls on systems you are not authorized to test" and "copying
+proprietary software or reproducing its protected code" — exactly the use these
+signatures surface.
 
-| REA path | Source | Reaches your origin? | Detect at |
+## How REA touches a website
+
+REA drives a browser for an AI coding agent over MCP (`npx rea-agents mcp`,
+configured for Claude Code, Codex, Cursor and ~25 other clients).
+
+| REA tool | What it does | Reaches your origin? | Detect at |
 |---|---|---|---|
-| CDP attach + source read | `src/browser/CdpEndpoint.ts` | No — loopback `127.0.0.1/json/*` only | **Client** (guard: `cdp.ts`) |
-| Source-map fetch | `src/browser/WebSourceMapFetcher.ts` | **Yes** — direct `fetch` to your origin | **Server** (honeypot: `scoring.ts`) |
-| Playwright scenario requests | `src/browser/PlaywrightScenarioRequest.ts` | Yes, but via the page's own `fetch` (looks like the real browser) | **Client** (guard: `rea.ts`, launch defaults) |
-| Static bundle analysis | `analyze-javascript-application` | No — reads local files | n/a (nothing served) |
+| `inspect_web_page`, `analyze_web_bundle`, `observe_web_session`, `observe_web_execution`, `inspect_web_event_listeners` | Attach over **loopback CDP** to a Chrome the operator started; read DOM, scripts, network, storage; enable the `Debugger` domain | No (the human's normal browsing only) | **Client** — debugger pause (`cdp.ts`) |
+| `analyze_web_bundle` with `fetch_source_maps` | Fetches every source map the page **declares**, from **Node** (`src/browser/WebSourceMapFetcher.ts:476-486`) | **Yes** | **Server** — see below |
+| `capture_browser_scenario` (launch mode) | Launches headless Chromium via Playwright with fixed defaults (`src/browser/PlaywrightScenarioBrowser.ts`) | Yes (a real browser) | **Client + server** |
+| `capture_browser_scenario` (connect mode) | Attaches to an existing tab; injects a service-worker policy (`src/browser/PlaywrightScenarioServiceWorkers.ts`) | Yes | **Client** — unique markers |
+| Static / offline tools (`export_web_scripts`, `recover_javascript_sources`, `inspect_web_network_capture`, HAR/pcap, `inspect_wasm_artifact`, …) | Analyse files already captured | No | n/a |
+
+REA has **no stealth code at all**: no `navigator.webdriver` hiding, no
+`AutomationControlled` flag, no UA override, no plugin/WebGL faking, and no code
+to detect or bypass honeypots, canaries, proof-of-work or bot protection.
 
 ## Server-side signatures (`@antirea/honeypot`)
 
 ### `rea.sourceMapAccept` — near-certain
-REA's source-map fetcher sends:
+REA's source-map fetcher sends (`WebSourceMapFetcher.ts:479-483`) — the rule
+matches the `application/source-map+json` **token anywhere in the header**, not
+the exact value:
 ```
 Accept: application/json, application/source-map+json;q=0.9
-credentials: "omit"          // no Cookie
-referrerPolicy: "no-referrer" // no Referer
-redirect: "manual"
+credentials: "omit" · referrerPolicy: "no-referrer" · redirect: "manual"
 ```
-*(verified: `src/browser/WebSourceMapFetcher.ts`, `fetchFollowingApprovedRedirects`)*
+No browser sends the `application/source-map+json` media type. Scores **0.85**.
+**Evadability:** low for stock REA (hard-coded); a fork can change it — which
+the rules below still catch.
 
-No browser sends the `application/source-map+json` media type. Matching that
-token alone scores **0.85**. **Evadability:** low — the Accept value is
-hardcoded in REA; an attacker would have to patch REA's source.
+### `ua.runtimeFetch` + `forgery.partialSecFetch` + `acceptLanguage.wildcard` — one combined fingerprint
+The fetch runs on Node's built-in `fetch` (undici). Measured on Node 22, it adds:
+```
+user-agent: node · accept-language: * · sec-fetch-mode: cors   (no sec-fetch-site / -dest)
+```
+- `ua.runtimeFetch`: UA exactly `node` / `undici`, or `Bun/…`, `Deno/…`.
+- `forgery.partialSecFetch`: `Sec-Fetch-Mode` without `-Site`/`-Dest`.
+  Measured on 11 real Chromium request types (document, script, module, CSS,
+  image, iframe, fetch GET/POST, dynamic import, beacon): browsers send all three
+  or none — **0 partial sets**. Not counted when the UA claims Chromium: a proxy
+  that strips headers from a real browser is already covered by
+  `forgery.noSecFetch`, and is not penalised twice.
+- `acceptLanguage.wildcard`: browsers never send a bare `*`.
+
+All three come from the **same source** — the runtime's defaults — so they are
+scored as **one** piece of evidence: **0.6** with the runtime UA or ≥2 markers,
+0.2 for a lone non-UA marker. That is deliberately **below the default threshold
+(0.7)**: a legitimate server-side Node client (monitoring, SSR prefetch) is
+*reported*, not decoyed. It crosses the threshold only with an independent
+signal — e.g. a `.map` request (`rea.sourceMapShape` + `request.sourceMap`), so a
+REA fork with a changed `Accept` still scores **1.00**. A plain Node script
+harvesting `/assets/app.js` scored **0.00** before these rules and **0.60** now
+(visible in the dashboard). **Evadability:** medium — setting explicit headers
+removes them.
 
 ### `rea.sourceMapShape` — supporting
-A `.map` request with **no `Cookie`, no `Referer`, no `Sec-Fetch-*`** matches
-the fetcher's shape (`credentials:"omit"`, `referrerPolicy:"no-referrer"`,
-native `fetch`, no browser metadata). Scores **0.5**. **Evadability:** medium —
-other CLI fetchers (curl, wget, scripts) look similar, which is fine: they are
-also not your app.
+A `.map` request with no `Cookie`, `Referer` or `Sec-Fetch-Dest` (0.5).
 
-## Client-side signature (`@antirea/guard`)
+### `canary.sourceMap` — strong (opt-in)
+REA fetches the maps a page **declares** and never guesses `.map` URLs
+(`src/browser/CdpCaptureEventHandlers.ts:179-235`). Browsers fetch source maps
+only while DevTools is open. So point a bundle at a map URL that is linked
+nowhere else, and any request for it is a source-map consumer:
+
+```ts
+import { honeypot, sourceMapCanaryComment } from "@antirea/honeypot";
+app.use(honeypot({ siteId, protect: [/\.js$/, /\.map$/], sourceMapCanary: "/__antirea/m/" }));
+bundleSource += "\n" + sourceMapCanaryComment("/__antirea/m/");   // unique random token
+```
+A hit scores **1.0** and, in live mode, gets an empty decoy map. REA accepts
+maps without authenticity checks (`trace_web_source_location`: "Deployment
+authenticity and execution remain unknown"), so decoys are taken at face value.
+
+What a hit does and does **not** tell you:
+- It means *a source-map consumer* read the map — REA, a harvesting script, or a
+  developer with **DevTools open**. It does not identify REA; pair it with the
+  other reasons on the same event.
+- The prefix is matched on a **directory boundary** (`/maps` matches
+  `/maps/…`, never `/maps-ui/…`); `/` and `""` are refused.
+- It is checked even when the path is not in `protect`, but it is **not
+  scored** for requests the middleware skips entirely: protection switched off
+  from the control panel, or an allowlisted IP / verified bot.
+- **CDN / static hosting:** the canary path must reach the origin running the
+  middleware. If a CDN or static host serves (or 404s) `/__antirea/m/*` itself,
+  the hit is never seen — add a pass-through rule for the prefix, and do not
+  cache it.
+
+**Evadability:** low — REA must fetch declared maps to use the feature.
+
+### `ua.headlessClientHint` — strong-but-evadable
+REA's launch mode sets no UA, so Chromium reports `HeadlessChrome` in both the UA
+and the `sec-ch-ua` Client Hint (measured). Already caught by `ua.headless`; the
+Client-Hint rule (0.6) also catches automation that spoofed only the UA string.
+
+## Client-side signatures (`@antirea/guard`)
+
+### `rea.scenarioSwPolicy` — near-certain
+Connect mode (default `service_workers: "block"`, `src/domain/browserScenarioValues.ts:307`)
+injects into the main world (`PlaywrightScenarioServiceWorkers.ts:222-243`):
+- replaces `ServiceWorkerContainer.prototype.register`, tagged with
+  `Symbol.for("rea-service-workers-<uuid>")`;
+- defines a hidden global `rea-restore-<uuid>`.
+
+`detectors/scenario.ts` matches those exact shapes (0.99). It runs at load and
+on the periodic sweep, so REA attaching to an **already-open tab** is caught too
+(verified in Chromium). **Evadability:** low (fixed prefixes; a fork could rename).
+
+### `automation.swBlockPatch` — report-only
+Launch mode passes `serviceWorkers: "block"` to Playwright, which sets an own,
+non-native `register` on the `navigator.serviceWorker` **instance** (measured).
+Scores **0.5** — below the 0.7 at which `aggressive` mode halts the app, because
+another script could also wrap the instance method; real Playwright is still
+stopped by its independent signals (`navigator.webdriver`, 0.8).
+Prototype-level wrappers are ignored on purpose (frameworks such as zone.js
+patch prototypes); verified no signal on such a wrapper.
+**Evadability:** medium (`service_workers: "allow"`).
+
+### `cdp.debuggerPause` — strong
+Every live CDP tool enables the `Debugger` domain and **never suppresses pauses**:
+"Enabling Debugger can make target-authored debugger statements pause execution;
+observation does not suppress or resume these pauses"
+(`src/inspector/V8InspectorCaptureProjection.ts:33`; no `setSkipAllPauses` /
+`setBreakpointsActive` anywhere in `src/`). The guard's `debugger`-timing probe
+fires; with REA attached the page actually freezes at the probe until REA detaches.
 
 ### `rea.playwrightDefaults` — strong-but-evadable
-REA's scripted-browser scenarios launch Playwright with these **defaults**:
-```
-headless: true · locale: "en-US" · timezone: "UTC" · color_scheme: "light"
-reduced_motion: "reduce" · viewport: 1280x720 · device_scale_factor: 1
-service_workers: "block"
-```
-*(verified: `src/domain/browserScenarioValues.ts`)* plus Playwright's
-`navigator.webdriver = true`.
+Launch defaults, unchanged in 6.8.0 (`browserScenarioValues.ts:269-318`): headless,
+1280×720, DPR 1, `en-US`, `UTC`, light, `reduced_motion: reduce`, service workers
+blocked; plus `navigator.webdriver === true` (measured). Fires on a strong core
+plus ≥4 of 7 markers. **Evadability:** medium — the operator can override these.
 
-`rea.ts` scores the **combination**: it fires only when a strong core
-(`navigator.webdriver` or an exact 1280×720 viewport) is present **and** at
-least 4 of the 7 markers align — a profile a real user almost never produces
-(UTC + reduced-motion + 1280×720 + DPR 1 + webdriver together). Confidence
-scales with the number of matching markers (up to 0.9).
+## What REA can and cannot defeat (honest)
 
-**Evadability:** medium. An operator can override `locale`, `timezone`,
-`viewport`, and `color_scheme` in the scenario spec, defeating those markers.
-`navigator.webdriver` and headless are harder to hide. This catches REA's
-out-of-the-box configuration.
+| Our protection | Against REA 6.8.0 |
+|---|---|
+| **Server-side execution** (`secure-fn`) | **Not defeated** — the algorithm never reaches the browser. The only hermetic layer. |
+| **Encrypted bundle delivery** | **Defeated if REA attaches after decryption.** `observe_web_execution` reads every main-frame, default-world script via `Debugger.getScriptSource` and checks the frame and world, **not the URL** (`src/browser/execution/CdpRuntimeSources.ts:119-150`), so eval'd and blob-imported code is captured, including scripts compiled before it attached. **Not defeated if REA is attached first:** the guard's attestation runs a `debugger` probe *before* requesting the key, and REA's attached debugger freezes the page there, so decryption never runs while it observes. Code in Workers, child frames and WASM is outside that capture path. |
+| **WASM tier** | **Partially.** `inspect_wasm_artifact` disassembles to WAT (WABT `wasm2wat`); no decompiler. Our AssemblyScript build emits **no custom sections** (no `name` section), so function names do not leak. |
+| **Obfuscation** (string arrays, control-flow flattening, renaming) | **Not undone statically** — REA has no deobfuscator; its own docs say obfuscation leaves paths "unresolved". **Partially bypassed at runtime:** precise coverage shows which code ran, and network initiator stacks reveal real endpoint URLs. Hide endpoints by gating them server-side, not by encoding strings. |
+| **Decoy source maps** | **Work** — accepted without verification. |
+| **Detection** (debugger, webdriver, scenario patches, Node fetch) | **Not evaded** — REA has no stealth. Node-fetch markers alone are reported, not decoyed (see above). |
 
-## What is NOT a usable signature (and why)
+## What is NOT a usable signature
 
-- **Playwright request headers.** Scenario requests use the page's own `fetch`
-  with the real browser's headers/cookies (`src/browser/PlaywrightScenarioRequest.ts`),
-  and REA's spec **forbids** setting `cookie`/`referer`/`user-agent`/`sec-*`
-  (`browserScenarioValues.ts`). So these requests look legitimate at the header
-  level — blocking on headers would hit real users. Use the launch-defaults
-  fingerprint and behaviour instead.
-- **CDP endpoint.** Loopback only; never reaches your origin. Only the
-  client-side effects of an attached debugger are observable — see `cdp.ts`
-  (`debugger`-timing, which REA's passive capture does not suppress).
+- **Scenario `request` steps.** They use the page's own `fetch` with the real
+  browser's headers and cookies (`PlaywrightScenarioRequest.ts:200-292`).
+- **The CDP endpoint.** Loopback only; never reaches your origin.
+- **Branding.** REA sends no `rea` User-Agent and no `x-rea-*` headers to targets.
 
 ## The honest bottom line
 
 These raise the cost of an out-of-the-box REA run and make attempts visible in
-the dashboard. A patient operator who patches the Accept header and overrides
-the Playwright defaults evades the client/header layer. The only hermetic
-protection for proprietary logic remains server-side execution
-(`@antirea/secure-fn`). Signatures are deterrence and intelligence, layered on
-top of that.
+the dashboard. A patient operator who forks REA, sets explicit headers, renames
+its markers and overrides the Playwright defaults can evade the client/header
+layer, and an analyst who attaches **after** a protected bundle has been
+decrypted can read it. The only hermetic protection for proprietary logic
+remains server-side execution (`@antirea/secure-fn`). Signatures are
+deterrence and intelligence, layered on top of that.
 
 ## Verify for yourself
 
 ```bash
-# Confirm the signatures against the current source before relying on them.
 git clone https://github.com/morluto/rea && cd rea
 grep -n "source-map+json" src/browser/WebSourceMapFetcher.ts
-grep -n "default(true)\|1280\|\"UTC\"\|reduce" src/domain/browserScenarioValues.ts
+grep -n "default(true)\|1280\|\"UTC\"\|reduce\|service_workers" src/domain/browserScenarioValues.ts
+grep -n "rea-service-workers-\|rea-restore-" src/browser/PlaywrightScenarioServiceWorkers.ts
+grep -rn "setSkipAllPauses\|setBreakpointsActive" src/   # expect: nothing
 ```
-Signatures were verified against the `main` branch; re-check after REA updates.

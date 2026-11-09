@@ -24,6 +24,12 @@ export interface ScoreInput {
   headers: Record<string, string | string[] | undefined>;
   /** Request path. */
   path: string;
+  /**
+   * Path prefixes of source-map canaries: URLs that are only ever referenced
+   * from a `sourceMappingURL` comment, never linked. Browsers do not fetch
+   * source maps unless DevTools is open, so any hit is analysis.
+   */
+  canaryPaths?: string[];
 }
 
 export interface ScoreResult {
@@ -35,6 +41,19 @@ export interface ScoreResult {
 
 const HEADLESS_UA =
   /HeadlessChrome|PhantomJS|SlimerJS|Nightmare|Electron\/|python-requests|node-fetch|axios\/|curl\/|wget\/|Go-http-client|Java\/|okhttp|Scrapy/i;
+
+/**
+ * Built-in fetch of server-side JS runtimes, which identify themselves plainly:
+ * Node (undici) sends exactly "node". REA's source-map fetcher runs on it
+ * (verified against morluto/rea 6.8.0 and measured on Node 22).
+ */
+const RUNTIME_FETCH_UA = /^(?:node|undici)(?:\/[\w.-]+)?$|^(?:Bun|Deno)\/\d/i;
+
+/**
+ * Weight of the combined runtime-fetch fingerprint. Deliberately below the
+ * default threshold (0.7): on its own it reports, it does not decoy.
+ */
+export const RUNTIME_FETCH_WEIGHT = 0.6;
 
 /** Known analysis/automation libraries sometimes present in UA or headers. */
 const AUTOMATION_HINTS = /playwright|puppeteer|webdriver|selenium|headless/i;
@@ -62,11 +81,28 @@ function parseAttestation(raw: string): { cdp?: boolean; confidence?: number } {
   }
 }
 
+/**
+ * True when `path` lies under the directory `prefix`. The prefix is treated as
+ * a directory ("/maps" means "/maps/…"), so "/maps-ui/app.js" does not match.
+ */
+export function isUnderPrefix(path: string, prefix: string): boolean {
+  if (prefix === "" || prefix === "/") return false;
+  const dir = prefix.endsWith("/") ? prefix : `${prefix}/`;
+  return path.startsWith(dir);
+}
+
 export function scoreRequest(input: ScoreInput): ScoreResult {
   const reasons: string[] = [];
   let score = 0;
   const ua = input.userAgent || "";
   const h = input.headers;
+
+  // Source-map canary: an unlinked map URL that only a source-map consumer
+  // (REA's fetcher, an open DevTools, a harvesting script) would request.
+  if (input.canaryPaths?.some((p) => isUnderPrefix(input.path, p))) {
+    score += 1;
+    reasons.push("canary.sourceMap");
+  }
 
   // 0. Client attestation: if an honest client reported a CDP/inspector
   //    attach, that is a strong signal to serve a decoy. (Forgeable; see note.)
@@ -113,6 +149,12 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
     score += 0.4;
     reasons.push("ua.empty");
   }
+  // Headless Chromium also brands itself in Client Hints; count it only when
+  // the UA did not already say so (e.g. a UA override left the hint intact).
+  if (!HEADLESS_UA.test(ua) && /HeadlessChrome/i.test(header(h, "sec-ch-ua"))) {
+    score += 0.6;
+    reasons.push("ua.headlessClientHint");
+  }
 
   // 2. Real browsers send Sec-Fetch-* and Accept for script requests.
   //    Their absence on a .js request is a strong harvesting signal.
@@ -132,6 +174,30 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
       reasons.push("request.sourceMap");
     }
   }
+
+  // Built-in fetch of a server-side runtime (Node/undici): UA "node", only
+  // Sec-Fetch-Mode (browsers send Site, Mode and Dest together, or none), and
+  // Accept-Language "*". These markers all come from the same source — the
+  // runtime's defaults — so they count as ONE piece of evidence, capped below
+  // the default threshold: a legitimate server-side client fetching a script
+  // is reported, not decoyed, unless an independent signal (a source-map
+  // request, REA's Accept token, behaviour) corroborates it. A partial
+  // Sec-Fetch set on a request whose UA claims Chromium is left to
+  // forgery.noSecFetch below, so a proxy that strips headers from a real
+  // browser is not penalised twice.
+  const claimsChromium = /Chrome\/(\d+)/.test(ua) && !/Edge\//.test(ua);
+  const runtimeUa = RUNTIME_FETCH_UA.test(ua.trim());
+  const partialSecFetch =
+    !claimsChromium &&
+    header(h, "sec-fetch-mode") !== "" &&
+    !header(h, "sec-fetch-site") &&
+    !header(h, "sec-fetch-dest");
+  const languageWildcard = header(h, "accept-language").trim() === "*";
+  if (runtimeUa) reasons.push("ua.runtimeFetch");
+  if (partialSecFetch) reasons.push("forgery.partialSecFetch");
+  if (languageWildcard) reasons.push("acceptLanguage.wildcard");
+  const runtimeMarkers = [runtimeUa, partialSecFetch, languageWildcard].filter(Boolean).length;
+  if (runtimeMarkers > 0) score += runtimeUa || runtimeMarkers >= 2 ? RUNTIME_FETCH_WEIGHT : 0.2;
 
   // 3. No Accept-Language is uncommon for real browsers.
   if (!header(h, "accept-language")) {

@@ -29,10 +29,11 @@ import { Allowlist, type AllowlistOptions } from "./allowlist.js";
 import { BehaviorTracker, fingerprintHeaders, type BehaviorOptions } from "./behavior.js";
 import { RemoteConfigClient } from "./config.js";
 import { buildDecoy, buildEmptySourceMap } from "./decoy.js";
-import { scoreRequest } from "./scoring.js";
+import { scoreRequest, isUnderPrefix } from "./scoring.js";
 
 export { scoreRequest } from "./scoring.js";
 export { buildDecoy } from "./decoy.js";
+export { DEFAULT_CANARY_PREFIX, sourceMapCanaryComment } from "./canary.js";
 export { Allowlist } from "./allowlist.js";
 export { BehaviorTracker, fingerprintHeaders } from "./behavior.js";
 export { RemoteConfigClient } from "./config.js";
@@ -71,6 +72,19 @@ export interface HoneypotOptions {
    * before serving (wastes a scraper's time/connections). 0 = off (default).
    */
   tarpitMs?: number;
+  /**
+   * Directory of source-map canaries (see `sourceMapCanaryComment`), e.g.
+   * "/__antirea/m/" — matched at directory boundaries, so "/maps" does not
+   * match "/maps-ui/…". Requests under it are scored as analysis even if they
+   * are not in `protect`, and get an empty decoy map in live mode.
+   *
+   * Exceptions: a hit is NOT scored or reported when protection is switched
+   * off from the panel, or when the request's IP or verified bot matches the
+   * allowlist. If assets are served from a CDN, the CDN must forward this path
+   * to the origin running the honeypot (and not cache it), or hits never
+   * arrive here.
+   */
+  sourceMapCanary?: string;
   /** Live config from the admin panel. */
   config?: HoneypotConfigSource;
   onDecoyServed?: (info: { canary: string; path: string; ip: string }) => void;
@@ -177,7 +191,9 @@ export function honeypot(opts: HoneypotOptions): HoneypotMiddleware {
 
   const mw = function honeypotMiddleware(req: Req, res: ServerResponse, next: Next): void {
     const path = reqPath(req);
-    if (!matches(path, opts.protect)) return next();
+    const canaryPaths = opts.sourceMapCanary ? [opts.sourceMapCanary] : undefined;
+    const isCanary = canaryPaths?.some((p) => isUnderPrefix(path, p)) ?? false;
+    if (!isCanary && !matches(path, opts.protect)) return next();
 
     const cfg = remote?.get() ?? {};
     if (cfg.enabled === false) return next(); // master switch from the panel
@@ -204,7 +220,7 @@ export function honeypot(opts: HoneypotOptions): HoneypotMiddleware {
         isNavigation: nav,
       });
 
-      const req_ = scoreRequest({ userAgent: ua, headers: req.headers, path });
+      const req_ = scoreRequest({ userAgent: ua, headers: req.headers, path, canaryPaths });
       const reasons = [...new Set([...req_.reasons, ...behavior.reasons])];
 
       // TLS fingerprint (JA3/JA4) from the proxy — independent of HTTP headers.

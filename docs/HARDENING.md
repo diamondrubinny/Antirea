@@ -80,3 +80,30 @@ const mod = await importEncrypted(payload, key);
 
 **Limit:** any client that receives the key can decrypt — the protection is the
 GATE on the key, not the encryption. Requires CSP `blob:` in `script-src`.
+
+**Fetch the key with the guard's gated loader** (`fetchProtected` /
+`fetchProtectedBytes`), not a plain `fetch`: it runs a `debugger`-timing probe
+*before* the request and sends the result as attestation. Against REA 6.8.0
+this matters twice over — REA's live tools enable the `Debugger` domain and
+never suppress pauses, so with REA attached the page freezes at that probe and
+the key is never requested **through the loader** while REA observes.
+
+What the gate is **not**:
+- **Not a security boundary.** The attestation header is client-supplied and
+  forgeable; the server treats it as one signal among others. Anyone who reads
+  your page can call the key endpoint directly with a clean-looking header.
+- The probe only delays requests made **via `fetchProtected`**. Code that calls
+  the key endpoint with a plain `fetch` (or from outside the browser) is not
+  paused by it.
+- It raises the cost of a scripted, out-of-the-box capture; it does not keep a
+  determined analyst from the key. Gate the key server-side as well (sessions,
+  rate limits, behavioural scoring) and keep real secrets in
+  `@antirea/secure-fn`.
+
+**Honest limit against CDP tools (verified against REA 6.8.0):** once the bundle
+has been decrypted and evaluated in the page, a CDP tool that attaches **later**
+can read it — REA's `observe_web_execution` captures every main-frame script via
+`Debugger.getScriptSource` regardless of URL, eval'd and `blob:` code included.
+The guard's periodic probe will *detect* that attach, but cannot undo the read.
+Keep anything that must stay secret server-side (`@antirea/secure-fn`). See
+[`REA-SIGNATURES.md`](./REA-SIGNATURES.md#what-rea-can-and-cannot-defeat-honest).
