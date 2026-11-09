@@ -9,3 +9,9 @@ docs/screenshots
 **/.env
 **/.env.*
 *.log
+# Not needed at runtime (LICENSE and NOTICE are kept on purpose: Apache-2.0 §4).
+docs
+website
+examples
+test
+**/test
