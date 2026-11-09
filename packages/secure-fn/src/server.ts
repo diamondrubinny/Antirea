@@ -19,158 +19,80 @@
  * signed sessions, nonce anti-replay, rate limiting, and anomaly reporting to
  * make bulk behavioural harvesting expensive and visible in the dashboard.
  */
-import express, { type Request, type Response, type Router } from "express";
+import express, { type NextFunction, type Request, type Response, type Router } from "express";
 import rateLimit from "express-rate-limit";
-import { randomUUID } from "node:crypto";
-import { NonceStore, RateLimiter } from "./guards.js";
-import { signToken, verifyToken } from "./signing.js";
+import {
+  addressKey,
+  createSecureFnCore,
+  forwardedIp,
+  isJsonContentType,
+  trustHops,
+  SESSIONS_PER_MIN,
+  type SecureFnOptions,
+} from "./core.js";
 
-export interface InvokeContext {
-  sid: string;
-  ip: string;
-  /** Invocations by this session in the current window (incl. this one). */
-  invokeCount: number;
-}
+export type { InvokeContext, SecureFn, SecureFnOptions } from "./core.js";
 
-export type SecureFn<TArgs = unknown, TOut = unknown> = (
-  args: TArgs,
-  ctx: InvokeContext,
-) => Promise<TOut> | TOut;
-
-export interface SecureFnOptions {
-  /** HMAC secret for session tokens. REQUIRED, from env, never in code. */
-  secret: string;
-  /** Map of function name -> implementation. Bodies stay server-side. */
-  functions: Record<string, SecureFn>;
-  /** Session token TTL (ms). Default 10 min. */
-  sessionTtlMs?: number;
-  /** Max invokes per session per minute before rejection. Default 120. */
-  maxInvokesPerMin?: number;
-  /** Nonce replay window (ms). Default 2 min. */
-  nonceTtlMs?: number;
-  /** If set, anomalies are reported here (the collector's /api/events). */
-  reportUrl?: string;
-  /** Site id used in anomaly reports. */
-  siteId?: string;
-  /** Trust X-Forwarded-For (only behind a trusted proxy). Default false. */
-  trustProxy?: boolean;
-}
-
-function clientIp(req: Request, trustProxy: boolean): string {
-  if (trustProxy) {
-    const xff = req.headers["x-forwarded-for"];
-    const v = Array.isArray(xff) ? xff[0] : xff;
-    if (v) return v.split(",")[0].trim();
-  }
-  return req.socket.remoteAddress ?? "";
-}
-
+/** Express adapter over the framework-neutral core (see core.ts, web.ts). */
 export function createSecureFnRouter(opts: SecureFnOptions): Router {
-  if (!opts.secret) throw new Error("[secure-fn] secret is required");
-  const sessionTtlMs = opts.sessionTtlMs ?? 10 * 60_000;
-  const maxPerMin = opts.maxInvokesPerMin ?? 120;
-  const nonceTtlMs = opts.nonceTtlMs ?? 2 * 60_000;
-  const trustProxy = opts.trustProxy ?? false;
-
-  const nonces = new NonceStore(nonceTtlMs);
-  const limiter = new RateLimiter(maxPerMin, 60_000);
-
-  async function reportAnomaly(name: string, ip: string, detail: string): Promise<void> {
-    // Operational log (server-side only; not sent to the client).
-    console.warn(`[secure-fn] anomaly ${detail} fn=${name} ip=${ip}`);
-    if (!opts.reportUrl) return;
-    try {
-      await fetch(opts.reportUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          v: 1,
-          ts: Date.now(),
-          sessionId: "secure-fn",
-          siteId: opts.siteId ?? "secure-fn",
-          source: "server",
-          path: `/invoke/${name}`,
-          ua: "",
-          lang: "",
-          screen: "",
-          tz: "",
-          signals: [{ type: "automation", name: `securefn:${detail}`, confidence: 0.9 }],
-        }),
-      });
-    } catch {
-      /* reporting must never break the endpoint */
-    }
-  }
+  const core = createSecureFnCore(opts);
+  const hops = trustHops(opts.trustProxy);
+  // Client address, in order of preference:
+  //  1. the app configured Express's own "trust proxy" → `req.ip` (Express
+  //     already resolved the chain; overriding it would mis-key clients);
+  //  2. the `trustProxy` option → the trusted X-Forwarded-For hop;
+  //  3. the socket address.
+  const clientIp = (req: Request): string => {
+    const socketAddr = req.socket.remoteAddress ?? "";
+    if (req.app.get("trust proxy")) return req.ip ?? socketAddr;
+    if (hops < 1) return socketAddr;
+    const xff = req.headers["x-forwarded-for"];
+    return forwardedIp(Array.isArray(xff) ? xff.join(",") : xff, hops, socketAddr);
+  };
 
   const router = express.Router();
   const jsonBody = express.json({ limit: "32kb" });
 
   const issueLimiter = rateLimit({
     windowMs: 60_000,
-    limit: 30,
+    limit: SESSIONS_PER_MIN,
     standardHeaders: true,
     legacyHeaders: false,
+    // Same client address the core sees, with IPv6 clients grouped by /56.
+    keyGenerator: (req) => addressKey(clientIp(req)),
   });
 
   // Issue a short-lived session token.
-  router.post("/session", issueLimiter, (_req: Request, res: Response) => {
-    const sid = randomUUID();
-    const token = signToken(opts.secret, { sid, exp: Date.now() + sessionTtlMs });
-    res.json({ token, ttlMs: sessionTtlMs });
+  router.post("/session", issueLimiter, (req: Request, res: Response) => {
+    const r = core.issueSession(clientIp(req));
+    res.status(r.status).json(r.body);
   });
 
+  // JSON only — the same rule as the Fetch-API handler.
+  const requireJson = (req: Request, res: Response, next: NextFunction): void => {
+    if (!isJsonContentType(req.headers["content-type"])) {
+      res.status(415).json({ error: "unsupported media type" });
+      return;
+    }
+    next();
+  };
+
   // Invoke a registered function.
-  router.post("/invoke", jsonBody, (req: Request, res: Response) => {
-    void (async () => {
-      const ip = clientIp(req, trustProxy);
+  router.post("/invoke", requireJson, jsonBody, (req: Request, res: Response) => {
+    core
+      .invoke({ authorization: req.headers.authorization ?? "", body: req.body, ip: clientIp(req) })
+      .then((r) => res.status(r.status).json(r.body))
+      .catch(() => {
+        if (!res.headersSent) res.status(500).json({ error: "internal" });
+      });
+  });
 
-      // 1. Auth: verify the signed session token.
-      const auth = req.headers.authorization ?? "";
-      const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-      const payload = verifyToken(opts.secret, token);
-      if (!payload) {
-        res.status(401).json({ error: "invalid session" });
-        return;
-      }
-
-      const body = req.body as { name?: unknown; args?: unknown; nonce?: unknown };
-      const name = typeof body.name === "string" ? body.name : "";
-      const nonce = typeof body.nonce === "string" ? body.nonce : "";
-
-      // 2. Anti-replay.
-      if (!nonces.check(nonce)) {
-        res.status(409).json({ error: "replay" });
-        return;
-      }
-
-      // 3. Rate limit per session; a spike is a harvesting signal.
-      const rl = limiter.hit(payload.sid);
-      if (!rl.ok) {
-        void reportAnomaly(name || "?", ip, "rate_exceeded");
-        res.status(429).json({ error: "rate limited" });
-        return;
-      }
-
-      // 4. Dispatch to the server-side implementation.
-      const fn = Object.prototype.hasOwnProperty.call(opts.functions, name)
-        ? opts.functions[name]
-        : undefined;
-      if (!fn) {
-        res.status(404).json({ error: "unknown function" });
-        return;
-      }
-
-      try {
-        const result = await fn(body.args, { sid: payload.sid, ip, invokeCount: rl.count });
-        res.json({ result });
-      } catch (e) {
-        // Never leak internals (stack/algorithm) to the client.
-        console.error("[secure-fn] invoke error", name, (e as Error).message);
-        res.status(500).json({ error: "execution failed" });
-      }
-    })().catch(() => {
-      if (!res.headersSent) res.status(500).json({ error: "internal" });
-    });
+  // Body-parser failures (malformed JSON, too large) must not fall through to
+  // Express's default error page, which prints a stack trace outside production.
+  router.use((err: unknown, _req: Request, res: Response, next: NextFunction) => {
+    if (res.headersSent) return next(err);
+    const tooLarge = (err as { type?: string } | null)?.type === "entity.too.large";
+    res.status(tooLarge ? 413 : 400).json({ error: tooLarge ? "payload too large" : "invalid json" });
   });
 
   return router;
