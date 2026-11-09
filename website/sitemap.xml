@@ -1,13 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://norea.rubinny.net/</loc>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://norea.rubinny.net/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="he" href="https://norea.rubinny.net/?lang=he"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://norea.rubinny.net/?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://norea.rubinny.net/?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://norea.rubinny.net/?lang=de"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://norea.rubinny.net/?lang=ar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://norea.rubinny.net/"/>
   </url>
   <url>
     <loc>https://norea.rubinny.net/privacy.html</loc>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://norea.rubinny.net/privacy.html?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="he" href="https://norea.rubinny.net/privacy.html?lang=he"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://norea.rubinny.net/privacy.html?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://norea.rubinny.net/privacy.html?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://norea.rubinny.net/privacy.html?lang=de"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://norea.rubinny.net/privacy.html?lang=ar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://norea.rubinny.net/privacy.html"/>
+  </url>
+  <url>
+    <loc>https://norea.rubinny.net/accessibility.html</loc>
+    <lastmod>2026-11-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://norea.rubinny.net/accessibility.html?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="he" href="https://norea.rubinny.net/accessibility.html?lang=he"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://norea.rubinny.net/accessibility.html?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://norea.rubinny.net/accessibility.html?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://norea.rubinny.net/accessibility.html?lang=de"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://norea.rubinny.net/accessibility.html?lang=ar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://norea.rubinny.net/accessibility.html"/>
   </url>
 </urlset>

@@ -23,10 +23,9 @@
   Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), interest-cohort=()"
   Header always set Cross-Origin-Opener-Policy "same-origin"
 
-  # Content Security Policy. Scripts are strict 'self' (only consent.js).
-  # style 'unsafe-inline' is kept because privacy.html uses inline style attrs;
-  # remove it once those are moved to a stylesheet for a stricter policy.
-  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+  # Content Security Policy. Scripts and styles are strict 'self': no inline
+  # <script>, no inline style="" attributes anywhere on the site.
+  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
 
   # Do not leak the tech stack.
   Header unset X-Powered-By
@@ -34,6 +33,14 @@
 </IfModule>
 
 # ---- Hardening -------------------------------------------------------------
+# Localized "page not found" page (absolute asset paths, so it works at any depth).
+ErrorDocument 404 /404.html
+
+# RFC 9116 security contact.
+<Files "security.txt">
+  ForceType "text/plain; charset=utf-8"
+</Files>
+
 Options -Indexes
 ServerSignature Off
 AddDefaultCharset utf-8

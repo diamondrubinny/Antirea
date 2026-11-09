@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-i18n-title="nf.meta.title" data-i18n-desc="nf.meta.desc">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Page not found — NoREA</title>
+    <meta name="description" content="The page you requested does not exist on the NoREA website." />
+    <meta name="robots" content="noindex" />
+    <!-- Absolute paths: this page is served for missing URLs at any depth. -->
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/consent.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main" data-i18n="skip">Skip to main content</a>
+    <header class="nav">
+      <div class="wrap nav-in">
+        <a class="brand" href="/" aria-label="NoREA home"
+          ><span class="no">No</span><span class="rea">REA</span></a
+        >
+        <nav aria-label="Primary">
+          <a href="/" data-i18n="p.nav.home">Home</a>
+          <select id="lang-select" class="lang-select" aria-label="Language"></select>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="band">
+      <div class="wrap doc">
+        <h1 data-i18n="nf.h1">Page not found</h1>
+        <p class="section-lead" data-i18n="nf.p">
+          The page you asked for doesn’t exist or has moved. Check the address, or continue from one of these
+          pages:
+        </p>
+        <ul>
+          <li><a href="/" data-i18n="nf.home">Home page</a></li>
+          <li><a href="/privacy.html" data-i18n="nf.privacy">Privacy &amp; Cookie Policy</a></li>
+          <li><a href="/accessibility.html" data-i18n="footer.a11y">Accessibility statement</a></li>
+        </ul>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap footer-in">
+        <p>
+          <strong>NoREA</strong> ·
+          <span class="muted" data-i18n="footer.tagline">anti-REA code protection</span>
+        </p>
+        <p class="muted small">
+          <a href="/privacy.html" data-i18n="footer.privacy">Privacy &amp; Cookie Policy</a> ·
+          <a href="/accessibility.html" data-i18n="footer.a11y">Accessibility statement</a> ·
+          <a href="#" data-cc-open data-i18n="footer.cookies">Cookie settings</a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="/a11y.js" defer></script>
+    <script src="/i18n.js" defer></script>
+    <script src="/consent.js" defer></script>
+  </body>
+</html>
