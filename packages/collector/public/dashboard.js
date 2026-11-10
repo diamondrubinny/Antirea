@@ -265,6 +265,10 @@ async function load() {
     renderTimeline(stats.timeline);
     renderBars("#country", stats.byCountry);
     renderBars("#signal", stats.bySignal);
+    const rea = stats.rea || { signals: [], total: 0, lastSeen: null };
+    renderBars("#rea", rea.signals);
+    $("#rea-total").textContent = num(rea.total);
+    $("#rea-last").textContent = rea.lastSeen ? fmtTime(rea.lastSeen) : "—";
     renderRecent(recent.events);
     renderOffenders(offenders.offenders);
     await loadSettings();

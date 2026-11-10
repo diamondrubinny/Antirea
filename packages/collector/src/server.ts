@@ -267,6 +267,7 @@ app.get("/api/stats", admin, (req: Request, res: Response) => {
     totals: store.totals(since, siteId),
     byCountry: store.byCountry(since, siteId),
     bySignal: store.bySignal(since, siteId),
+    rea: store.reaSignals(since, siteId),
     honeypot: store.honeypotBreakdown(since, siteId),
     timeline: store.timeline(since, bucketMs, siteId),
     bucketMs,

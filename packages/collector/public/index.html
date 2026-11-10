@@ -67,6 +67,15 @@
               <tbody></tbody>
             </table>
           </section>
+          <section aria-labelledby="h-rea">
+            <h2 id="h-rea" data-i18n="rea.title">REA signatures</h2>
+            <p class="muted"><span data-i18n="rea.events">Events with a REA signature</span>: <strong id="rea-total">0</strong> · <span data-i18n="rea.last">Last seen</span>: <span id="rea-last">—</span></p>
+            <table id="rea" class="bars">
+              <thead><tr><th scope="col" data-i18n="rea.title">REA signatures</th><th scope="col" data-i18n="offenders.count">Requests</th></tr></thead>
+              <tbody></tbody>
+            </table>
+            <p class="muted small" data-i18n="rea.note">A signature means a request or browser matched a known REA pattern. A source-map canary hit can also come from a developer with DevTools open. Events can be forged, so treat this as a lead, not proof.</p>
+          </section>
           <section aria-labelledby="h-signal">
             <h2 id="h-signal" data-i18n="bySignal">By signal</h2>
             <table id="signal" class="bars">

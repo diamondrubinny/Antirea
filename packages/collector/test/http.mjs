@@ -135,6 +135,31 @@ try {
       JSON.stringify(stats.bySignal).includes("cdp.debuggerPause"),
       "the ingested event is stored and visible to the admin API",
     );
+    // REA view: only REA-specific signals are counted.
+    const post = (source, names) =>
+      call("POST", "/api/events", {
+        body: { ...ev, source, signals: names.map((name) => ({ type: "automation", name, confidence: 1 })) },
+      });
+    await post("honeypot", ["honeypot:canary.sourceMap", "honeypot:rea.sourceMapAccept"]);
+    await post("client", ["rea.scenarioSwPolicy"]);
+    const rea = (await (await call("GET", "/api/stats", { token: TOKEN })).json()).rea;
+    const labels = rea.signals
+      .map((s) => s.label)
+      .sort()
+      .join(",");
+    ok(
+      labels === "honeypot:canary.sourceMap,honeypot:rea.sourceMapAccept,rea.scenarioSwPolicy",
+      `REA view lists only REA signals (got ${labels})`,
+    );
+    ok(
+      rea.total === 2 && typeof rea.lastSeen === "number",
+      "REA view counts distinct events and reports the last one",
+    );
+    const none = (await (await call("GET", "/api/stats?site=nobody", { token: TOKEN })).json()).rea;
+    ok(
+      none.total === 0 && none.lastSeen === null && none.signals.length === 0,
+      "REA view is empty for a site with no events",
+    );
     ok(
       (await call("GET", "/api/site-config?site=demo", { headers: { "x-antirea-site-key": "wrong" } }))
         .status === 403,
