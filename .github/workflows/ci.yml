@@ -40,6 +40,29 @@ jobs:
       - name: Full-stack e2e (all layers together)
         run: node examples/full-stack/test.mjs
 
+  # The collector's native SQLite driver must build and load on every supported
+  # Node version, and every admin route must require the token. The main job
+  # skips install scripts, so neither is covered there.
+  collector-http:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24, 26]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install
+        run: npm install --no-audit --no-fund --ignore-scripts
+      - name: Build the native SQLite driver
+        run: npm rebuild better-sqlite3
+      - name: Build the collector and its dependencies
+        run: npm run build -w packages/adaptive -w packages/watermark -w packages/collector
+      - name: HTTP tests against a running collector
+        run: npm run test:http -w packages/collector
+
   lint:
     runs-on: ubuntu-latest
     steps:

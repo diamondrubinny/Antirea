@@ -1,0 +1,73 @@
+name: Release to npm
+
+# Publishes the public @antirea/* packages with provenance.
+#
+# One-time setup by the repository owner (nothing is published until this is done):
+#   1. Create the "antirea" organisation (scope) on npmjs.com.
+#   2. Create a granular npm access token with publish rights for @antirea/*
+#      and save it as the repository secret NPM_TOKEN.
+#   3. Optional: add required reviewers to the "npm" environment so a person
+#      approves every publish.
+#
+# How to release: bump the versions, update CHANGELOG.md, merge to main, then
+# run this workflow from the Actions tab. It defaults to a dry run; untick
+# "dry_run" to publish for real.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (build, test and pack, but do not publish)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+    steps:
+      - name: Releases are cut from main only
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "Run this workflow from the main branch (got $GITHUB_REF)."
+          exit 1
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Install
+        run: npm ci --ignore-scripts
+
+      - name: Build
+        run: npm run build --workspaces --if-present
+
+      - name: Test
+        run: npm test --workspaces --if-present
+
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      # Private workspaces (the collector) are skipped by npm automatically.
+      - name: Pack (dry run)
+        if: inputs.dry_run
+        run: npm publish --workspaces --access public --dry-run
+
+      - name: Publish
+        if: ${{ !inputs.dry_run }}
+        run: npm publish --workspaces --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

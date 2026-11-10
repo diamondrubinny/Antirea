@@ -128,6 +128,12 @@ All notable changes to this project are documented here. The format is based on
   (`sourceMapCanaryPlugin`) that appends a per-chunk source-map canary after
   minification; skipped with a warning when the build emits linked source
   maps. Verified on Vite 8.3 and Rollup 4.68.
+- **Release workflow** (`.github/workflows/release.yml`): manual, dry-run by
+  default, publishes the seven public packages to npm with provenance. Needs
+  the `@antirea` npm scope and an `NPM_TOKEN` secret before a real publish.
+- **Collector HTTP tests + native-driver CI job**: a real collector process is
+  started on Node 22, 24 and 26; every admin route must reject a missing or
+  wrong token, and the brute-force limiter must engage.
 - **Canary alerts** (collector): a webhook alert when the honeypot reports a
   source-map canary read (`ALERT_ON_CANARY`, on by default when a webhook is
   set), alongside the existing spike alert. Alerts can be HMAC-signed
