@@ -49,6 +49,41 @@ false-positive rate — run shadow mode on your own traffic before going live.
 A weekly workflow (`.github/workflows/rea-watch.yml`) opens an issue when REA
 publishes a release newer than the one in this table.
 
+## Signature packs — updating without a code release
+
+The weights and match patterns of the server-side scorer are data. The built-in
+pack ships as [`signatures/default.json`](../packages/honeypot/signatures/default.json);
+to follow a tool that changed (a renamed header, a new runtime), pass a pack
+that overrides only what moved:
+
+```ts
+import { readFileSync } from "node:fs";
+import { honeypot } from "@antirea/honeypot";
+
+const signaturePack = JSON.parse(readFileSync("./antirea-signatures.json", "utf8"));
+app.use(honeypot({ siteId, protect: [/\.js$/], signaturePack }));
+```
+
+```json
+{
+  "format": 1,
+  "version": "2026-12-01",
+  "reaVersion": "6.9.0",
+  "weights": { "runtimeFetch.combined": 0.6 },
+  "patterns": { "sourceMapAccept": "application\\/source-map\\+json" }
+}
+```
+
+- **Data, not code.** A pack tunes values; the scoring logic stays in the
+  library. Unknown keys, weights outside 0–1, patterns longer than 512
+  characters, patterns that do not compile and patterns that match everything
+  are rejected, and `honeypot()` refuses to start with an invalid pack.
+- **Loaded by you, from a file you control.** The library never fetches a pack
+  over the network. Patterns are regular expressions: review a pack like code
+  before using it, because a hostile pattern can be slow on purpose.
+- **Check before going live.** Raising a weight can turn a "report" into a
+  "decoy". Re-run the fixture suite with your pack, or run shadow mode first.
+
 ## How REA touches a website
 
 REA drives a browser for an AI coding agent over MCP (`npx rea-agents mcp`,
