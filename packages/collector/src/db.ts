@@ -190,6 +190,35 @@ export class Store {
       .all(sinceTs, ...params, limit) as StatsRow[];
   }
 
+  /**
+   * Signals specific to the REA tool (client `rea.*`, honeypot `rea.*` and the
+   * source-map canary), with their counts, plus when one was last seen.
+   */
+  reaSignals(
+    sinceTs: number,
+    siteId?: string,
+  ): { signals: StatsRow[]; total: number; lastSeen: number | null } {
+    const { clause, params } = this.siteClause(siteId);
+    const where = `e.received_ts >= ? ${clause}
+         AND (s.name LIKE 'rea.%' OR s.name LIKE 'honeypot:rea.%' OR s.name = 'honeypot:canary.sourceMap')`;
+    const signals = this.db
+      .prepare(
+        `SELECT s.name AS label, COUNT(*) AS count
+         FROM signals s JOIN events e ON e.id = s.event_id
+         WHERE ${where}
+         GROUP BY s.name ORDER BY count DESC LIMIT 20`,
+      )
+      .all(sinceTs, ...params) as StatsRow[];
+    const agg = this.db
+      .prepare(
+        `SELECT COUNT(DISTINCT e.id) AS total, MAX(e.received_ts) AS lastSeen
+         FROM signals s JOIN events e ON e.id = s.event_id
+         WHERE ${where}`,
+      )
+      .get(sinceTs, ...params) as { total: number; lastSeen: number | null };
+    return { signals, total: agg.total ?? 0, lastSeen: agg.lastSeen ?? null };
+  }
+
   timeline(sinceTs: number, bucketMs: number, siteId?: string): StatsRow[] {
     const { clause, params } = this.siteClause(siteId);
     return this.db

@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- **REA view in the control panel**: a card listing REA-specific signals
+  (client `rea.*`, honeypot `rea.*` and the source-map canary) with counts,
+  the number of distinct events and when one was last seen; in all 20 panel
+  languages. `/api/stats` gains a `rea` field.
+
 ## [0.2.0] - 2026-11-10
 
 First release intended for npm. Read the upgrade notes at the end of this
