@@ -104,6 +104,38 @@ rejects({ ...base, patterns: { headlessUa: "(" } }, "not a valid regular express
 rejects({ ...base, patterns: { headlessUa: "a".repeat(513) } }, "at most 512", "oversized pattern");
 rejects({ ...base, patterns: { headlessUa: "" } }, "non-empty string", "empty pattern");
 rejects({ ...base, patterns: { headlessUa: ".*" } }, "matches the empty string", "match-everything pattern");
+for (const slow of ["(a+)+$", "(\\w*)*x", "(?:x+){2,}y", "^(node|n+)+$"]) {
+  rejects({ ...base, patterns: { headlessUa: slow } }, "nests a quantifier", `nested quantifier ${slow}`);
+}
+// The built-in patterns and ordinary alternations are not caught by the heuristic.
+ok(
+  loadSignaturePack({
+    ...base,
+    patterns: {
+      runtimeFetchUa: "^(?:node|undici)(?:\\/[\\w.-]+)?$",
+      headlessUa: "curl\\/|(?:wget|aria2)\\/\\d+",
+    },
+  }).pack.version === "t",
+  "legitimate patterns with groups and quantifiers are accepted",
+);
+// Oversized client-controlled input is capped before matching.
+{
+  const t0 = performance.now();
+  const r = scoreRequest({ userAgent: "a".repeat(200_000) + "HeadlessChrome", headers: {}, path: "/a.js" });
+  ok(
+    !r.reasons.includes("ua.headless"),
+    "a marker beyond the 1,024-character cap is not matched (input is truncated)",
+  );
+  ok(performance.now() - t0 < 200, "scoring an oversized header stays fast");
+  ok(
+    scoreRequest({
+      userAgent: "x".repeat(900) + " HeadlessChrome/1",
+      headers: {},
+      path: "/a.js",
+    }).reasons.includes("ua.headless"),
+    "markers within the cap still match",
+  );
+}
 rejects({ ...base, patterns: { nope: "x" } }, 'unknown pattern "nope"', "unknown pattern");
 rejects({ ...base, weights: [] }, "weights must be an object", "weights as array");
 // Prototype-pollution shaped input must not leak into the pack or Object.prototype.

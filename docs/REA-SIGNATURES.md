@@ -76,11 +76,15 @@ app.use(honeypot({ siteId, protect: [/\.js$/], signaturePack }));
 
 - **Data, not code.** A pack tunes values; the scoring logic stays in the
   library. Unknown keys, weights outside 0–1, patterns longer than 512
-  characters, patterns that do not compile and patterns that match everything
-  are rejected, and `honeypot()` refuses to start with an invalid pack.
+  characters, patterns that do not compile, patterns that match the empty
+  string and patterns that nest a quantifier inside a quantified group (such as
+  `(a+)+`) are rejected, and `honeypot()` refuses to start with an invalid
+  pack.
 - **Loaded by you, from a file you control.** The library never fetches a pack
-  over the network. Patterns are regular expressions: review a pack like code
-  before using it, because a hostile pattern can be slow on purpose.
+  over the network. Patterns are regular expressions: review a pack as you
+  would review code, because a hostile pattern can be slow on purpose. The
+  nested-quantifier check and the 1,024-character cap on matched header values
+  reduce that risk; they do not remove it.
 - **Check before going live.** Raising a weight can turn a "report" into a
   "decoy". Re-run the fixture suite with your pack, or run shadow mode first.
 

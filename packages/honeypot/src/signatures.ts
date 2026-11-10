@@ -15,8 +15,9 @@
  * one over the network — you load it from a file you control and pass it in.
  *
  * Patterns are regular expressions. Only load packs you trust: a hostile
- * pattern could be slow on purpose (ReDoS). Lengths are capped, but a cap is
- * not proof of safety.
+ * pattern could be slow on purpose (ReDoS). Pattern and input lengths are
+ * capped and the obvious nested-quantifier shape is rejected, but neither is
+ * proof of safety.
  */
 
 export interface SignatureWeights {
@@ -111,6 +112,20 @@ export const DEFAULT_SIGNATURE_PACK: SignaturePack = Object.freeze({
 /** Longest accepted pattern source. */
 export const MAX_PATTERN_LENGTH = 512;
 
+/**
+ * Longest header value handed to a pack pattern. Real User-Agent, Accept and
+ * Client-Hint values are far shorter; the cap bounds how much work a slow
+ * pattern can be made to do by an oversized, client-controlled header.
+ */
+export const MAX_MATCH_INPUT = 1024;
+
+/**
+ * A quantified group that itself contains a quantifier — `(a+)+`, `(\w*)*`,
+ * `(?:x+){2,}` — the classic shape of catastrophic backtracking. This is a
+ * heuristic: it catches the common mistake, not every slow pattern.
+ */
+const NESTED_QUANTIFIER = /\((?:[^()\\]|\\.)*[+*](?:[^()\\]|\\.)*\)(?:[+*]|\{\d)/;
+
 /** A pack with its patterns compiled, ready for the scorer. */
 export interface CompiledSignaturePack {
   pack: SignaturePack;
@@ -180,6 +195,9 @@ export function loadSignaturePack(input: unknown): CompiledSignaturePack {
     } catch {
       fail(`pattern "${k}" is not a valid regular expression`);
     }
+    if (NESTED_QUANTIFIER.test(patterns[k])) {
+      fail(`pattern "${k}" nests a quantifier inside a quantified group (catastrophic backtracking risk)`);
+    }
     // A pattern that matches the empty string would flag every request.
     if (re[k].test("")) fail(`pattern "${k}" matches the empty string`);
   }
@@ -194,6 +212,11 @@ export function loadSignaturePack(input: unknown): CompiledSignaturePack {
     },
     re,
   };
+}
+
+/** Test a pack pattern against a client-controlled value, length-capped. */
+export function matches(re: RegExp, value: string): boolean {
+  return re.test(value.length > MAX_MATCH_INPUT ? value.slice(0, MAX_MATCH_INPUT) : value);
 }
 
 /** The built-in pack, compiled once. */

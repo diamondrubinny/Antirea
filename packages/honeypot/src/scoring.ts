@@ -18,7 +18,7 @@
  * This catches bundle-harvesting fetchers, not in-browser CDP source reads.
  */
 
-import { DEFAULT_COMPILED_PACK, DEFAULT_SIGNATURE_PACK, type CompiledSignaturePack } from "./signatures.js";
+import { DEFAULT_COMPILED_PACK, matches, type CompiledSignaturePack } from "./signatures.js";
 
 export interface ScoreInput {
   userAgent: string;
@@ -40,12 +40,6 @@ export interface ScoreResult {
   /** Human/machine-readable reasons that contributed. */
   reasons: string[];
 }
-
-/**
- * Default weight of the combined runtime-fetch fingerprint. Deliberately below
- * the default threshold (0.7): on its own it reports, it does not decoy.
- */
-export const RUNTIME_FETCH_WEIGHT = DEFAULT_SIGNATURE_PACK.weights["runtimeFetch.combined"];
 
 function header(h: ScoreInput["headers"], name: string): string {
   const v = h[name.toLowerCase()];
@@ -118,7 +112,7 @@ export function scoreRequest(
   // distinctive Accept, no cookie, and no referer. No browser emits
   // "application/source-map+json" — this token alone is a near-certain marker.
   const acceptHdr = header(h, "accept");
-  if (re.sourceMapAccept.test(acceptHdr)) {
+  if (matches(re.sourceMapAccept, acceptHdr)) {
     score += w["rea.sourceMapAccept"];
     reasons.push("rea.sourceMapAccept");
   } else if (
@@ -135,12 +129,12 @@ export function scoreRequest(
   }
 
   // 1. Headless / non-browser clients in the UA.
-  const headlessUa = re.headlessUa.test(ua);
+  const headlessUa = matches(re.headlessUa, ua);
   if (headlessUa) {
     score += w["ua.headless"];
     reasons.push("ua.headless");
   }
-  if (re.automationUa.test(ua)) {
+  if (matches(re.automationUa, ua)) {
     score += w["ua.automation"];
     reasons.push("ua.automation");
   }
@@ -150,7 +144,7 @@ export function scoreRequest(
   }
   // Headless Chromium also brands itself in Client Hints; count it only when
   // the UA did not already say so (e.g. a UA override left the hint intact).
-  if (!headlessUa && re.headlessClientHint.test(header(h, "sec-ch-ua"))) {
+  if (!headlessUa && matches(re.headlessClientHint, header(h, "sec-ch-ua"))) {
     score += w["ua.headlessClientHint"];
     reasons.push("ua.headlessClientHint");
   }
@@ -185,7 +179,7 @@ export function scoreRequest(
   // forgery.noSecFetch below, so a proxy that strips headers from a real
   // browser is not penalised twice.
   const claimsChromium = /Chrome\/(\d+)/.test(ua) && !/Edge\//.test(ua);
-  const runtimeUa = re.runtimeFetchUa.test(ua.trim());
+  const runtimeUa = matches(re.runtimeFetchUa, ua.trim());
   const partialSecFetch =
     !claimsChromium &&
     header(h, "sec-fetch-mode") !== "" &&
