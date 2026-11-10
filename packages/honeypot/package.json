@@ -1,6 +1,6 @@
 {
   "name": "@antirea/honeypot",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Server-side deception middleware: serves decoy assets to detected analysis requests",
   "type": "module",
   "main": "./dist/index.js",

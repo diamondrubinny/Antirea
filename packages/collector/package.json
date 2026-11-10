@@ -1,6 +1,6 @@
 {
   "name": "@antirea/collector",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Telemetry collector + intelligence dashboard for antirea",
   "type": "module",
   "private": true,
