@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-10
+
+First release intended for npm. Read the upgrade notes at the end of this
+section before updating a running collector.
+
 ### Security
 
 - **Collector admin auth is now constant-time.** The admin token and the
@@ -238,4 +243,5 @@ Initial public release.
   evadability documented.
 - Privacy policy / lawful basis (GDPR / IL) flagged as requiring legal review.
 
+[0.2.0]: https://github.com/diamondrubinny/Antirea/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/diamondrubinny/Antirea/releases/tag/v0.1.0

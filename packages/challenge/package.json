@@ -1,6 +1,6 @@
 {
   "name": "@antirea/challenge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Proof-of-work gating to make high-volume scraping expensive",
   "type": "module",
   "main": "./dist/index.js",

@@ -1,7 +1,7 @@
 {
   "name": "@antirea/secure-fn",
-  "version": "0.1.0",
-  "description": "Server-side execution of proprietary functions \u2014 the CDP-proof core",
+  "version": "0.2.0",
+  "description": "Server-side execution of proprietary functions — the CDP-proof core",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

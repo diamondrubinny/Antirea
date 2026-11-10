@@ -1,6 +1,6 @@
 {
   "name": "@antirea/guard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Client-side reverse-engineering detection and telemetry",
   "type": "module",
   "main": "./dist/antirea-guard.js",
