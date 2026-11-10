@@ -70,6 +70,36 @@ const api = createSecureClient({ endpoint: "/api/secure" });
 const price = await api.invoke<number>("pricing", { x: 2 });
 ```
 
+### Typed calls
+
+Share the *type* of your function map with the browser and `call` checks the
+function name, its argument and its result at compile time. It is a type-only
+import, so no server code reaches the bundle:
+
+```ts
+// server/functions.ts
+export const functions = {
+  pricing: (args: { x: number }) => args.x * 1337 + 17,
+};
+export type Api = typeof functions;
+```
+
+```ts
+// browser
+import { createSecureClient } from "@antirea/secure-fn/client";
+import type { Api } from "../server/functions";
+
+const api = createSecureClient<Api>({ endpoint: "/api/secure" });
+const price = await api.call("pricing", { x: 2 }); // number
+await api.call("pricng", { x: 2 });                // compile error: unknown name
+await api.call("pricing", { x: "2" });             // compile error: wrong argument
+```
+
+Use `import type` (not `import`) — a value import would pull the function
+bodies into the browser bundle. Types are erased at build time and validate
+nothing at run time: **the server must still validate its arguments.** The
+untyped `invoke(name, args)` keeps working.
+
 ## Guards
 
 | Guard | Behaviour |

@@ -1,7 +1,7 @@
 {
   "name": "@antirea/secure-fn",
   "version": "0.2.0",
-  "description": "Server-side execution of proprietary functions — the CDP-proof core",
+  "description": "Server-side execution of proprietary functions \u2014 the CDP-proof core",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -30,7 +30,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node test/e2e.mjs && node test/web.mjs",
+    "test": "node test/e2e.mjs && node test/web.mjs && tsc -p test/tsconfig.types.json",
     "prepack": "node ../../scripts/copy-legal.mjs"
   },
   "peerDependencies": {
