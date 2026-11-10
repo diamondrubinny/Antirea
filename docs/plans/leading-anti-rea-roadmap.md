@@ -11,7 +11,7 @@ client-side layer is deterrence and intelligence.
 
 - Phase 1 — done (#35).
 - Phase 2 — 2.1 done for Express + Fetch-API/Next.js, 2.2 done (#36). 2.3 (typed client) open; Fastify/serverless bridges not verified.
-- Phase 3 — 3.1 canary plugin for Vite/Rollup done (#37; SRI insertion and webpack still open). 3.2 signature packs done as validated value overrides, not a rule engine. 3.3 open.
+- Phase 3 — 3.1 canary plugin for Vite/Rollup done (#37; SRI insertion and webpack still open). 3.2 signature packs done as validated value overrides, not a rule engine (#38). 3.3 canary webhook alert with HMAC signing done; dashboard REA view and configurable alert rules still open.
 - Phase 4 — open.
 
 ## Phase 1 — Prove it (measurement)

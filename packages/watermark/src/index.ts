@@ -13,5 +13,5 @@ export { watermark, watermarkText } from "./watermark.js";
 export type { WatermarkOptions } from "./watermark.js";
 export { buildGitHubQuery, parseGitHubResults, scanGitHub } from "./scan.js";
 export type { ScanHit, GitHubScanOptions } from "./scan.js";
-export { SpikeDetector, Alerter } from "./alerts.js";
+export { SpikeDetector, Alerter, signWebhook } from "./alerts.js";
 export type { AlertConfig } from "./alerts.js";

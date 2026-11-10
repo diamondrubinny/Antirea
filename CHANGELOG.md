@@ -39,6 +39,10 @@ All notable changes to this project are documented here. The format is based on
 - `secure-fn` (Express): malformed or oversized JSON returned Express's default
   error page — with a stack trace outside production. It now returns a clean
   `400`/`413`, and non-JSON content types get `415`.
+- Alert webhooks: the URL must be `https` (the collector refuses to start
+  otherwise), requests time out after 5 s, a non-2xx answer is no longer
+  reported as sent, chat text is stripped of control characters, and the
+  cooldown table is bounded (it grew with every distinct key).
 - Startup warning when `ADMIN_TOKEN` is shorter than 32 characters.
 - Docker image runs as the unprivileged `node` user with read-only app code.
 - Website CSP: `style-src 'self'` — `'unsafe-inline'` removed (no inline styles
@@ -124,6 +128,10 @@ All notable changes to this project are documented here. The format is based on
   (`sourceMapCanaryPlugin`) that appends a per-chunk source-map canary after
   minification; skipped with a warning when the build emits linked source
   maps. Verified on Vite 8.3 and Rollup 4.68.
+- **Canary alerts** (collector): a webhook alert when the honeypot reports a
+  source-map canary read (`ALERT_ON_CANARY`, on by default when a webhook is
+  set), alongside the existing spike alert. Alerts can be HMAC-signed
+  (`ALERT_WEBHOOK_SECRET`) and carry no IP, IP hash, User-Agent or session id.
 - **Signature packs** (honeypot): scorer weights and match patterns are data.
   The built-in pack ships as `signatures/default.json`; `honeypot({
   signaturePack })` accepts a strictly validated partial override, so a
@@ -175,6 +183,8 @@ All notable changes to this project are documented here. The format is based on
   If the app sets Express's own `trust proxy`, that setting wins. A request
   without a nonce now gets `400` instead of `409`; `/invoke` requires
   `Content-Type: application/json` (`415` otherwise).
+- **`ALERT_WEBHOOK_URL`** must now be `https` (`http` only for `localhost`);
+  the collector exits at startup with a clear message otherwise.
 - `TRUST_PROXY` accepts `false`, `true` (= 1) or `1`–`10`; anything else now
   refuses to start instead of silently trusting no proxy. Expose the collector
   only through that proxy chain.
