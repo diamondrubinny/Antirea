@@ -6,13 +6,6 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
-### Added
-
-- **REA view in the control panel**: a card listing REA-specific signals
-  (client `rea.*`, honeypot `rea.*` and the source-map canary) with counts,
-  the number of distinct events and when one was last seen; in all 20 panel
-  languages. `/api/stats` gains a `rea` field.
-
 ## [0.2.0] - 2026-11-10
 
 First release intended for npm. Read the upgrade notes at the end of this
@@ -82,6 +75,8 @@ section before updating a running collector.
 - **README Quickstart failed on a fresh clone** for the same reason; it now
   builds all packages from the repo root first.
 - Published packages now include `LICENSE` and `NOTICE` (Apache-2.0 §4).
+- Build plugin (Vite): now runs after Vite's own plugins (`order: "post"`);
+  Vite still rewrote the entry chunk after the plugin ran.
 - Honeypot: a real browser's `fetch()`/XHR to a protected non-script path was
   scored 0.2 (`accept.wildcard`) as if it were a navigation — found by the new
   fixture suite; subresource requests are no longer counted.
@@ -96,6 +91,16 @@ section before updating a running collector.
 
 ### Added
 
+- **webpack 5 canary plugin** (`SourceMapCanaryWebpackPlugin` from
+  `@antirea/honeypot/build`) with the same behaviour as the Vite/Rollup one.
+- **SRI manifest**: the `sriManifest` option of both build plugins emits
+  `sha384` integrity values for every JavaScript file, computed after the
+  canary line is added.
+
+- **REA view in the control panel**: a card listing REA-specific signals
+  (client `rea.*`, honeypot `rea.*` and the source-map canary) with counts,
+  the number of distinct events and when one was last seen; in all 20 panel
+  languages. `/api/stats` gains a `rea` field.
 - **REA 6.8.0 signature pack** (verified against `morluto/rea` 6.8.0 source and
   measured on real Node and Chromium; see `docs/REA-SIGNATURES.md`):
   - Honeypot: `ua.runtimeFetch` (Node/Bun/Deno built-in fetch),

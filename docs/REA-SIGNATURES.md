@@ -173,7 +173,28 @@ export default {
 Each chunk gets its own URL, derived from the secret `seed` and the chunk name
 (random per build when no seed is given; a fixed seed keeps hashed files
 byte-identical between builds). `onCanary` reports which URL belongs to which
-file. Verified on Vite 8.3 and Rollup 4.68; webpack is not supported yet.
+file. Verified on Vite 8.3, Rollup 4.68 and webpack 5.112.
+
+webpack 5 uses the class form; the canary is added after minification and
+before `[contenthash]` is finalised:
+
+```js
+import { SourceMapCanaryWebpackPlugin } from "@antirea/honeypot/build";
+
+export default {
+  devtool: false, // or "hidden-source-map"; other devtools skip the canary
+  plugins: [new SourceMapCanaryWebpackPlugin({ seed: process.env.CANARY_SEED })],
+};
+```
+
+**Subresource Integrity.** With `sriManifest: "sri-manifest.json"` either plugin
+also emits `{ "<file>": "sha384-…" }` for every JavaScript file, hashed after
+the canary line was added. Put the value in the `integrity` attribute of the
+matching `<script>` tag (with `crossorigin="anonymous"`); the browser then
+refuses a tampered copy. The plugins write the manifest only — adding the
+attribute to your HTML is up to your template or framework. Dynamically
+imported chunks are listed too, but browsers do not check integrity for
+`import()` unless your loader passes it.
 
 A hit scores **1.0** and, in live mode, gets an empty decoy map. REA accepts
 maps without authenticity checks (`trace_web_source_location`: "Deployment
