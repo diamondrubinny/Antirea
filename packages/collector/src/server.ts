@@ -32,6 +32,7 @@ import { Store } from "./db.js";
 import { audit, bearerToken, parseTrustProxy, safeEqual, tokenStrengthWarning } from "./auth.js";
 import { countryFor, extractIp, hashIp, initGeo } from "./geo.js";
 import { validateEvent } from "./validate.js";
+import { canaryAlert, spikeAlert } from "./alerts.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -65,7 +66,19 @@ const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL ?? "";
 const ALERT_WINDOW_MIN = Number(process.env.ALERT_WINDOW_MIN ?? 5);
 const ALERT_THRESHOLD = Number(process.env.ALERT_THRESHOLD ?? 50);
 const spike = new SpikeDetector(ALERT_WINDOW_MIN * 60_000, ALERT_THRESHOLD);
-const alerter = ALERT_WEBHOOK_URL ? new Alerter({ webhookUrl: ALERT_WEBHOOK_URL }) : null;
+// Optional shared secret: alerts are then HMAC-signed so the receiver can
+// verify them. Canary alerts are on by default when a webhook is configured.
+const ALERT_WEBHOOK_SECRET = process.env.ALERT_WEBHOOK_SECRET ?? "";
+const ALERT_ON_CANARY = process.env.ALERT_ON_CANARY !== "false";
+let alerter: Alerter | null = null;
+if (ALERT_WEBHOOK_URL) {
+  try {
+    alerter = new Alerter({ webhookUrl: ALERT_WEBHOOK_URL, secret: ALERT_WEBHOOK_SECRET || undefined });
+  } catch (e) {
+    console.error(`[antirea] FATAL: ${(e as Error).message}`);
+    process.exit(1);
+  }
+}
 
 if (!IP_SALT) {
   // Fail fast: without a salt, IP hashing is weak. Required in all envs.
@@ -172,11 +185,13 @@ app.post(
     }
     // Attack-spike alert (webhook), rate-limited by the Alerter's cooldown.
     if (alerter && spike.hit()) {
-      void alerter.send(
-        "spike",
-        `Antirea: ${ALERT_THRESHOLD}+ detection events in ${ALERT_WINDOW_MIN} min (latest site: ${ev.siteId}).`,
-        { site: ev.siteId, window_min: ALERT_WINDOW_MIN },
-      );
+      const a = spikeAlert(ev.siteId, ALERT_THRESHOLD, ALERT_WINDOW_MIN);
+      void alerter.send(a.key, a.text, a.extra);
+    }
+    // Source-map canary read: one alert per site per cooldown window.
+    if (alerter && ALERT_ON_CANARY) {
+      const a = canaryAlert(ev, country);
+      if (a) void alerter.send(a.key, a.text, a.extra);
     }
 
     // 204: no body, nothing for an attacker to learn.

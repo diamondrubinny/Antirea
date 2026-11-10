@@ -13,7 +13,7 @@ import {
   embed, recover, stripZeroWidth,
   MemoryCanaryStore, issueCanary, watermarkText,
   buildGitHubQuery, parseGitHubResults, scanGitHub,
-  SpikeDetector, Alerter,
+  SpikeDetector, Alerter, signWebhook,
 } from "../dist/index.js";
 
 let pass = 0, fail = 0;
@@ -84,6 +84,46 @@ const CODE = `"use strict";\nexport const f = (x) => x * 2;\n`;
   const s2 = await a.send("spike", "attack spike", {}, 2000);   // within cooldown
   const s3 = await a.send("spike", "attack spike", {}, 20_000); // after cooldown
   ok(s1 === true && s2 === false && s3 === true && calls === 2, "webhook sent with cooldown honored");
+}
+
+// 8. alerter: signature, failure handling, URL rules, bounded cooldown table.
+{
+  const sent = [];
+  const a = new Alerter({ webhookUrl: "https://hook.example/x", secret: "0123456789abcdef-secret", cooldownMs: 1000, fetchImpl: async (url, init) => { sent.push({ url, init }); return { ok: true }; } });
+  const okSend = await a.send("k", "hello", { event: "canary" }, 1_700_000_000_000);
+  const { init } = sent[0];
+  const ts = Number(init.headers["X-Antirea-Timestamp"]);
+  ok(okSend && ts === 1_700_000_000, "signed alert carries the timestamp (seconds)");
+  ok(init.headers["X-Antirea-Signature"] === "sha256=" + signWebhook("0123456789abcdef-secret", ts, init.body), "signature = HMAC-SHA-256 over '<timestamp>.<body>'");
+  ok(signWebhook("0123456789abcdef-secret", ts, init.body + " ") !== signWebhook("0123456789abcdef-secret", ts, init.body), "a modified body does not verify");
+  ok(signWebhook("0123456789abcdef-secret", ts + 1, init.body) !== signWebhook("0123456789abcdef-secret", ts, init.body), "a replayed body with another timestamp does not verify");
+  ok(JSON.parse(init.body).text === "hello" && JSON.parse(init.body).event === "canary", "body carries text and structured fields");
+  ok(init.signal instanceof AbortSignal, "requests have a timeout");
+
+  const unsigned = [];
+  const b = new Alerter({ webhookUrl: "https://hook.example/x", fetchImpl: async (_u, i) => { unsigned.push(i); return { ok: true }; } });
+  await b.send("k", "t");
+  ok(!("X-Antirea-Signature" in unsigned[0].headers), "no signature header without a secret");
+
+  const down = new Alerter({ webhookUrl: "https://hook.example/x", cooldownMs: 1000, fetchImpl: async () => ({ ok: false, status: 500 }) });
+  ok((await down.send("k", "t", {}, 0)) === false, "a non-2xx answer is reported as not sent");
+  const thrower = new Alerter({ webhookUrl: "https://hook.example/x", fetchImpl: async () => { throw new Error("network"); } });
+  ok((await thrower.send("k", "t")) === false, "a network error never throws into the caller");
+
+  let rejected = 0;
+  for (const bad of [{ webhookUrl: "not a url" }, { webhookUrl: "http://hook.example/x" }, { webhookUrl: "file:///etc/passwd" }, { webhookUrl: "https://hook.example/x", secret: "short" }]) {
+    try { new Alerter(bad); } catch { rejected++; }
+  }
+  ok(rejected === 4, "invalid URL, plain http, non-http scheme and weak secret are rejected");
+  let localOk = true;
+  try { new Alerter({ webhookUrl: "http://localhost:9000/hook" }); } catch { localOk = false; }
+  ok(localOk, "plain http is allowed for localhost only");
+
+  let calls = 0;
+  const many = new Alerter({ webhookUrl: "https://hook.example/x", cooldownMs: 60_000, fetchImpl: async () => { calls++; return { ok: true }; } });
+  for (let i = 0; i < 1500; i++) await many.send("site-" + i, "t", {}, 1000 + i);
+  ok(calls === 1500 && many.last.size <= 1000, `cooldown table stays bounded (${many.last.size} keys)`);
+  ok((await many.send("site-1499", "t", {}, 3000)) === false, "recent keys keep their cooldown after pruning");
 }
 
 console.log(`\nRESULT: ${pass} passed, ${fail} failed`);

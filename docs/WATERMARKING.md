@@ -62,16 +62,57 @@ const hits = await scanGitHub(["wm_abc…"], { token: process.env.GITHUB_TOKEN }
 Limit: finds only tokens pushed to *indexed, public* code — not private leaks or
 pastebins.
 
-## 3. Attack-spike alerts
+## 3. Alerts (spike and canary)
 
-The collector can POST to a webhook when detections spike. In
+The collector can POST to a webhook when detections spike or a canary is read. In
 `packages/collector/.env`:
 
 ```
 ALERT_WEBHOOK_URL=https://hooks.slack.com/services/…
 ALERT_WINDOW_MIN=5
 ALERT_THRESHOLD=50
+ALERT_WEBHOOK_SECRET=        # optional, 16+ characters: sign every alert
+ALERT_ON_CANARY=true         # alert when a source-map canary is read
 ```
+
+Two alerts are sent:
+
+| `event` | When | Fields |
+|---|---|---|
+| `spike` | `ALERT_THRESHOLD` events inside `ALERT_WINDOW_MIN` | `site`, `window_min`, `threshold` |
+| `canary` | the honeypot reports a source-map canary read (see [`REA-SIGNATURES.md`](./REA-SIGNATURES.md)) | `site`, `path`, `action`, `score`, `reasons`, `country` |
+
+Every body also has a `text` line, which Slack and Discord display.
+
+**What leaves your server.** The webhook receiver is a third party. Alerts
+carry no IP address, no IP hash, no User-Agent and no session id — only the
+fields above. If you point the webhook at a service outside your organisation,
+list it as a recipient in your privacy documentation.
+
+**Verifying an alert.** With `ALERT_WEBHOOK_SECRET` set, each request carries
+`X-Antirea-Timestamp` (Unix seconds) and `X-Antirea-Signature`:
+
+```ts
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+function verify(secret: string, timestamp: string, rawBody: string, header: string): boolean {
+  if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) return false; // replay window
+  const expected = "sha256=" + createHmac("sha256", secret).update(`${timestamp}.${rawBody}`).digest("hex");
+  const a = Buffer.from(header);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+```
+
+Slack and Discord incoming webhooks ignore these headers; the signature is for
+your own endpoint.
+
+**Limits.** The ingest endpoint is unauthenticated (browsers post to it), so an
+alert can be triggered by a forged event: treat it as a prompt to open the
+dashboard, not as proof. One alert per site per 10 minutes, which also means a
+forged event can delay a real alert for that window. The webhook URL must be
+`https` (plain `http` is accepted for `localhost` only) and the collector
+refuses to start otherwise.
 
 A built-in cooldown stops one incident from spamming the channel. You can also
 use the `SpikeDetector` + `Alerter` directly in your own services (both accept

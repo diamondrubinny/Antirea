@@ -11,7 +11,7 @@
     "build": "tsc",
     "dev": "node --loader ts-node/esm --env-file=.env src/server.ts",
     "start": "node --env-file=.env dist/server.js",
-    "test": "node test/auth.mjs && node test/validate.mjs"
+    "test": "node test/auth.mjs && node test/validate.mjs && node test/alerts.mjs"
   },
   "dependencies": {
     "@antirea/adaptive": "*",
