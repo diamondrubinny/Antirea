@@ -52,7 +52,9 @@ export function canaryAlert(ev: IncomingEvent, country: string | null): AlertMes
     .filter((n) => n !== "")
     .slice(0, 12);
   return {
-    key: `canary:${site}`,
+    // The full (validated, length-limited) site id, not the display value:
+    // two sites sharing a 64-character prefix must not share a cooldown.
+    key: `canary:${ev.siteId}`,
     text: `Antirea: source-map canary read on ${site} (${path}). A source-map consumer fetched the bundle's map — check the dashboard.`,
     extra: {
       event: "canary",

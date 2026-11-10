@@ -107,6 +107,12 @@ ok(
   ok(many.extra.reasons.length === 12, "reasons are capped");
 }
 {
+  const prefix = "p".repeat(64);
+  const a = canaryAlert(event({ siteId: prefix + "-one" }), null);
+  const b = canaryAlert(event({ siteId: prefix + "-two" }), null);
+  ok(a.key !== b.key && a.extra.site === b.extra.site, "sites sharing a 64-character prefix keep separate cooldown keys");
+}
+{
   const s = spikeAlert("site\nX", 50, 5);
   ok(
     s.key === "spike" && s.extra.event === "spike" && s.extra.threshold === 50 && s.extra.window_min === 5,
