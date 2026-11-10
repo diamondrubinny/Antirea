@@ -91,6 +91,9 @@ section before updating a running collector.
 
 ### Added
 
+- **Typed `secure-fn` client**: `createSecureClient<Api>()` and `call()` check
+  the function name, argument and result against the server's function map,
+  through a type-only import. `invoke()` is unchanged.
 - **webpack 5 canary plugin** (`SourceMapCanaryWebpackPlugin` from
   `@antirea/honeypot/build`) with the same behaviour as the Vite/Rollup one.
 - **SRI manifest**: the `sriManifest` option of both build plugins emits

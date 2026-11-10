@@ -19,6 +19,36 @@ export interface SecureClientConfig {
   onReject?: (status: number) => void;
 }
 
+/**
+ * Shape of a server function map, for typing the client. Use it with a
+ * type-only import so no server code reaches the browser bundle:
+ *
+ *   // server/functions.ts
+ *   export const functions = { pricing: (a: { x: number }) => a.x * 2 };
+ *   export type Api = typeof functions;
+ *
+ *   // browser
+ *   import type { Api } from "../server/functions";
+ *   const api = createSecureClient<Api>({ endpoint: "/secure" });
+ *   const price = await api.call("pricing", { x: 2 }); // number
+ *
+ * Types describe the contract; they do not validate anything at run time.
+ * The server must still validate its arguments — they come from the network.
+ */
+export type SecureApi = Record<string, (args: any, ctx: any) => unknown>;
+
+/** Argument type of a server function (`never` when it takes none). */
+export type ArgsOf<F> = F extends (...args: infer P) => unknown ? (P extends [] ? never : P[0]) : never;
+/** Resolved result type of a server function. */
+export type ResultOf<F> = F extends (...args: any[]) => infer R ? Awaited<R> : never;
+
+/** `call` takes no argument, an optional one, or a required one, as the function declares. */
+type CallArgs<F> = [ArgsOf<F>] extends [never]
+  ? []
+  : undefined extends ArgsOf<F>
+    ? [args?: ArgsOf<F>]
+    : [args: ArgsOf<F>];
+
 interface Session {
   token: string;
   /** Local expiry estimate, ms epoch. */
@@ -31,7 +61,7 @@ function randomNonce(): string {
   return Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export class SecureClient {
+export class SecureClient<T extends SecureApi = SecureApi> {
   private session: Session | null = null;
   private pending: Promise<Session> | null = null;
 
@@ -58,6 +88,14 @@ export class SecureClient {
     } finally {
       this.pending = null;
     }
+  }
+
+  /**
+   * Typed invoke: the function name, its argument and its result are checked
+   * against the server's function map `T`. Same request as `invoke`.
+   */
+  call<K extends keyof T & string>(name: K, ...args: CallArgs<T[K]>): Promise<ResultOf<T[K]>> {
+    return this.invoke<ResultOf<T[K]>>(name, args[0]);
   }
 
   /** Invoke a server-side function. Returns its result. */
@@ -93,6 +131,8 @@ export class SecureClient {
   }
 }
 
-export function createSecureClient(cfg: SecureClientConfig): SecureClient {
-  return new SecureClient(cfg);
+export function createSecureClient<T extends SecureApi = SecureApi>(
+  cfg: SecureClientConfig,
+): SecureClient<T> {
+  return new SecureClient<T>(cfg);
 }
