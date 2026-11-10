@@ -18,6 +18,8 @@
  * This catches bundle-harvesting fetchers, not in-browser CDP source reads.
  */
 
+import { DEFAULT_COMPILED_PACK, matches, type CompiledSignaturePack } from "./signatures.js";
+
 export interface ScoreInput {
   userAgent: string;
   /** Lower-cased header map. */
@@ -38,25 +40,6 @@ export interface ScoreResult {
   /** Human/machine-readable reasons that contributed. */
   reasons: string[];
 }
-
-const HEADLESS_UA =
-  /HeadlessChrome|PhantomJS|SlimerJS|Nightmare|Electron\/|python-requests|node-fetch|axios\/|curl\/|wget\/|Go-http-client|Java\/|okhttp|Scrapy/i;
-
-/**
- * Built-in fetch of server-side JS runtimes, which identify themselves plainly:
- * Node (undici) sends exactly "node". REA's source-map fetcher runs on it
- * (verified against morluto/rea 6.8.0 and measured on Node 22).
- */
-const RUNTIME_FETCH_UA = /^(?:node|undici)(?:\/[\w.-]+)?$|^(?:Bun|Deno)\/\d/i;
-
-/**
- * Weight of the combined runtime-fetch fingerprint. Deliberately below the
- * default threshold (0.7): on its own it reports, it does not decoy.
- */
-export const RUNTIME_FETCH_WEIGHT = 0.6;
-
-/** Known analysis/automation libraries sometimes present in UA or headers. */
-const AUTOMATION_HINTS = /playwright|puppeteer|webdriver|selenium|headless/i;
 
 function header(h: ScoreInput["headers"], name: string): string {
   const v = h[name.toLowerCase()];
@@ -91,7 +74,16 @@ export function isUnderPrefix(path: string, prefix: string): boolean {
   return path.startsWith(dir);
 }
 
-export function scoreRequest(input: ScoreInput): ScoreResult {
+/**
+ * Score one request. `signatures` is a compiled signature pack (see
+ * signatures.ts); the built-in pack is used when omitted.
+ */
+export function scoreRequest(
+  input: ScoreInput,
+  signatures: CompiledSignaturePack = DEFAULT_COMPILED_PACK,
+): ScoreResult {
+  const w = signatures.pack.weights;
+  const re = signatures.re;
   const reasons: string[] = [];
   let score = 0;
   const ua = input.userAgent || "";
@@ -100,7 +92,7 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
   // Source-map canary: an unlinked map URL that only a source-map consumer
   // (REA's fetcher, an open DevTools, a harvesting script) would request.
   if (input.canaryPaths?.some((p) => isUnderPrefix(input.path, p))) {
-    score += 1;
+    score += w["canary.sourceMap"];
     reasons.push("canary.sourceMap");
   }
 
@@ -110,7 +102,7 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
   if (attestRaw) {
     const att = parseAttestation(attestRaw);
     if (att.cdp === true) {
-      score += 0.7;
+      score += w["attest.cdp"];
       reasons.push("attest.cdp");
     }
   }
@@ -120,8 +112,8 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
   // distinctive Accept, no cookie, and no referer. No browser emits
   // "application/source-map+json" — this token alone is a near-certain marker.
   const acceptHdr = header(h, "accept");
-  if (/application\/source-map\+json/i.test(acceptHdr)) {
-    score += 0.85;
+  if (matches(re.sourceMapAccept, acceptHdr)) {
+    score += w["rea.sourceMapAccept"];
     reasons.push("rea.sourceMapAccept");
   } else if (
     /\.map(\?|$)/i.test(input.path) &&
@@ -132,27 +124,28 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
     // A .map fetched with no cookie, no referer, and no Sec-Fetch metadata
     // matches REA's fetcher shape (credentials:"omit", referrerPolicy:
     // "no-referrer"). Lower confidence: a few CLIs look similar.
-    score += 0.5;
+    score += w["rea.sourceMapShape"];
     reasons.push("rea.sourceMapShape");
   }
 
   // 1. Headless / non-browser clients in the UA.
-  if (HEADLESS_UA.test(ua)) {
-    score += 0.6;
+  const headlessUa = matches(re.headlessUa, ua);
+  if (headlessUa) {
+    score += w["ua.headless"];
     reasons.push("ua.headless");
   }
-  if (AUTOMATION_HINTS.test(ua)) {
-    score += 0.4;
+  if (matches(re.automationUa, ua)) {
+    score += w["ua.automation"];
     reasons.push("ua.automation");
   }
   if (ua.trim() === "") {
-    score += 0.4;
+    score += w["ua.empty"];
     reasons.push("ua.empty");
   }
   // Headless Chromium also brands itself in Client Hints; count it only when
   // the UA did not already say so (e.g. a UA override left the hint intact).
-  if (!HEADLESS_UA.test(ua) && /HeadlessChrome/i.test(header(h, "sec-ch-ua"))) {
-    score += 0.6;
+  if (!headlessUa && matches(re.headlessClientHint, header(h, "sec-ch-ua"))) {
+    score += w["ua.headlessClientHint"];
     reasons.push("ua.headlessClientHint");
   }
 
@@ -161,16 +154,16 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
   const isScript = /\.(js|mjs|map)(\?|$)/i.test(input.path);
   if (isScript) {
     if (!header(h, "sec-fetch-dest") && !header(h, "sec-fetch-mode")) {
-      score += 0.3;
+      score += w["missing.secFetch"];
       reasons.push("missing.secFetch");
     }
     if (!header(h, "accept")) {
-      score += 0.2;
+      score += w["missing.accept"];
       reasons.push("missing.accept");
     }
     // Harvesters often request a .map directly — a real app rarely does.
     if (/\.map(\?|$)/i.test(input.path)) {
-      score += 0.3;
+      score += w["request.sourceMap"];
       reasons.push("request.sourceMap");
     }
   }
@@ -186,7 +179,7 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
   // forgery.noSecFetch below, so a proxy that strips headers from a real
   // browser is not penalised twice.
   const claimsChromium = /Chrome\/(\d+)/.test(ua) && !/Edge\//.test(ua);
-  const runtimeUa = RUNTIME_FETCH_UA.test(ua.trim());
+  const runtimeUa = matches(re.runtimeFetchUa, ua.trim());
   const partialSecFetch =
     !claimsChromium &&
     header(h, "sec-fetch-mode") !== "" &&
@@ -197,11 +190,13 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
   if (partialSecFetch) reasons.push("forgery.partialSecFetch");
   if (languageWildcard) reasons.push("acceptLanguage.wildcard");
   const runtimeMarkers = [runtimeUa, partialSecFetch, languageWildcard].filter(Boolean).length;
-  if (runtimeMarkers > 0) score += runtimeUa || runtimeMarkers >= 2 ? RUNTIME_FETCH_WEIGHT : 0.2;
+  if (runtimeMarkers > 0) {
+    score += runtimeUa || runtimeMarkers >= 2 ? w["runtimeFetch.combined"] : w["runtimeFetch.single"];
+  }
 
   // 3. No Accept-Language is uncommon for real browsers.
   if (!header(h, "accept-language")) {
-    score += 0.15;
+    score += w["missing.acceptLanguage"];
     reasons.push("missing.acceptLanguage");
   }
 
@@ -213,11 +208,11 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
   if (claimsModernChromium) {
     const major = Number((/Chrome\/(\d+)/.exec(ua) ?? [])[1] ?? 0);
     if (major >= 90 && !header(h, "sec-ch-ua")) {
-      score += 0.4;
+      score += w["forgery.noClientHints"];
       reasons.push("forgery.noClientHints");
     }
     if (major >= 90 && !header(h, "sec-fetch-site")) {
-      score += 0.25;
+      score += w["forgery.noSecFetch"];
       reasons.push("forgery.noSecFetch");
     }
   }
@@ -229,7 +224,7 @@ export function scoreRequest(input: ScoreInput): ScoreResult {
   const fetchDest = header(h, "sec-fetch-dest");
   const maybeNavigation = fetchDest === "" || fetchDest === "document";
   if (accept === "*/*" && !isScript && maybeNavigation) {
-    score += 0.2;
+    score += w["accept.wildcard"];
     reasons.push("accept.wildcard");
   }
 

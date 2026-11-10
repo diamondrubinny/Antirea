@@ -124,6 +124,11 @@ All notable changes to this project are documented here. The format is based on
   (`sourceMapCanaryPlugin`) that appends a per-chunk source-map canary after
   minification; skipped with a warning when the build emits linked source
   maps. Verified on Vite 8.3 and Rollup 4.68.
+- **Signature packs** (honeypot): scorer weights and match patterns are data.
+  The built-in pack ships as `signatures/default.json`; `honeypot({
+  signaturePack })` accepts a strictly validated partial override, so a
+  signature update no longer needs a code release. Packs are never fetched
+  over the network.
 - **Signature regression + false-positive gate** (honeypot): recorded request
   fixtures — measured from real headed Chromium, Playwright-default headless
   Chromium and Node `fetch` with REA's options, plus clearly labelled synthetic

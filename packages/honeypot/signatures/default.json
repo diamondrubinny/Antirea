@@ -1,0 +1,32 @@
+{
+  "$comment": "Built-in signature pack. Copy, edit and pass to honeypot({ signaturePack }). Weights are 0..1; patterns are case-insensitive regular expressions. Any subset of weights/patterns may be given; the rest keep these defaults.",
+  "format": 1,
+  "version": "2026-11-10",
+  "reaVersion": "6.8.0",
+  "weights": {
+    "canary.sourceMap": 1,
+    "attest.cdp": 0.7,
+    "rea.sourceMapAccept": 0.85,
+    "rea.sourceMapShape": 0.5,
+    "ua.headless": 0.6,
+    "ua.automation": 0.4,
+    "ua.empty": 0.4,
+    "ua.headlessClientHint": 0.6,
+    "missing.secFetch": 0.3,
+    "missing.accept": 0.2,
+    "request.sourceMap": 0.3,
+    "runtimeFetch.combined": 0.6,
+    "runtimeFetch.single": 0.2,
+    "missing.acceptLanguage": 0.15,
+    "forgery.noClientHints": 0.4,
+    "forgery.noSecFetch": 0.25,
+    "accept.wildcard": 0.2
+  },
+  "patterns": {
+    "headlessUa": "HeadlessChrome|PhantomJS|SlimerJS|Nightmare|Electron\\/|python-requests|node-fetch|axios\\/|curl\\/|wget\\/|Go-http-client|Java\\/|okhttp|Scrapy",
+    "runtimeFetchUa": "^(?:node|undici)(?:\\/[\\w.-]+)?$|^(?:Bun|Deno)\\/\\d",
+    "automationUa": "playwright|puppeteer|webdriver|selenium|headless",
+    "sourceMapAccept": "application\\/source-map\\+json",
+    "headlessClientHint": "HeadlessChrome"
+  }
+}

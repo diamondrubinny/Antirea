@@ -30,8 +30,17 @@ import { BehaviorTracker, fingerprintHeaders, type BehaviorOptions } from "./beh
 import { RemoteConfigClient } from "./config.js";
 import { buildDecoy, buildEmptySourceMap } from "./decoy.js";
 import { scoreRequest, isUnderPrefix } from "./scoring.js";
+import { DEFAULT_COMPILED_PACK, loadSignaturePack, type SignaturePackInput } from "./signatures.js";
 
 export { scoreRequest } from "./scoring.js";
+export { DEFAULT_SIGNATURE_PACK, loadSignaturePack } from "./signatures.js";
+export type {
+  CompiledSignaturePack,
+  SignaturePack,
+  SignaturePackInput,
+  SignaturePatterns,
+  SignatureWeights,
+} from "./signatures.js";
 export { buildDecoy } from "./decoy.js";
 export { DEFAULT_CANARY_PREFIX, sourceMapCanaryComment } from "./canary.js";
 export { Allowlist } from "./allowlist.js";
@@ -85,6 +94,13 @@ export interface HoneypotOptions {
    * arrive here.
    */
   sourceMapCanary?: string;
+  /**
+   * Signature pack overriding the built-in weights and patterns (see
+   * `signatures/default.json` for the format). Load it from a file you
+   * control; it is validated when the middleware is created and an invalid
+   * pack throws. The middleware never fetches a pack over the network.
+   */
+  signaturePack?: SignaturePackInput;
   /** Live config from the admin panel. */
   config?: HoneypotConfigSource;
   onDecoyServed?: (info: { canary: string; path: string; ip: string }) => void;
@@ -140,6 +156,7 @@ function isNavigation(h: Req["headers"]): boolean {
 export function honeypot(opts: HoneypotOptions): HoneypotMiddleware {
   const staticMode = opts.mode ?? "shadow";
   const staticThreshold = opts.threshold ?? 0.7;
+  const signatures = opts.signaturePack ? loadSignaturePack(opts.signaturePack) : DEFAULT_COMPILED_PACK;
   const allow = new Allowlist(opts.allowlist);
   const tracker = new BehaviorTracker(opts.behavior);
   const staticBlock = new Set(opts.blockIps ?? []);
@@ -220,7 +237,7 @@ export function honeypot(opts: HoneypotOptions): HoneypotMiddleware {
         isNavigation: nav,
       });
 
-      const req_ = scoreRequest({ userAgent: ua, headers: req.headers, path, canaryPaths });
+      const req_ = scoreRequest({ userAgent: ua, headers: req.headers, path, canaryPaths }, signatures);
       const reasons = [...new Set([...req_.reasons, ...behavior.reasons])];
 
       // TLS fingerprint (JA3/JA4) from the proxy — independent of HTTP headers.
