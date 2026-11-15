@@ -94,6 +94,9 @@ section before updating a running collector.
 
 ### Added
 
+- **`@antirea/secure-fn/node`**: `createNodeListener` bridges the Fetch-API
+  handler to `node:http` and to frameworks that expose the raw request and
+  response. Verified with Fastify 5 and Hono 4.
 - **Alert rules** (collector): `ALERT_SIGNALS` (signal names, `*` for a prefix)
   and `ALERT_MIN_CONFIDENCE` send a `signal` webhook alert, one per site per
   rule per window. Rules come from the environment only.

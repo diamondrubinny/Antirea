@@ -16,7 +16,11 @@ All adapters share one core (`core.ts`), so the guards are identical.
 |---|---|---|
 | Express 4 | `createSecureFnRouter` from `@antirea/secure-fn` | Tested in CI |
 | Next.js App Router (Node.js runtime) | `createSecureFnHandler` from `@antirea/secure-fn/web` | Verified by hand on Next.js 15.5 (build + run); not in CI |
-| Any `(Request) => Response` framework on Node.js | `createSecureFnHandler` from `@antirea/secure-fn/web` | Handler tested in CI with standard `Request` objects; individual frameworks not verified |
+| `node:http` | `createNodeListener` from `@antirea/secure-fn/node` | Tested in CI |
+| Fastify 5 | `createNodeListener` (raw request and response) | Verified by hand on Fastify 5.12; not in CI |
+| Hono 4 on Node.js | `createSecureFnHandler` from `@antirea/secure-fn/web` | Verified by hand with `@hono/node-server`; not in CI |
+| Serverless functions on a Node.js runtime | `createSecureFnHandler` | The handler is tested in CI with standard `Request` objects and was called directly as a function; **no real platform (Lambda, Vercel, Netlify) was deployed to** |
+| Other `(Request) => Response` frameworks on Node.js | `createSecureFnHandler` | Not verified |
 | Edge runtimes (no `node:crypto`) | — | Not supported |
 
 `@antirea/secure-fn/web` does not import Express; `express` and
@@ -60,6 +64,69 @@ export const POST = (request: Request) => handler(request);
 Keep the functions in a module that only this route imports. A function
 imported by a Client Component is shipped to the browser — check the build
 output if unsure.
+
+### node:http
+
+```ts
+import http from "node:http";
+import { createSecureFnHandler } from "@antirea/secure-fn/web";
+import { createNodeListener } from "@antirea/secure-fn/node";
+
+const secure = createNodeListener(createSecureFnHandler({ secret: process.env.SECUREFN_SECRET!, functions }));
+http.createServer((req, res) => (req.url?.startsWith("/api/secure/") ? secure(req, res) : res.writeHead(404).end())).listen(3000);
+```
+
+The bridge streams the request body to the handler (which enforces the 32 KB
+limit) and passes the socket address as the connection IP.
+
+### Fastify
+
+Fastify parses request bodies before your handler runs, which would leave
+nothing for the bridge to read. Register the route in its own scope with body
+parsing switched off, and hand over the raw request and response:
+
+```ts
+import { createSecureFnHandler } from "@antirea/secure-fn/web";
+import { createNodeListener } from "@antirea/secure-fn/node";
+
+const secure = createNodeListener(createSecureFnHandler({ secret: process.env.SECUREFN_SECRET!, trustProxy: 1, functions }));
+
+app.register(async (scope) => {
+  scope.removeAllContentTypeParsers();
+  scope.addContentTypeParser("*", (_req, _payload, done) => done(null)); // leave the body unread
+  scope.all("/api/secure/*", (req, reply) => {
+    reply.hijack(); // the bridge writes the response
+    secure(req.raw, reply.raw);
+  });
+});
+```
+
+Because the reply is hijacked, Fastify hooks that run on send (`onSend`,
+compression, reply decorators) do not apply to these routes.
+
+### Hono (and other Fetch-API frameworks)
+
+```ts
+import { createSecureFnHandler } from "@antirea/secure-fn/web";
+
+const secure = createSecureFnHandler({ secret: process.env.SECUREFN_SECRET!, trustProxy: 1, functions });
+app.all("/api/secure/*", (c) => secure(c.req.raw));
+```
+
+### Serverless
+
+Export the handler in the shape your platform expects, on a **Node.js**
+runtime, and set `trustProxy` to the number of proxies the platform puts in
+front of your function (usually 1):
+
+```ts
+const secure = createSecureFnHandler({ secret: process.env.SECUREFN_SECRET!, trustProxy: 1, functions });
+export default { fetch: (request: Request) => secure(request) };
+```
+
+Remember the per-instance state described below: each function instance keeps
+its own nonce and rate-limit tables, and they are lost when the instance is
+recycled.
 
 ### Browser
 
