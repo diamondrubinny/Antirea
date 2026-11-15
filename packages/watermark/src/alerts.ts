@@ -136,6 +136,7 @@ export class Alerter {
     const doFetch = this.cfg.fetchImpl ?? fetch;
     // `text` is the Slack/Discord field; `extra` carries structured data.
     // Tell the receiver how many alerts the budget dropped since the last one.
+    // The count is reserved for this attempt and given back if delivery fails.
     const suppressed = this.dropped;
     this.dropped = 0;
     const body = JSON.stringify({ text, ...extra, ...(suppressed > 0 ? { suppressed } : {}) });
@@ -152,9 +153,13 @@ export class Alerter {
         body,
         signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
       });
-      return res.ok === true;
+      if (res.ok === true) return true;
     } catch {
-      return false;
+      /* fall through: treated like a non-2xx answer */
     }
+    // Not delivered: add the reserved count back (additively — other sends may
+    // have recorded drops meanwhile) so the next delivered alert reports it.
+    this.dropped += suppressed;
+    return false;
   }
 }

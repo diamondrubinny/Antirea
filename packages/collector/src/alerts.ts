@@ -115,45 +115,51 @@ export function parseMinConfidence(raw: string | undefined): number {
 }
 
 /**
- * Alert for an event carrying a signal that matches a configured pattern with
- * at least `minConfidence`. One alert per site per matching pattern per
- * cooldown window. The source-map canary has its own alert and is skipped.
+ * Alerts for an event carrying signals that match configured patterns with at
+ * least `minConfidence` — one alert per distinct matching rule, so a rule that
+ * is in cooldown never hides another rule that matched the same event. Each
+ * alert lists only the signals of its own rule. One alert per site per rule
+ * per cooldown window. The source-map canary has its own alert and is skipped.
  */
-export function signalAlert(
+export function signalAlerts(
   ev: IncomingEvent,
   country: string | null,
   patterns: AlertPattern[],
   minConfidence: number,
-): AlertMessage | null {
-  if (patterns.length === 0) return null;
-  let matched: AlertPattern | null = null;
-  const names: string[] = [];
+): AlertMessage[] {
+  if (patterns.length === 0) return [];
+  // Insertion order = order of first match; at most one entry per pattern.
+  const byRule = new Map<string, string[]>();
   for (const s of ev.signals) {
     if (s.name === CANARY_SIGNAL || s.confidence < minConfidence) continue;
     const p = patterns.find((x) => (x.prefix ? s.name.startsWith(x.value) : s.name === x.value));
     if (!p) continue;
-    matched ??= p;
+    const names = byRule.get(p.source) ?? [];
+    if (!byRule.has(p.source)) byRule.set(p.source, names);
     const name = clean(s.name, 48);
     if (name !== "" && !names.includes(name) && names.length < 12) names.push(name);
   }
-  if (!matched) return null;
   const site = clean(ev.siteId, 64);
   const path = clean(ev.path, 200);
-  return {
-    // The configured pattern, not the signal name from the request: a client
-    // cannot mint new cooldown keys by inventing names under a prefix.
-    key: `signal:${ev.siteId}:${matched.source}`,
-    text: `Antirea: signal ${names.join(", ")} on ${site} (${path}) — check the dashboard.`,
-    extra: {
-      event: "signal",
-      site,
-      path,
-      rule: matched.source,
-      signals: names,
-      source: ev.source === "honeypot" || ev.source === "server" ? ev.source : "client",
-      country: country ? country : null,
-    },
-  };
+  const out: AlertMessage[] = [];
+  for (const [rule, names] of byRule) {
+    out.push({
+      // The configured pattern, not the signal name from the request: a client
+      // cannot mint new cooldown keys by inventing names under a prefix.
+      key: `signal:${ev.siteId}:${rule}`,
+      text: `Antirea: signal ${names.join(", ")} on ${site} (${path}) — check the dashboard.`,
+      extra: {
+        event: "signal",
+        site,
+        path,
+        rule,
+        signals: names,
+        source: ev.source === "honeypot" || ev.source === "server" ? ev.source : "client",
+        country: country ? country : null,
+      },
+    });
+  }
+  return out;
 }
 
 /** Alert for a spike of detection events. */

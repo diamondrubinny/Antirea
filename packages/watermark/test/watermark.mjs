@@ -139,6 +139,26 @@ const CODE = `"use strict";\nexport const f = (x) => x * 2;\n`;
   ok(bodies[3].suppressed === 5 && a.suppressed === 0, "the next alert reports how many were dropped, then the count resets");
   ok(!("suppressed" in bodies[0]), "no suppressed field when nothing was dropped");
 
+  {
+    // A failed delivery must not lose the suppressed count.
+    let mode = "ok";
+    const sentBodies = [];
+    const f = new Alerter({ webhookUrl: "https://hook.example/x", cooldownMs: 10_000, maxPerWindow: 1, fetchImpl: async (_u, i) => {
+      if (mode === "throw") throw new Error("network");
+      if (mode === "500") return { ok: false, status: 500 };
+      sentBodies.push(JSON.parse(i.body)); return { ok: true };
+    } });
+    await f.send("a", "t", {}, 0);            // delivered, uses the budget
+    await f.send("b", "t", {}, 1);            // dropped
+    await f.send("c", "t", {}, 2);            // dropped → suppressed = 2
+    mode = "500";
+    ok((await f.send("d", "t", {}, 20_000)) === false && f.suppressed === 2, "a non-2xx delivery keeps the suppressed count");
+    mode = "throw";
+    ok((await f.send("e", "t", {}, 40_000)) === false && f.suppressed === 2, "a network error keeps the suppressed count");
+    mode = "ok";
+    ok((await f.send("g", "t", {}, 60_000)) === true && sentBodies[1].suppressed === 2 && f.suppressed === 0, "the next delivered alert reports it, then it resets");
+  }
+
   let calls = 0;
   const def = new Alerter({ webhookUrl: "https://hook.example/x", fetchImpl: async () => { calls++; return { ok: true }; } });
   for (let i = 0; i < 50; i++) await def.send("k" + i, "t", {}, 1000 + i);

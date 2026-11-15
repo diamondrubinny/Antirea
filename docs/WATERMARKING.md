@@ -92,7 +92,9 @@ Every body also has a `text` line, which Slack and Discord display.
 ending in `*` matches a prefix (`rea.*`). Rules are read from the environment
 only — they cannot be changed from the control panel — and an invalid rule
 stops the collector at startup. One alert is sent per site per rule per 10
-minutes. The canary keeps its own alert and is never duplicated by a rule.
+minutes. An event that matches several rules sends one alert per rule, so a
+rule in cooldown does not hide another. The canary keeps its own alert and is
+never duplicated by a rule.
 
 **Budget.** At most `ALERT_MAX_PER_WINDOW` alerts (default 20) are sent in any
 10-minute window, across all sites and rules. Alerts over the budget are
@@ -127,8 +129,9 @@ your own endpoint.
 alert can be triggered by a forged event: treat it as a prompt to open the
 dashboard, not as proof. One alert per site per 10 minutes, which also means a
 forged event can delay a real alert for that window, and forged events can use
-up the shared budget so that a real alert is dropped (the `suppressed` count
-tells you it happened). The webhook URL must be
+up the shared budget so that a real alert is dropped. The `suppressed` count is
+an aggregate: it says how many alerts were dropped, not which ones, so it
+cannot tell a dropped real alert from a dropped forged one. The webhook URL must be
 `https` (plain `http` is accepted for `localhost` only) and the collector
 refuses to start otherwise.
 

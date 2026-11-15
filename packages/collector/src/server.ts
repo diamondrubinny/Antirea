@@ -36,7 +36,7 @@ import {
   canaryAlert,
   parseAlertSignals,
   parseMinConfidence,
-  signalAlert,
+  signalAlerts,
   spikeAlert,
   type AlertPattern,
 } from "./alerts.js";
@@ -213,8 +213,9 @@ app.post(
     }
     // Operator-configured signal rules (ALERT_SIGNALS).
     if (alerter && alertPatterns.length > 0) {
-      const a = signalAlert(ev, country, alertPatterns, alertMinConfidence);
-      if (a) void alerter.send(a.key, a.text, a.extra);
+      for (const a of signalAlerts(ev, country, alertPatterns, alertMinConfidence)) {
+        void alerter.send(a.key, a.text, a.extra);
+      }
     }
 
     // 204: no body, nothing for an attacker to learn.

@@ -13,7 +13,7 @@ import {
   canaryAlert,
   parseAlertSignals,
   parseMinConfidence,
-  signalAlert,
+  signalAlerts,
   spikeAlert,
 } from "../dist/alerts.js";
 
@@ -169,6 +169,8 @@ ok(
   }
   ok(badConf === 3, "out-of-range confidence is rejected");
 
+  // First alert of an event, or null — most cases below match a single rule.
+  const signalAlert = (...args) => signalAlerts(...args)[0] ?? null;
   const client = (names, conf = 0.99, over = {}) =>
     event({
       source: "client",
@@ -182,9 +184,31 @@ ok(
     "a matching signal raises an alert, tagged with its rule",
   );
   ok(
-    JSON.stringify(a.extra.signals) === '["rea.scenarioSwPolicy","cdp.debuggerPause"]',
-    "only matching signals are listed",
+    JSON.stringify(a.extra.signals) === '["rea.scenarioSwPolicy"]',
+    "an alert lists only the signals of its own rule",
   );
+  {
+    // One alert per distinct rule: a rule in cooldown must not hide another.
+    const all = signalAlerts(client(["rea.x", "rea.y", "cdp.debuggerPause", "ua.other"]), null, pats, 0);
+    ok(
+      all.length === 2 && all.map((x) => x.extra.rule).join() === "rea.*,cdp.debuggerPause",
+      "one alert per distinct matching rule",
+    );
+    ok(
+      all[0].key === "signal:my-site:rea.*" && all[1].key === "signal:my-site:cdp.debuggerPause",
+      "each rule has its own cooldown key",
+    );
+    ok(
+      JSON.stringify(all[0].extra.signals) === '["rea.x","rea.y"]' &&
+        JSON.stringify(all[1].extra.signals) === '["cdp.debuggerPause"]',
+      "signals are grouped under their rule",
+    );
+    ok(
+      signalAlerts(client(Array.from({ length: 50 }, (_, i) => "rea.n" + i)), null, pats, 0).length === 1,
+      "many names under one prefix still give one alert",
+    );
+    ok(signalAlerts(client(["ua.other"]), null, pats, 0).length === 0, "no match → empty list");
+  }
   ok(
     a.extra.source === "client" && a.extra.country === "IL" && a.extra.site === "my-site",
     "payload carries source, country and site",
