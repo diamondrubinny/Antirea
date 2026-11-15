@@ -73,16 +73,34 @@ ALERT_WINDOW_MIN=5
 ALERT_THRESHOLD=50
 ALERT_WEBHOOK_SECRET=        # optional, 16+ characters: sign every alert
 ALERT_ON_CANARY=true         # alert when a source-map canary is read
+ALERT_SIGNALS=               # extra rules, e.g. rea.*,cdp.debuggerPause
+ALERT_MIN_CONFIDENCE=0       # 0..1, applies to ALERT_SIGNALS
+ALERT_MAX_PER_WINDOW=20      # total alerts per 10 minutes
 ```
 
-Two alerts are sent:
+Three kinds of alert are sent:
 
 | `event` | When | Fields |
 |---|---|---|
 | `spike` | `ALERT_THRESHOLD` events inside `ALERT_WINDOW_MIN` | `site`, `window_min`, `threshold` |
 | `canary` | the honeypot reports a source-map canary read (see [`REA-SIGNATURES.md`](./REA-SIGNATURES.md)) | `site`, `path`, `action`, `score`, `reasons`, `country` |
+| `signal` | an event carries a signal matching `ALERT_SIGNALS` with at least `ALERT_MIN_CONFIDENCE` | `site`, `path`, `rule`, `signals`, `source`, `country` |
 
 Every body also has a `text` line, which Slack and Discord display.
+
+**Rules.** `ALERT_SIGNALS` is a comma-separated list of signal names; a name
+ending in `*` matches a prefix (`rea.*`). Rules are read from the environment
+only — they cannot be changed from the control panel — and an invalid rule
+stops the collector at startup. One alert is sent per site per rule per 10
+minutes. An event that matches several rules sends one alert per rule, so a
+rule in cooldown does not hide another. The canary keeps its own alert and is
+never duplicated by a rule.
+
+**Budget.** At most `ALERT_MAX_PER_WINDOW` alerts (default 20) are sent in any
+10-minute window, across all sites and rules. Alerts over the budget are
+dropped, and the next alert that is sent carries a `suppressed` count. Without
+this, anyone able to post events could flood the webhook by inventing site
+ids.
 
 **What leaves your server.** The webhook receiver is a third party. Alerts
 carry no IP address, no IP hash, no User-Agent and no session id — only the
@@ -110,7 +128,10 @@ your own endpoint.
 **Limits.** The ingest endpoint is unauthenticated (browsers post to it), so an
 alert can be triggered by a forged event: treat it as a prompt to open the
 dashboard, not as proof. One alert per site per 10 minutes, which also means a
-forged event can delay a real alert for that window. The webhook URL must be
+forged event can delay a real alert for that window, and forged events can use
+up the shared budget so that a real alert is dropped. The `suppressed` count is
+an aggregate: it says how many alerts were dropped, not which ones, so it
+cannot tell a dropped real alert from a dropped forged one. The webhook URL must be
 `https` (plain `http` is accepted for `localhost` only) and the collector
 refuses to start otherwise.
 

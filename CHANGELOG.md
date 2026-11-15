@@ -44,6 +44,9 @@ section before updating a running collector.
 - `secure-fn` (Express): malformed or oversized JSON returned Express's default
   error page — with a stack trace outside production. It now returns a clean
   `400`/`413`, and non-JSON content types get `415`.
+- Alert webhooks: a global budget (`ALERT_MAX_PER_WINDOW`, default 20 per 10
+  minutes) caps alerts across all keys. Before, forged events with invented
+  site ids could send one webhook each.
 - Alert webhooks: the URL must be `https` (the collector refuses to start
   otherwise), requests time out after 5 s, a non-2xx answer is no longer
   reported as sent, chat text is stripped of control characters, and the
@@ -91,6 +94,9 @@ section before updating a running collector.
 
 ### Added
 
+- **Alert rules** (collector): `ALERT_SIGNALS` (signal names, `*` for a prefix)
+  and `ALERT_MIN_CONFIDENCE` send a `signal` webhook alert, one per site per
+  rule per window. Rules come from the environment only.
 - **Typed `secure-fn` client**: `createSecureClient<Api>()` and `call()` check
   the function name, argument and result against the server's function map,
   through a type-only import. `invoke()` is unchanged.

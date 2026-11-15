@@ -13,7 +13,7 @@ import {
   embed, recover, stripZeroWidth,
   MemoryCanaryStore, issueCanary, watermarkText,
   buildGitHubQuery, parseGitHubResults, scanGitHub,
-  SpikeDetector, Alerter, signWebhook,
+  SpikeDetector, Alerter, signWebhook, DEFAULT_MAX_ALERTS_PER_WINDOW,
 } from "../dist/index.js";
 
 let pass = 0, fail = 0;
@@ -120,10 +120,54 @@ const CODE = `"use strict";\nexport const f = (x) => x * 2;\n`;
   ok(localOk, "plain http is allowed for localhost only");
 
   let calls = 0;
-  const many = new Alerter({ webhookUrl: "https://hook.example/x", cooldownMs: 60_000, fetchImpl: async () => { calls++; return { ok: true }; } });
+  const many = new Alerter({ webhookUrl: "https://hook.example/x", cooldownMs: 60_000, maxPerWindow: 5000, fetchImpl: async () => { calls++; return { ok: true }; } });
   for (let i = 0; i < 1500; i++) await many.send("site-" + i, "t", {}, 1000 + i);
   ok(calls === 1500 && many.last.size <= 1000, `cooldown table stays bounded (${many.last.size} keys)`);
   ok((await many.send("site-1499", "t", {}, 3000)) === false, "recent keys keep their cooldown after pruning");
+}
+
+// 9. alerter: global budget across keys.
+{
+  const bodies = [];
+  const a = new Alerter({ webhookUrl: "https://hook.example/x", cooldownMs: 10_000, maxPerWindow: 3, fetchImpl: async (_u, i) => { bodies.push(JSON.parse(i.body)); return { ok: true }; } });
+  const results = [];
+  for (let i = 0; i < 8; i++) results.push(await a.send("site-" + i, "t", {}, 1000 + i));
+  ok(results.filter(Boolean).length === 3 && bodies.length === 3, "varying the key cannot exceed the global budget");
+  ok(a.suppressed === 5, `dropped alerts are counted (${a.suppressed})`);
+  // A dropped alert did not start its key's cooldown: it goes out once the window has room.
+  ok((await a.send("site-7", "t", {}, 12_000)) === true, "a dropped key is sent when the window frees up");
+  ok(bodies[3].suppressed === 5 && a.suppressed === 0, "the next alert reports how many were dropped, then the count resets");
+  ok(!("suppressed" in bodies[0]), "no suppressed field when nothing was dropped");
+
+  {
+    // A failed delivery must not lose the suppressed count.
+    let mode = "ok";
+    const sentBodies = [];
+    const f = new Alerter({ webhookUrl: "https://hook.example/x", cooldownMs: 10_000, maxPerWindow: 1, fetchImpl: async (_u, i) => {
+      if (mode === "throw") throw new Error("network");
+      if (mode === "500") return { ok: false, status: 500 };
+      sentBodies.push(JSON.parse(i.body)); return { ok: true };
+    } });
+    await f.send("a", "t", {}, 0);            // delivered, uses the budget
+    await f.send("b", "t", {}, 1);            // dropped
+    await f.send("c", "t", {}, 2);            // dropped → suppressed = 2
+    mode = "500";
+    ok((await f.send("d", "t", {}, 20_000)) === false && f.suppressed === 2, "a non-2xx delivery keeps the suppressed count");
+    mode = "throw";
+    ok((await f.send("e", "t", {}, 40_000)) === false && f.suppressed === 2, "a network error keeps the suppressed count");
+    mode = "ok";
+    ok((await f.send("g", "t", {}, 60_000)) === true && sentBodies[1].suppressed === 2 && f.suppressed === 0, "the next delivered alert reports it, then it resets");
+  }
+
+  let calls = 0;
+  const def = new Alerter({ webhookUrl: "https://hook.example/x", fetchImpl: async () => { calls++; return { ok: true }; } });
+  for (let i = 0; i < 50; i++) await def.send("k" + i, "t", {}, 1000 + i);
+  ok(calls === DEFAULT_MAX_ALERTS_PER_WINDOW, `default budget is ${DEFAULT_MAX_ALERTS_PER_WINDOW} per window (sent ${calls})`);
+  let rejected = 0;
+  for (const bad of [0, -1, 1.5, NaN]) {
+    try { new Alerter({ webhookUrl: "https://hook.example/x", maxPerWindow: bad }); } catch { rejected++; }
+  }
+  ok(rejected === 4, "a non-positive or non-integer budget is rejected");
 }
 
 console.log(`\nRESULT: ${pass} passed, ${fail} failed`);
