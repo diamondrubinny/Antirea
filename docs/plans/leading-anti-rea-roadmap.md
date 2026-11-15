@@ -10,7 +10,7 @@ client-side layer is deterrence and intelligence.
 ## Status (2026-11-09)
 
 - Phase 1 — done (#35).
-- Phase 2 — 2.1 done for Express + Fetch-API/Next.js, 2.2 done (#36). 2.3 typed client done (type inference, no code generation); Fastify/serverless bridges not verified.
+- Phase 2 — 2.1 done for Express + Fetch-API/Next.js, 2.2 done (#36). 2.3 typed client done (type inference, no code generation); node:http bridge added; Fastify 5 and Hono 4 verified by hand; serverless exercised only as a direct function call, not on a real platform.
 - Phase 3 — 3.1 canary plugin for Vite/Rollup (#37) and webpack 5 done, plus an SRI manifest (automatic insertion of `integrity` into HTML is not included). 3.2 signature packs done as validated value overrides, not a rule engine (#38). 3.3 canary webhook alert with HMAC signing done; dashboard REA view done; alert rules done (environment-configured, with a global alert budget).
 - Phase 4 — 4.1 release workflow prepared (dry-run verified locally; first real publish waits for the npm scope and token). 4.2 done: native-driver job on Node 22/24/26 and HTTP tests for every admin route. 4.3 and 4.4 need the owner.
 

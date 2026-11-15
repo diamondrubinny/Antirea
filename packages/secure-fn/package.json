@@ -14,6 +14,10 @@
       "types": "./dist/web.d.ts",
       "import": "./dist/web.js"
     },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "import": "./dist/node.js"
+    },
     "./client": {
       "types": "./dist/client.d.ts",
       "import": "./dist/client.js"
@@ -30,7 +34,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node test/e2e.mjs && node test/web.mjs && tsc -p test/tsconfig.types.json",
+    "test": "node test/e2e.mjs && node test/web.mjs && node test/node.mjs && tsc -p test/tsconfig.types.json",
     "prepack": "node ../../scripts/copy-legal.mjs"
   },
   "peerDependencies": {
