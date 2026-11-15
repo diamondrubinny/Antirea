@@ -32,7 +32,14 @@ import { Store } from "./db.js";
 import { audit, bearerToken, parseTrustProxy, safeEqual, tokenStrengthWarning } from "./auth.js";
 import { countryFor, extractIp, hashIp, initGeo } from "./geo.js";
 import { validateEvent } from "./validate.js";
-import { canaryAlert, spikeAlert } from "./alerts.js";
+import {
+  canaryAlert,
+  parseAlertSignals,
+  parseMinConfidence,
+  signalAlert,
+  spikeAlert,
+  type AlertPattern,
+} from "./alerts.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -70,10 +77,21 @@ const spike = new SpikeDetector(ALERT_WINDOW_MIN * 60_000, ALERT_THRESHOLD);
 // verify them. Canary alerts are on by default when a webhook is configured.
 const ALERT_WEBHOOK_SECRET = process.env.ALERT_WEBHOOK_SECRET ?? "";
 const ALERT_ON_CANARY = process.env.ALERT_ON_CANARY !== "false";
+// Extra alert rules: signal names (a trailing * is a prefix) and a minimum
+// confidence. Set only by whoever runs the server — never from the panel.
 let alerter: Alerter | null = null;
+let alertPatterns: AlertPattern[] = [];
+let alertMinConfidence = 0;
 if (ALERT_WEBHOOK_URL) {
   try {
-    alerter = new Alerter({ webhookUrl: ALERT_WEBHOOK_URL, secret: ALERT_WEBHOOK_SECRET || undefined });
+    alertPatterns = parseAlertSignals(process.env.ALERT_SIGNALS);
+    alertMinConfidence = parseMinConfidence(process.env.ALERT_MIN_CONFIDENCE);
+    const maxRaw = process.env.ALERT_MAX_PER_WINDOW;
+    alerter = new Alerter({
+      webhookUrl: ALERT_WEBHOOK_URL,
+      secret: ALERT_WEBHOOK_SECRET || undefined,
+      maxPerWindow: maxRaw === undefined || maxRaw.trim() === "" ? undefined : Number(maxRaw),
+    });
   } catch (e) {
     console.error(`[antirea] FATAL: ${(e as Error).message}`);
     process.exit(1);
@@ -191,6 +209,11 @@ app.post(
     // Source-map canary read: one alert per site per cooldown window.
     if (alerter && ALERT_ON_CANARY) {
       const a = canaryAlert(ev, country);
+      if (a) void alerter.send(a.key, a.text, a.extra);
+    }
+    // Operator-configured signal rules (ALERT_SIGNALS).
+    if (alerter && alertPatterns.length > 0) {
+      const a = signalAlert(ev, country, alertPatterns, alertMinConfidence);
       if (a) void alerter.send(a.key, a.text, a.extra);
     }
 

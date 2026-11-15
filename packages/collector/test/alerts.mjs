@@ -9,7 +9,13 @@
  * Tests for the webhook alert payloads — in particular, what leaves the server.
  * Build first, then: node packages/collector/test/alerts.mjs
  */
-import { canaryAlert, spikeAlert } from "../dist/alerts.js";
+import {
+  canaryAlert,
+  parseAlertSignals,
+  parseMinConfidence,
+  signalAlert,
+  spikeAlert,
+} from "../dist/alerts.js";
 
 let pass = 0;
 let fail = 0;
@@ -110,7 +116,10 @@ ok(
   const prefix = "p".repeat(64);
   const a = canaryAlert(event({ siteId: prefix + "-one" }), null);
   const b = canaryAlert(event({ siteId: prefix + "-two" }), null);
-  ok(a.key !== b.key && a.extra.site === b.extra.site, "sites sharing a 64-character prefix keep separate cooldown keys");
+  ok(
+    a.key !== b.key && a.extra.site === b.extra.site,
+    "sites sharing a 64-character prefix keep separate cooldown keys",
+  );
 }
 {
   const s = spikeAlert("site\nX", 50, 5);
@@ -119,6 +128,107 @@ ok(
     "spike alert fields",
   );
   ok(!s.text.includes("\n"), "spike text has no injected newline");
+}
+
+// --- configurable signal rules ---
+{
+  const pats = parseAlertSignals(" rea.* , honeypot:rea.sourceMapAccept ,, cdp.debuggerPause ");
+  ok(
+    pats.length === 3 && pats[0].prefix && pats[0].value === "rea." && !pats[1].prefix,
+    "patterns are parsed; a trailing * is a prefix",
+  );
+  ok(
+    parseAlertSignals(undefined).length === 0 && parseAlertSignals("").length === 0,
+    "unset or empty → no rules",
+  );
+  let rejected = 0;
+  for (const bad of [
+    "*",
+    "re a",
+    "rea.*.x",
+    "a*b",
+    "<script>",
+    "x".repeat(65),
+    Array(21).fill("a").join(","),
+  ]) {
+    try {
+      parseAlertSignals(bad);
+    } catch {
+      rejected++;
+    }
+  }
+  ok(rejected === 7, `invalid patterns are rejected (${rejected}/7)`);
+  ok(parseMinConfidence(undefined) === 0 && parseMinConfidence("0.8") === 0.8, "minimum confidence parses");
+  let badConf = 0;
+  for (const bad of ["2", "-0.1", "abc"]) {
+    try {
+      parseMinConfidence(bad);
+    } catch {
+      badConf++;
+    }
+  }
+  ok(badConf === 3, "out-of-range confidence is rejected");
+
+  const client = (names, conf = 0.99, over = {}) =>
+    event({
+      source: "client",
+      path: "/app",
+      signals: names.map((name) => ({ type: "automation", name, confidence: conf })),
+      ...over,
+    });
+  const a = signalAlert(client(["rea.scenarioSwPolicy", "cdp.debuggerPause", "ua.other"]), "IL", pats, 0);
+  ok(
+    a !== null && a.extra.event === "signal" && a.extra.rule === "rea.*",
+    "a matching signal raises an alert, tagged with its rule",
+  );
+  ok(
+    JSON.stringify(a.extra.signals) === '["rea.scenarioSwPolicy","cdp.debuggerPause"]',
+    "only matching signals are listed",
+  );
+  ok(
+    a.extra.source === "client" && a.extra.country === "IL" && a.extra.site === "my-site",
+    "payload carries source, country and site",
+  );
+  const wire = JSON.stringify({ text: a.text, ...a.extra });
+  ok(
+    !wire.includes("SECRET-UA-MARKER") && !wire.includes("SESSION-MARKER"),
+    "no User-Agent or session id in a signal alert",
+  );
+  ok(signalAlert(client(["ua.other"]), null, pats, 0) === null, "no matching signal → no alert");
+  ok(signalAlert(client(["rea.scenarioSwPolicy"]), null, [], 0) === null, "no rules configured → no alert");
+  ok(
+    signalAlert(client(["rea.scenarioSwPolicy"], 0.5), null, pats, 0.8) === null,
+    "below the minimum confidence → no alert",
+  );
+  ok(
+    signalAlert(client(["rea.scenarioSwPolicy"], 0.9), null, pats, 0.8) !== null,
+    "at or above the minimum confidence → alert",
+  );
+  ok(signalAlert(client(["rea"]), null, pats, 0) === null, "a prefix rule does not match a shorter name");
+  // A client inventing names under a prefix cannot mint new cooldown keys.
+  const k1 = signalAlert(client(["rea.invented1"]), null, pats, 0).key;
+  const k2 = signalAlert(client(["rea.invented2"]), null, pats, 0).key;
+  ok(
+    k1 === k2 && k1 === "signal:my-site:rea.*",
+    "cooldown key uses the configured rule, not the signal name",
+  );
+  // The canary keeps its own alert and is not duplicated by a broad rule.
+  const broad = parseAlertSignals("honeypot:*");
+  ok(
+    signalAlert(
+      event({ signals: [{ type: "automation", name: "honeypot:canary.sourceMap", confidence: 1 }] }),
+      null,
+      broad,
+      0,
+    ) === null,
+    "the canary signal is left to the canary alert",
+  );
+  const hostile = signalAlert(client(["rea.x\n@channel" + "y".repeat(200)]), null, pats, 0);
+  // eslint-disable-next-line no-control-regex
+  ok(
+    hostile.extra.signals[0].length <= 48 && !/[\u0000-\u001f]/.test(hostile.text),
+    "signal names are capped and stripped of control characters",
+  );
 }
 
 console.log(`\ncollector/alerts: ${pass} passed, ${fail} failed`);

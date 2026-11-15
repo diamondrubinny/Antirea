@@ -24,6 +24,12 @@ export interface AlertConfig {
    * receiver can verify the alert came from this collector.
    */
   secret?: string;
+  /**
+   * Most alerts sent, across all keys, inside one cooldown window. Keys often
+   * derive from request data (a site id), so without a global budget anyone
+   * who can post events could flood the webhook by varying the key. Default 20.
+   */
+  maxPerWindow?: number;
   /** Injectable fetch. */
   fetchImpl?: typeof fetch;
 }
@@ -62,8 +68,15 @@ export function signWebhook(secret: string, timestamp: number, body: string): st
   return createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
 }
 
+/** Default global alert budget per cooldown window. */
+export const DEFAULT_MAX_ALERTS_PER_WINDOW = 20;
+
 export class Alerter {
   private readonly last = new Map<string, number>();
+  /** Send times inside the current window, for the global budget. */
+  private readonly sent: number[] = [];
+  /** Alerts dropped by the global budget since the last one that was sent. */
+  private dropped = 0;
   constructor(private readonly cfg: AlertConfig) {
     let url: URL;
     try {
@@ -78,6 +91,14 @@ export class Alerter {
     if (cfg.secret !== undefined && cfg.secret.length < 16) {
       throw new Error("[antirea] alert webhook secret must be at least 16 characters");
     }
+    if (cfg.maxPerWindow !== undefined && (!Number.isInteger(cfg.maxPerWindow) || cfg.maxPerWindow < 1)) {
+      throw new Error("[antirea] alert maxPerWindow must be a positive integer");
+    }
+  }
+
+  /** Alerts dropped by the global budget since the last delivered alert. */
+  get suppressed(): number {
+    return this.dropped;
   }
 
   /**
@@ -89,6 +110,17 @@ export class Alerter {
     const cooldown = this.cfg.cooldownMs ?? 10 * 60_000;
     const prev = this.last.get(key);
     if (prev !== undefined && now - prev < cooldown) return false;
+
+    // Global budget across all keys. A dropped alert does not start its key's
+    // cooldown, so it can still be sent once the window has room again.
+    const budget = this.cfg.maxPerWindow ?? DEFAULT_MAX_ALERTS_PER_WINDOW;
+    while (this.sent.length && now - this.sent[0] >= cooldown) this.sent.shift();
+    if (this.sent.length >= budget) {
+      this.dropped += 1;
+      return false;
+    }
+    this.sent.push(now);
+
     // Keys can derive from request data: keep the table bounded.
     if (this.last.size >= MAX_COOLDOWN_KEYS) {
       for (const [k, t] of this.last) if (now - t >= cooldown) this.last.delete(k);
@@ -103,7 +135,10 @@ export class Alerter {
 
     const doFetch = this.cfg.fetchImpl ?? fetch;
     // `text` is the Slack/Discord field; `extra` carries structured data.
-    const body = JSON.stringify({ text, ...extra });
+    // Tell the receiver how many alerts the budget dropped since the last one.
+    const suppressed = this.dropped;
+    this.dropped = 0;
+    const body = JSON.stringify({ text, ...extra, ...(suppressed > 0 ? { suppressed } : {}) });
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (this.cfg.secret) {
       const ts = Math.floor(now / 1000);
