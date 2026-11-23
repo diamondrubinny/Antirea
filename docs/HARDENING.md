@@ -83,7 +83,7 @@ GATE on the key, not the encryption. Requires CSP `blob:` in `script-src`.
 
 **Fetch the key with the guard's gated loader** (`fetchProtected` /
 `fetchProtectedBytes`), not a plain `fetch`: it runs a `debugger`-timing probe
-*before* the request and sends the result as attestation. Against REA 6.8.0
+*before* the request and sends the result as attestation. Against REA 6.10.1
 this matters twice over — REA's live tools enable the `Debugger` domain and
 never suppress pauses, so with REA attached the page freezes at that probe and
 the key is never requested **through the loader** while REA observes.
@@ -100,7 +100,7 @@ What the gate is **not**:
   rate limits, behavioural scoring) and keep real secrets in
   `@antirea/secure-fn`.
 
-**Honest limit against CDP tools (verified against REA 6.8.0):** once the bundle
+**Honest limit against CDP tools (verified against REA 6.10.1):** once the bundle
 has been decrypted and evaluated in the page, a CDP tool that attaches **later**
 can read it — REA's `observe_web_execution` captures every main-frame script via
 `Debugger.getScriptSource` regardless of URL, eval'd and `blob:` code included.

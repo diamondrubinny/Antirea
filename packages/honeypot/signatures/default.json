@@ -1,8 +1,8 @@
 {
   "$comment": "Built-in signature pack. Copy, edit and pass to honeypot({ signaturePack }). Weights are 0..1; patterns are case-insensitive regular expressions. Any subset of weights/patterns may be given; the rest keep these defaults.",
   "format": 1,
-  "version": "2026-11-10",
-  "reaVersion": "6.8.0",
+  "version": "2026-11-23",
+  "reaVersion": "6.10.1",
   "weights": {
     "canary.sourceMap": 1,
     "attest.cdp": 0.7,

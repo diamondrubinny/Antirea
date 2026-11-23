@@ -54,7 +54,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; console.log("FAIL:", m); } 
   ok(r.reasons.includes("ua.headless"), "headless UA flagged");
 }
 
-// --- REA 6.8.0 / Node built-in fetch (measured headers of REA's source-map fetcher on Node 22) ---
+// --- REA 6.10.1 / Node built-in fetch (measured headers of REA's source-map fetcher) ---
 const nodeFetch = { "user-agent": "node", accept: "*/*", "accept-language": "*", "sec-fetch-mode": "cors", "accept-encoding": "gzip, deflate" };
 {
   const r = scoreRequest({ userAgent: "node", headers: nodeFetch, path: "/assets/app.js" });

@@ -182,7 +182,7 @@ Attackers spoof the `User-Agent` and other headers. Antirea's engine (`@antirea/
 ## REA signature pack
 
 Antirea ships fingerprints for the `morluto/rea` tool — **verified against REA
-6.8.0's source and measured on real Node and Chromium** — each documented with
+6.10.1's source and measured on real Node and Chromium** — each documented with
 its evadability in [`docs/REA-SIGNATURES.md`](./docs/REA-SIGNATURES.md):
 
 - **Server** — REA's source-map fetcher runs on Node's `fetch`: its `Accept`
