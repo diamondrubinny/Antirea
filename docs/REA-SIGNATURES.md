@@ -5,8 +5,8 @@ derived from its public source (MIT). Each entry names the **source file it was
 verified against**, the **layer** that detects it, and its **evadability** — we
 do not claim a signature is conclusive when it is not.
 
-> **Verified against REA `rea-agents` 6.8.0** (`main` @ `e9b6c87`, 2026-11-09).
-> Header values were also **measured** (Node 22 `fetch`, Playwright/Chromium
+> **Verified against REA `rea-agents` 6.10.1** (`main` @ `8bb01b5`, 2026-11-23).
+> Header values were also **measured** (Node 24 `fetch`, Playwright/Chromium
 > headless), not only read. Re-check after REA updates — see the end of this file.
 
 These detect REA running **against your own site**. They let your server serve
@@ -18,17 +18,17 @@ signatures surface.
 
 ## Coverage matrix
 
-| Signature | Layer | REA 6.8.0 | How it is verified | Last verified |
+| Signature | Layer | REA 6.10.1 | How it is verified | Last verified |
 |---|---|---|---|---|
-| `rea.sourceMapAccept` | server | ✅ | **Measured fixture** (Node `fetch` with REA's exact options) | 2026-11-09 |
-| `ua.runtimeFetch` / `forgery.partialSecFetch` / `acceptLanguage.wildcard` | server | ✅ (report; decoy when corroborated) | **Measured fixture** | 2026-11-09 |
-| `rea.sourceMapShape` (fork with changed `Accept`) | server | ✅ | **Measured fixture** | 2026-11-09 |
-| `ua.headless` / `ua.headlessClientHint` (launch mode) | server | ✅ | **Measured fixture** (Playwright-default Chromium) | 2026-11-09 |
-| `canary.sourceMap` | server | ✅ | Unit + end-to-end test | 2026-11-09 |
-| `rea.scenarioSwPolicy` | client | ✅ | Unit test + Chromium run; source read | 2026-11-09 |
-| `automation.swBlockPatch` | client | ✅ (report-only) | Unit test + Chromium run | 2026-11-09 |
-| `cdp.debuggerPause` | client | ✅ | Source read (no pause suppression in REA) | 2026-11-09 |
-| `rea.playwrightDefaults` | client | ✅ | Source read + Chromium run | 2026-11-09 |
+| `rea.sourceMapAccept` | server | ✅ | **Measured fixture** (Node `fetch` with REA's exact options) | 2026-11-23 |
+| `ua.runtimeFetch` / `forgery.partialSecFetch` / `acceptLanguage.wildcard` | server | ✅ (report; decoy when corroborated) | **Measured fixture** | 2026-11-23 |
+| `rea.sourceMapShape` (fork with changed `Accept`) | server | ✅ | **Measured fixture** | 2026-11-23 |
+| `ua.headless` / `ua.headlessClientHint` (launch mode) | server | ✅ | **Measured fixture** (Playwright-default Chromium) | 2026-11-23 |
+| `canary.sourceMap` | server | ✅ | Unit + end-to-end test | 2026-11-23 |
+| `rea.scenarioSwPolicy` | client | ✅ | Unit test + Chromium run; source read | 2026-11-23 |
+| `automation.swBlockPatch` | client | ✅ (report-only) | Unit test + Chromium run | 2026-11-23 |
+| `cdp.debuggerPause` | client | ✅ | Source read (no pause suppression in REA) | 2026-11-23 |
+| `rea.playwrightDefaults` | client | ✅ | Source read + Chromium run | 2026-11-23 |
 
 **Regression and false-positive gate.** `packages/honeypot/test/fixtures.mjs`
 runs on every CI build. It scores recorded requests and fails if a signature
@@ -43,7 +43,8 @@ stops firing **or if any legitimate client would be decoyed**:
   behaviour and labelled as such until real captures replace them.
 
 Current result: **0 of 10 legitimate request shapes decoyed** (5 measured, 5
-synthetic). This is a small corpus, not a field
+synthetic). The corpus contains 11 measured and 6 synthetic request shapes.
+This is a small corpus, not a field
 false-positive rate — run shadow mode on your own traffic before going live.
 
 A weekly workflow (`.github/workflows/rea-watch.yml`) opens an issue when REA
@@ -68,7 +69,7 @@ app.use(honeypot({ siteId, protect: [/\.js$/], signaturePack }));
 {
   "format": 1,
   "version": "2026-12-01",
-  "reaVersion": "6.9.0",
+  "reaVersion": "6.10.1",
   "weights": { "runtimeFetch.combined": 0.6 },
   "patterns": { "sourceMapAccept": "application\\/source-map\\+json" }
 }
@@ -253,14 +254,14 @@ observation does not suppress or resume these pauses"
 fires; with REA attached the page actually freezes at the probe until REA detaches.
 
 ### `rea.playwrightDefaults` — strong-but-evadable
-Launch defaults, unchanged in 6.8.0 (`browserScenarioValues.ts:269-318`): headless,
+Launch defaults, unchanged in 6.10.1 (`browserScenarioValues.ts`): headless,
 1280×720, DPR 1, `en-US`, `UTC`, light, `reduced_motion: reduce`, service workers
 blocked; plus `navigator.webdriver === true` (measured). Fires on a strong core
 plus ≥4 of 7 markers. **Evadability:** medium — the operator can override these.
 
 ## What REA can and cannot defeat (honest)
 
-| Our protection | Against REA 6.8.0 |
+| Our protection | Against REA 6.10.1 |
 |---|---|
 | **Server-side execution** (`secure-fn`) | **Not defeated** — the algorithm never reaches the browser. The only hermetic layer. |
 | **Encrypted bundle delivery** | **Defeated if REA attaches after decryption.** `observe_web_execution` reads every main-frame, default-world script via `Debugger.getScriptSource` and checks the frame and world, **not the URL** (`src/browser/execution/CdpRuntimeSources.ts:119-150`), so eval'd and blob-imported code is captured, including scripts compiled before it attached. **Not defeated if REA is attached first:** the guard's attestation runs a `debugger` probe *before* requesting the key, and REA's attached debugger freezes the page there, so decryption never runs while it observes. Code in Workers, child frames and WASM is outside that capture path. |

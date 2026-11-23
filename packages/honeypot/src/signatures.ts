@@ -75,11 +75,11 @@ export interface SignaturePackInput {
   patterns?: Partial<SignaturePatterns>;
 }
 
-/** Built-in pack, verified against REA 6.8.0 (see docs/REA-SIGNATURES.md). */
+/** Built-in pack, verified against REA 6.10.1 (see docs/REA-SIGNATURES.md). */
 export const DEFAULT_SIGNATURE_PACK: SignaturePack = Object.freeze({
   format: 1,
-  version: "2026-11-10",
-  reaVersion: "6.8.0",
+  version: "2026-11-23",
+  reaVersion: "6.10.1",
   weights: Object.freeze({
     "canary.sourceMap": 1,
     "attest.cdp": 0.7,

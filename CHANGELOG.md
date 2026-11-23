@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- **REA 6.10.1 signatures re-verified** against the upstream source and fresh
+  Node/Chromium captures. The source-map fetch options, scenario defaults and
+  service-worker policy markers are unchanged from 6.8.0; the fixture corpus
+  now records the current Node and Chromium headers with zero false positives.
+  Upstream 6.10.1's Kuna fix and 6.10.0's Evidence/scenario-request changes do
+  not affect these signatures. See `docs/REA-SIGNATURES.md`.
+
 ## [0.2.0] - 2026-11-10
 
 First release intended for npm. Read the upgrade notes at the end of this
