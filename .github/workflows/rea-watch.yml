@@ -1,12 +1,18 @@
 name: REA upstream watch
 
-# Weekly: if REA published a release newer than the one our signatures were
-# verified against, open ONE issue asking for re-verification. Defensive
-# housekeeping only — it reads public npm metadata and never runs REA.
+# Hourly: if REA published a release newer than the one our signatures were
+# verified against, open ONE issue and assign Copilot to update them.
+# Defensive housekeeping only — it reads public npm metadata and never runs REA.
+#
+# Assigning Copilot needs a user token. Add a repository secret named
+# COPILOT_ASSIGN_TOKEN: a fine-grained PAT with metadata read, and read/write
+# on actions, contents, issues, and pull requests (classic PAT: repo scope).
+# The workflow GITHUB_TOKEN cannot assign Copilot. Scheduled runs use the
+# default branch only, and GitHub may delay public-repo schedules.
 
 on:
   schedule:
-    - cron: "23 5 * * 1" # Mondays 05:23 UTC
+    - cron: "17 * * * *" # hourly, off the top of the hour
   workflow_dispatch:
 
 permissions:
@@ -15,7 +21,7 @@ permissions:
 
 concurrency:
   group: rea-watch
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   check:
@@ -27,28 +33,11 @@ jobs:
           node-version: 24
       - id: rea
         run: node scripts/check-rea-version.mjs
-      - name: Open a re-verification issue
+      - name: Open a signature-update issue and assign Copilot
         if: steps.rea.outputs.stale == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          COPILOT_ASSIGN_TOKEN: ${{ secrets.COPILOT_ASSIGN_TOKEN }}
           VERIFIED: ${{ steps.rea.outputs.verified }}
           LATEST: ${{ steps.rea.outputs.latest }}
-        run: |
-          title="Re-verify REA signatures against rea-agents ${LATEST}"
-          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"${title}\" in:title" --json number --jq 'length')
-          if [ "$existing" != "0" ]; then
-            echo "An issue for ${LATEST} is already open."
-            exit 0
-          fi
-          {
-            echo "REA published **${LATEST}**; our signatures were last verified against **${VERIFIED}**."
-            echo
-            echo "Checklist:"
-            echo "- [ ] Read the upstream changelog for changes to the source-map fetcher, scenario defaults and service-worker policy."
-            echo "- [ ] Re-capture fixtures: \`xvfb-run -a node packages/honeypot/test/fixtures/capture.mjs\` and review the diff."
-            echo "- [ ] Update \`reaVersion\` in the capture script, \`docs/REA-SIGNATURES.md\` (matrix + verified date) and the CHANGELOG."
-            echo "- [ ] \`npm test\` — the fixture suite must report 0 false positives."
-            echo
-            echo "_Opened automatically by the \`REA upstream watch\` workflow._"
-          } > body.md
-          gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file body.md
+        run: node scripts/open-rea-signature-task.mjs

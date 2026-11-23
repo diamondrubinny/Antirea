@@ -20,7 +20,7 @@ client-side layer is deterrence and intelligence.
 |---|---|---|
 | 1.1 | Signature regression suite: recorded request fixtures per REA version (headers only), asserted against the scorer | Every signature has a test tied to a REA version |
 | 1.2 | False-positive corpus: recorded headers of real browsers (Chrome, Firefox, Safari, mobile, proxied) and legitimate server clients | Published FP rate; CI fails if it rises |
-| 1.3 | Upstream watch: scheduled CI job that checks for a new REA release and opens an issue to re-verify | Signatures never go silently stale |
+| 1.3 | Upstream watch: hourly CI job that checks for a new REA release, opens one issue, and assigns Copilot to update signatures | Signatures never go silently stale |
 | 1.4 | Public compatibility matrix in `docs/REA-SIGNATURES.md` (REA version × signature × verified date) | Users can see what is covered |
 
 ## Phase 2 — Make the hermetic layer easy (biggest real protection)
