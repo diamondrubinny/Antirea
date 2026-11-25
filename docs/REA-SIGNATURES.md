@@ -46,8 +46,13 @@ Current result: **0 of 10 legitimate request shapes decoyed** (5 measured, 5
 synthetic). This is a small corpus, not a field
 false-positive rate — run shadow mode on your own traffic before going live.
 
-A weekly workflow (`.github/workflows/rea-watch.yml`) opens an issue when REA
-publishes a release newer than the one in this table.
+An hourly workflow (`.github/workflows/rea-watch.yml`) opens one issue when REA
+publishes a release newer than the one in this table, and assigns Copilot to
+update the signatures and open a pull request. Assignment needs a repository
+secret `COPILOT_ASSIGN_TOKEN` (fine-grained PAT: metadata read; actions,
+contents, issues, and pull requests read/write). The workflow reads public npm
+metadata only and never runs REA. GitHub may delay scheduled runs on a public
+repository.
 
 ## Signature packs — updating without a code release
 

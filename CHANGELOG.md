@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- **REA upstream watch** runs hourly (was weekly) and assigns Copilot to update
+  signatures when npm `rea-agents` is newer than the verified release. Requires
+  repository secret `COPILOT_ASSIGN_TOKEN` (a user PAT; the workflow token
+  cannot assign Copilot). It still only reads public npm metadata and never
+  runs REA.
+
 ## [0.2.0] - 2026-11-10
 
 First release intended for npm. Read the upgrade notes at the end of this
